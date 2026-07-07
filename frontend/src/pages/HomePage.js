@@ -100,7 +100,7 @@ export default function HomePage({ addToCart, openCart, showToast }) {
         </div>
         <div className="hero-right" style={{ animation: 'fadeUp 0.5s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
           <div className="hero-bg-shape" />
-          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ borderRadius: slide.img.includes('unsplash') ? '50%' : '0' }} />
+          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0' }} />
         </div>
         
         {/* Carousel Indicators */}
