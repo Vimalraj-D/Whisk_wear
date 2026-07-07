@@ -166,7 +166,7 @@ export default function HomePage({ addToCart, openCart, showToast }) {
               return (
                 <div key={p.id} className="product-card">
                   <div className="product-img-wrapper">
-                    <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
+                    <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
                     {hasDiscount && (
                       <div className="discount-badge">{p.discount_percent}% OFF</div>
                     )}

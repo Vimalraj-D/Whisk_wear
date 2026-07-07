@@ -37,7 +37,7 @@ export default function CollectionsPage() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
       <div className="page-header" style={{ marginBottom: '3rem', background: 'linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%)', padding: '3rem 2rem', borderRadius: '16px', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
         <h2 style={{ fontSize: '2.5rem', fontWeight: 800, fontFamily: 'var(--font-serif)', position: 'relative', zIndex: 2 }}>Our Collections</h2>
@@ -57,8 +57,8 @@ export default function CollectionsPage() {
             const defaultImg = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop&q=80';
             return (
               <div key={cat.id} style={{ display: 'flex', flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse', gap: '3rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 400px' }}>
-                  <ImageWithSkeleton src={cat.image_url || defaultImg} alt={cat.name} style={{ width: '100%', borderRadius: '50%', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', aspectRatio: '1/1', objectFit: 'cover' }} />
+                <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+                  <ImageWithSkeleton src={cat.image_url || defaultImg} alt={cat.name} style={{ width: '85%', maxWidth: '400px', borderRadius: '50%', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', aspectRatio: '1/1', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: '1 1 400px' }}>
                   <h3 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-primary)' }}>{cat.name}</h3>
