@@ -2,7 +2,24 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/adminAuth');
-const upload = require('../middleware/upload');
+const { upload, s3Config } = require('../middleware/upload');
+const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+
+// Helper to delete images from S3 bucket
+async function deleteImagesFromS3(urls) {
+  if (!urls || urls.length === 0) return;
+  const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
+  for (const url of urls) {
+    try {
+      if (url.includes(`/public/${bucket}/`)) {
+        const key = url.split(`/public/${bucket}/`)[1];
+        await s3Config.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+      }
+    } catch (e) {
+      console.error('Failed to delete image from S3:', e);
+    }
+  }
+}
 
 // Get all products, optionally filter by category
 router.get('/', async (req, res) => {
@@ -54,8 +71,10 @@ router.post('/', adminAuth, upload.array('images', 10), async (req, res) => {
     }
     const sizesArray = typeof sizes === 'string' ? sizes.split(',').map(s => s.trim()).filter(Boolean) : (Array.isArray(sizes) ? sizes : []);
     const colorsArray = typeof colors === 'string' ? colors.split(',').map(c => c.trim()).filter(Boolean) : (Array.isArray(colors) ? colors : []);
-    // Build array of image URLs (served from /uploads)
-    const image_urls = files && files.length > 0 ? files.map(f => `/uploads/${f.filename}`) : [];
+    // Build array of image URLs (served from Supabase S3)
+    const projectId = process.env.SUPABASE_PROJECT_ID || 'aoppjuuqdgajcidduqld';
+    const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
+    const image_urls = files && files.length > 0 ? files.map(f => `https://${projectId}.supabase.co/storage/v1/object/public/${bucket}/${f.key}`) : [];
     const { data, error } = await supabase
       .from('products')
       .insert([{ 
@@ -104,26 +123,35 @@ router.put('/:id', adminAuth, upload.array('images', 10), async (req, res) => {
     }
     if (stock !== undefined) updateFields.stock = parseInt(stock);
 
+    const { data: existingData, error: fetchError } = await supabase
+      .from('products')
+      .select('image_urls')
+      .eq('id', id)
+      .single();
+    if (fetchError) throw fetchError;
+    const existingUrls = existingData.image_urls || [];
+
     let remainingUrls = [];
     if (image_urls !== undefined) {
       remainingUrls = typeof image_urls === 'string' ? image_urls.split(',').map(u => u.trim()).filter(Boolean) : (Array.isArray(image_urls) ? image_urls : []);
       updateFields.image_urls = remainingUrls;
+      
+      // Delete removed images from S3
+      const removedUrls = existingUrls.filter(oldUrl => !remainingUrls.includes(oldUrl));
+      if (removedUrls.length > 0) {
+        await deleteImagesFromS3(removedUrls);
+      }
     }
 
-    // Handle image uploads
+    // Handle new image uploads
     const files = req.files;
     if (files && files.length > 0) {
-      const newUrls = files.map(f => `/uploads/${f.filename}`);
+      const projectId = process.env.SUPABASE_PROJECT_ID || 'aoppjuuqdgajcidduqld';
+      const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
+      const newUrls = files.map(f => `https://${projectId}.supabase.co/storage/v1/object/public/${bucket}/${f.key}`);
       if (updateFields.image_urls) {
         updateFields.image_urls = [...updateFields.image_urls, ...newUrls];
       } else {
-        const { data: existingData, error: fetchError } = await supabase
-          .from('products')
-          .select('image_urls')
-          .eq('id', id)
-          .single();
-        if (fetchError) throw fetchError;
-        const existingUrls = existingData.image_urls || [];
         updateFields.image_urls = [...existingUrls, ...newUrls];
       }
     }
@@ -146,12 +174,25 @@ router.put('/:id', adminAuth, upload.array('images', 10), async (req, res) => {
 router.delete('/:id', adminAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    // First fetch the product to get images
+    const { data: existingData, error: fetchError } = await supabase
+      .from('products')
+      .select('image_urls')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError) throw fetchError;
+
     const { data, error } = await supabase
       .from('products')
       .delete()
       .eq('id', id)
       .select();
       
+    // Delete associated images from S3
+    if (existingData && existingData.image_urls && existingData.image_urls.length > 0) {
+      await deleteImagesFromS3(existingData.image_urls);
+    }
     if (error) throw error;
     if (!data || data.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
