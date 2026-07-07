@@ -10,24 +10,6 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
 
   return (
     <header className="header">
-      {/* Mobile Hamburger Toggle */}
-      <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {mobileMenuOpen ? (
-            <>
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </>
-          ) : (
-            <>
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </>
-          )}
-        </svg>
-      </button>
-
       {/* Logo */}
       <div className="logo-container" onClick={() => { navigate('/'); closeMenu(); }}>
         <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" />
@@ -90,6 +72,24 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
         ) : (
           <Link to="/login" className="btn btn-sm btn-teal header-btn-desktop" onClick={closeMenu}>Sign In</Link>
         )}
+
+        {/* Mobile Hamburger Toggle (Right side) */}
+        <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {mobileMenuOpen ? (
+              <>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </>
+            ) : (
+              <>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </>
+            )}
+          </svg>
+        </button>
       </div>
     </header>
   );

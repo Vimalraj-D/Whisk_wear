@@ -120,8 +120,8 @@ function AppLayout({
 
       <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Routes>
-          <Route path="/" element={<HomePage addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
-          <Route path="/shop" element={<ShopPage addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
+          <Route path="/" element={<HomePage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
+          <Route path="/shop" element={<ShopPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
           <Route path="/collections" element={<CollectionsPage />} />
           
           <Route path="/login" element={userToken ? <Navigate to="/" replace /> :

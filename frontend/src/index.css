@@ -159,7 +159,13 @@ img { display: block; }
 ════════════════════════════════════ */
 .header {
   position: sticky;
-  top: 0; z-index: 100;
+  top: 0; z-index: 200;
+  background: var(--glossy-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glossy-border);
+  padding: 0 2.5rem;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1853,8 +1859,7 @@ img { display: block; }
   /* Header & Mobile Menu */
   .header { padding: 0 1rem; height: 60px; }
   .logo-wordmark { font-size: 1.1rem; }
-  
-  .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; margin-right: 0.5rem; }
+  .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; margin-left: 0.5rem; }
   
   .nav-links {
     position: absolute;

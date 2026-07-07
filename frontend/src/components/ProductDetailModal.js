@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getImageUrl } from '../api';
+import ReviewSection from './ReviewSection';
 
 export default function ProductDetailModal({ product, onClose, addToCart, openCart }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -215,6 +216,9 @@ export default function ProductDetailModal({ product, onClose, addToCart, openCa
                 Buy Now
               </button>
             </div>
+
+            {/* Review Section */}
+            <ReviewSection productId={product.id} user={user} />
           </div>
         </div>
       </div>
@@ -242,8 +246,9 @@ const containerStyle = {
   boxShadow: '0 24px 64px -16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.6)',
   maxWidth: '920px',
   width: '100%',
+  maxHeight: '90vh',
   position: 'relative',
-  overflow: 'hidden',
+  overflowY: 'auto',
   color: '#2d3436'
 };
 

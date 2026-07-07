@@ -4,7 +4,7 @@ import { apiService, getImageUrl } from '../api';
 import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 
-export default function HomePage({ addToCart, openCart, showToast }) {
+export default function HomePage({ user, addToCart, openCart, showToast }) {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
@@ -270,6 +270,7 @@ export default function HomePage({ addToCart, openCart, showToast }) {
       {detailProduct && (
         <ProductDetailModal 
           product={detailProduct} 
+          user={user}
           onClose={() => setDetailProduct(null)} 
           addToCart={addToCart} 
           openCart={openCart}

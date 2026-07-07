@@ -30,7 +30,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-export default function ShopPage({ addToCart, openCart, showToast }) {
+export default function ShopPage({ user, addToCart, openCart, showToast }) {
   const query = useQuery();
   const focusParam = query.get('focus');
   const categoryParam = query.get('category') || 'all';
@@ -233,6 +233,7 @@ export default function ShopPage({ addToCart, openCart, showToast }) {
       {detailProduct && (
         <ProductDetailModal 
           product={detailProduct} 
+          user={user}
           onClose={() => setDetailProduct(null)} 
           addToCart={addToCart} 
           openCart={openCart}
