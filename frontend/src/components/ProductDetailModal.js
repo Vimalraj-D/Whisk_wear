@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getImageUrl } from '../api';
 import ReviewSection from './ReviewSection';
 
-export default function ProductDetailModal({ product, onClose, addToCart, openCart }) {
+export default function ProductDetailModal({ product, user, onClose, addToCart, openCart }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState(product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
   const [selectedColor, setSelectedColor] = useState(product.colors && product.colors.length > 0 ? product.colors[0] : '');
