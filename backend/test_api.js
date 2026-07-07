@@ -1,7 +1,7 @@
 const http = require('http');
 const supabase = require('./config/supabase');
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://whisk-wear.onrender.com/api';
 
 const makeRequest = (method, path, body = null, headers = {}) => {
   return new Promise((resolve, reject) => {
