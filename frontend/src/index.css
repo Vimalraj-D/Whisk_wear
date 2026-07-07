@@ -209,7 +209,7 @@ img { display: block; }
   flex: 1;
   justify-content: center;
 }
-.mobile-only-nav-item, .nav-link.mobile-only {
+.mobile-only-nav-item, .nav-link.mobile-only, .mobile-menu-toggle {
   display: none !important;
 }
 .nav-link {
@@ -1862,7 +1862,7 @@ img { display: block; }
   /* Header & Mobile Menu */
   .header { padding: 0 1rem; height: 60px; }
   .logo-wordmark { font-size: 1.1rem; }
-  .mobile-menu-toggle { display: flex; align-items: center; justify-content: center; margin-left: 0.5rem; }
+  .mobile-menu-toggle { display: flex !important; align-items: center; justify-content: center; margin-left: 0.5rem; }
   
   .nav-links {
     position: absolute;
