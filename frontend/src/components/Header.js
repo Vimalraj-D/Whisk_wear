@@ -21,7 +21,6 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
         <Link to="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMenu}>Home</Link>
         <Link to="/shop" className={`nav-link ${pathname === '/shop' ? 'active' : ''}`} onClick={closeMenu}>Shop</Link>
         <Link to="/collections" className={`nav-link ${pathname === '/collections' ? 'active' : ''}`} onClick={closeMenu}>Collections</Link>
-        {user && <Link to="/orders" className={`nav-link ${pathname === '/orders' ? 'active' : ''}`} onClick={closeMenu}>My Orders</Link>}
         {adminToken && <Link to="/admin" className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={closeMenu}>Dashboard</Link>}
         
         {/* Mobile-Only Items (Cart & Profile) */}
@@ -81,19 +80,28 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
             Admin Logout
           </button>
         ) : user ? (
-          <div className="nav-user-chip desktop-only-nav-item" onClick={() => { navigate('/orders'); closeMenu(); }}>
-            <div className="nav-user-avatar">{user.name?.[0]?.toUpperCase()}</div>
-            <span className="nav-user-name">{user.name.split(' ')[0]}</span>
-            <button
-              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.75rem', cursor: 'pointer', marginLeft: '0.4rem', display: 'flex', alignItems: 'center' }}
-              onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }}
-              title="Logout"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+          <div className="profile-dropdown-container desktop-only-nav-item">
+            <div className="nav-user-chip" style={{ cursor: 'pointer' }}>
+              <div className="nav-user-avatar">{user.name?.[0]?.toUpperCase()}</div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-            </button>
+            </div>
+            
+            <div className="profile-dropdown-menu">
+              <div className="profile-dropdown-header">
+                <strong>{user.name}</strong>
+                <span>{user.email}</span>
+              </div>
+              <div className="profile-dropdown-body">
+                <Link to="/profile" className="profile-dropdown-item" onClick={closeMenu}>Profile & Address</Link>
+                <Link to="/profile" className="profile-dropdown-item" onClick={closeMenu}>Purchase History</Link>
+                <Link to="/profile" className="profile-dropdown-item" onClick={closeMenu}>Password & Security</Link>
+                <button className="profile-dropdown-item" onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }} style={{ color: 'var(--color-cancelled)', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit', padding: '0.8rem 1.2rem' }}>
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <Link to="/login" className="btn btn-sm btn-teal desktop-only-nav-item" onClick={closeMenu}>Sign In</Link>

@@ -12,6 +12,7 @@ import ShopPage from './pages/ShopPage';
 import CollectionsPage from './pages/CollectionsPage';
 import AuthPage from './pages/AuthPage';
 import OrdersPage from './pages/OrdersPage';
+import UserProfilePage from './pages/UserProfilePage';
 
 // Admin Pages
 import AdminAuthPage from './pages/admin/AdminAuthPage';
@@ -128,6 +129,9 @@ function AppLayout({
             <AuthPage setUser={setUser} setUserToken={setUserToken} showToast={showToast} />} />
           <Route path="/orders" element={userToken ?
             <OrdersPage userToken={userToken} showToast={showToast} onSessionExpired={handleUserLogout} /> :
+            <Navigate to="/login" replace />} />
+          <Route path="/profile" element={userToken ?
+            <UserProfilePage user={user} setUser={setUser} showToast={showToast} onUserLogout={handleUserLogout} /> :
             <Navigate to="/login" replace />} />
             
           <Route path="/admin/login" element={adminToken ? <Navigate to="/admin" replace /> :

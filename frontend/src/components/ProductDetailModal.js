@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getImageUrl } from '../api';
 import ReviewSection from './ReviewSection';
+import ImageWithSkeleton from './ImageWithSkeleton';
 
 export default function ProductDetailModal({ product, user, onClose, addToCart, openCart }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -105,6 +106,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
               <img 
                 src={getImageUrl(images[currentIndex])} 
                 alt={product.name} 
+                onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1fac08b475?w=500'; }}
                 style={{
                   ...imageStyle,
                   transform: `scale(${zoomScale}) translate(${panOffset.x / zoomScale}px, ${panOffset.y / zoomScale}px)`,

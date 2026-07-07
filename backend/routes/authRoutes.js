@@ -207,4 +207,117 @@ router.post('/user/login', async (req, res) => {
   }
 });
 
+// ──────────────────────────────────────────
+//  FORGOT PASSWORD (send OTP)
+// ──────────────────────────────────────────
+router.post('/user/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const { data: user, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, name, email')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    if (fetchErr) throw fetchErr;
+
+    if (!user) {
+      return res.status(404).json({ error: 'No account found with this email.' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
+    await sendVerificationEmail(user.email, user.name, code);
+    
+    res.json({ success: true, message: 'Password reset code sent to your email.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────
+//  RESET PASSWORD (verify OTP and update)
+// ──────────────────────────────────────────
+router.post('/user/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'Email, code, and new password are required' });
+    }
+
+    const { data: user, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, verification_code, code_expires_at')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    
+    if (fetchErr) throw fetchErr;
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (user.verification_code !== code) {
+      return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+    if (new Date() > new Date(user.code_expires_at)) {
+      return res.status(400).json({ error: 'Verification code has expired.' });
+    }
+
+    await supabase.from('users').update({ 
+      password: newPassword,
+      verification_code: null,
+      code_expires_at: null
+    }).eq('id', user.id);
+
+    res.json({ success: true, message: 'Password has been reset successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────
+//  USER PROFILE (GET)
+// ──────────────────────────────────────────
+router.get('/user/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { data: user, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, name, email, address')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (fetchErr) throw fetchErr;
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────
+//  USER PROFILE (PUT)
+// ──────────────────────────────────────────
+router.put('/user/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, address } = req.body;
+    
+    const { data: user, error: updateErr } = await supabase
+      .from('users')
+      .update({ name, address })
+      .eq('id', userId)
+      .select('id, name, email, address')
+      .single();
+    
+    if (updateErr) throw updateErr;
+    
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
