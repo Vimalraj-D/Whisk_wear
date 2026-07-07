@@ -25,26 +25,25 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
         
         {/* Mobile-Only Items (Cart & Profile) */}
         {!adminToken && (
-          <div className="mobile-only-nav-item" onClick={() => { openCart(); closeMenu(); }}>
-            <span style={{ marginRight: '8px' }}>🛒 Cart</span>
-            {cartCount > 0 && <span style={{ background: 'var(--brand-purple)', color: '#fff', padding: '2px 6px', borderRadius: '10px', fontSize: '0.7rem' }}>{cartCount}</span>}
+          <div className="nav-link mobile-only" onClick={() => { openCart(); closeMenu(); }}>
+            🛒 Cart {cartCount > 0 && <span className="cart-badge-inline">{cartCount}</span>}
           </div>
         )}
         {adminToken ? (
-          <div className="mobile-only-nav-item" onClick={() => { onAdminLogout(); navigate('/'); closeMenu(); }} style={{ color: 'var(--color-cancelled)' }}>
+          <div className="nav-link mobile-only logout-link" onClick={() => { onAdminLogout(); navigate('/'); closeMenu(); }}>
             Logout Admin
           </div>
         ) : user ? (
           <>
-            <div className="mobile-only-nav-item" onClick={() => { navigate('/profile'); closeMenu(); }} style={{ borderTop: '1px solid #eee', paddingTop: '0.8rem', color: 'var(--brand-purple)' }}>
-              👤 Profile Settings ({user.name})
+            <div className="nav-link mobile-only profile-link" onClick={() => { navigate('/profile'); closeMenu(); }}>
+              👤 Profile Settings
             </div>
-            <div className="mobile-only-nav-item" onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }} style={{ color: 'var(--color-cancelled)' }}>
+            <div className="nav-link mobile-only logout-link" onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }}>
               Logout
             </div>
           </>
         ) : (
-          <div className="mobile-only-nav-item" onClick={() => { navigate('/login'); closeMenu(); }} style={{ borderTop: '1px solid #eee', paddingTop: '0.8rem' }}>
+          <div className="nav-link mobile-only" onClick={() => { navigate('/login'); closeMenu(); }}>
             Sign In
           </div>
         )}
