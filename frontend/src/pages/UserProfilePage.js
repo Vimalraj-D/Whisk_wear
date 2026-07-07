@@ -120,27 +120,27 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
   if (loading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div className="admin-container">
+    <div className="admin-page-container">
       <div className="admin-sidebar">
         <h2 style={{ padding: '0 1.5rem', marginBottom: '2rem' }}>My Account</h2>
-        <nav className="admin-menu">
-          <button className={`admin-menu-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
+        <nav className="admin-sidebar-nav">
+          <button className={`admin-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
             Profile details
           </button>
-          <button className={`admin-menu-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
+          <button className={`admin-nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
             Purchase History
           </button>
-          <button className={`admin-menu-item ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
+          <button className={`admin-nav-item ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
             Security & Password
           </button>
-          <button className="admin-menu-item" style={{ color: 'var(--color-cancelled)', marginTop: '2rem' }} onClick={() => { onUserLogout(); navigate('/'); }}>
+          <button className="admin-nav-item" style={{ color: 'var(--color-cancelled)', marginTop: '2rem' }} onClick={() => { onUserLogout(); navigate('/'); }}>
             Logout
           </button>
         </nav>
       </div>
 
-      <div className="admin-main">
-        <div className="admin-content-card">
+      <div className="admin-main-content">
+        <div className="admin-content-inner" style={{ background: '#fff', borderRadius: '12px', padding: '2rem' }}>
           {activeTab === 'profile' && (
             <div>
               <h3>Profile Details</h3>

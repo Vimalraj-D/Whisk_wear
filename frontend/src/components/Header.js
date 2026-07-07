@@ -36,8 +36,8 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
           </div>
         ) : user ? (
           <>
-            <div className="mobile-only-nav-item" style={{ borderTop: '1px solid #eee', paddingTop: '0.8rem' }}>
-              👤 {user.name}
+            <div className="mobile-only-nav-item" onClick={() => { navigate('/profile'); closeMenu(); }} style={{ borderTop: '1px solid #eee', paddingTop: '0.8rem', color: 'var(--brand-purple)' }}>
+              👤 Profile Settings ({user.name})
             </div>
             <div className="mobile-only-nav-item" onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }} style={{ color: 'var(--color-cancelled)' }}>
               Logout
