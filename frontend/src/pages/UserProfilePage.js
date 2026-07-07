@@ -33,7 +33,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/user/profile/${user.id}`);
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/auth/user/profile/${user.id}`);
       if (res.ok) {
         const data = await res.json();
         setName(data.name || '');
@@ -58,7 +58,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/user/profile/${user.id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/auth/user/profile/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, address })
@@ -78,7 +78,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/user/forgot-password`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/auth/user/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail })
@@ -98,7 +98,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
   const handleVerifyReset = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/user/reset-password`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/auth/user/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail, code: otp, newPassword })

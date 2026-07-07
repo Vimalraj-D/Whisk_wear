@@ -15,7 +15,7 @@ const ReviewSection = ({ productId, user }) => {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/reviews/${productId}`);
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/reviews/${productId}`);
       const data = await res.json();
       if (res.ok) setReviews(data);
     } catch (err) {
@@ -31,7 +31,7 @@ const ReviewSection = ({ productId, user }) => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/reviews`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

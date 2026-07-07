@@ -1871,6 +1871,7 @@ img { display: block; }
     backdrop-filter: blur(10px);
     flex-direction: column;
     justify-content: flex-start;
+    gap: 0;
     padding: 0;
     max-height: 0;
     overflow: hidden;
@@ -1894,7 +1895,7 @@ img { display: block; }
     margin: 0;
   }
   .mobile-only-nav-item {
-    display: flex;
+    display: flex !important;
     align-items: center;
     padding: 0.8rem 1.5rem;
     cursor: pointer;

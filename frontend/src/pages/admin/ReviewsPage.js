@@ -7,7 +7,7 @@ export default function ReviewsPage({ adminToken, showToast }) {
 
   const fetchReviews = useCallback(async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/reviews/admin/all`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/reviews/admin/all`, {
         headers: { Authorization: `Bearer ${adminToken}` }
       });
       const data = await res.json();
@@ -25,7 +25,7 @@ export default function ReviewsPage({ adminToken, showToast }) {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this review?')) return;
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/reviews/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/reviews/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${adminToken}` }
       });
@@ -49,7 +49,7 @@ export default function ReviewsPage({ adminToken, showToast }) {
       return;
     }
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/reviews/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://whisk-wear.onrender.com/api'}/reviews/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
