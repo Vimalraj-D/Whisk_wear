@@ -1891,11 +1891,11 @@ img { display: block; }
   }
   .nav-links .nav-link {
     width: 100%;
-    text-align: center;
+    text-align: right;
     padding: 0.8rem 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 0.5rem;
     border-radius: 0;
     margin: 0;
@@ -1960,6 +1960,49 @@ img { display: block; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+
+  /* Quick View Modal Mobile Engineering */
+  .quickview-container {
+    width: 94% !important;
+    max-height: 90vh !important;
+    padding: 1.25rem !important;
+    margin: 0 auto !important;
+  }
+  .quickview-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+    align-items: center !important;
+  }
+  .quickview-thumbnail-column {
+    flex-direction: row !important;
+    justify-content: center !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    order: 2 !important;
+    padding: 4px 0 !important;
+  }
+  .quickview-thumbnail-column > div {
+    width: 60px !important;
+    height: 60px !important;
+    flex-shrink: 0 !important;
+  }
+  .quickview-image-display-column {
+    width: 100% !important;
+    height: 280px !important;
+    order: 1 !important;
+    padding: 0.5rem !important;
+  }
+  .quickview-details-column {
+    width: 100% !important;
+    padding-left: 0 !important;
+    order: 3 !important;
+  }
+  .quickview-close-btn {
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    font-size: 1.75rem !important;
   }
 
   /* Footer */

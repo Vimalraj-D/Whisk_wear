@@ -61,14 +61,14 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
   };
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={containerStyle} onClick={(e) => e.stopPropagation()}>
+    <div className="quickview-overlay" style={overlayStyle} onClick={onClose}>
+      <div className="quickview-container" style={containerStyle} onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
-        <button style={closeBtnStyle} onClick={onClose}>×</button>
+        <button className="quickview-close-btn" style={closeBtnStyle} onClick={onClose}>×</button>
 
-        <div style={modalGridStyle}>
+        <div className="quickview-grid" style={modalGridStyle}>
           {/* Column 1: Vertical Gallery Thumbnails */}
-          <div style={thumbnailColumnStyle}>
+          <div className="quickview-thumbnail-column" style={thumbnailColumnStyle}>
             {images.map((img, idx) => (
               <div
                 key={idx}
@@ -112,7 +112,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
           </div>
 
           {/* Column 2: Main Product Image Display */}
-          <div style={imageDisplayColumnStyle}>
+          <div className="quickview-image-display-column" style={imageDisplayColumnStyle}>
             <div style={mainImageContainerStyle}>
               <img
                 src={getImageUrl(images[currentIndex])}
@@ -136,7 +136,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
           </div>
 
           {/* Column 3: Detailed Product Details Panel */}
-          <div style={detailsColumnStyle}>
+          <div className="quickview-details-column" style={detailsColumnStyle}>
             {/* Header info */}
             <div>
               <span style={brandNameStyle}>BY WHISKWEAR</span>
