@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ProductDetailModal from '../components/ProductDetailModal';
@@ -90,6 +90,8 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
     'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
   ];
 
+  const videoRefs = useRef([]);
+
   const handleVideoEnded = () => {
     setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
   };
@@ -99,6 +101,32 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
   const nextVideo = () => {
     setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
   };
+
+  useEffect(() => {
+    videoUrls.forEach((_, idx) => {
+      const videoEl = videoRefs.current[idx];
+      if (!videoEl) return;
+
+      if (idx === currentVideoIdx) {
+        // Active video: unmute, reset play time, and play
+        videoEl.muted = false;
+        videoEl.currentTime = 0;
+        
+        const playPromise = videoEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.log("Autoplay unmuted blocked, falling back to muted play:", err);
+            videoEl.muted = true;
+            videoEl.play().catch(e => console.error("Muted play failed:", e));
+          });
+        }
+      } else {
+        // Inactive videos: pause and mute to avoid double audio playing
+        videoEl.pause();
+        videoEl.muted = true;
+      }
+    });
+  }, [currentVideoIdx, videoUrls]);
 
   const slide = slides[currentSlide];
 
@@ -237,7 +265,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
             <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>✦ Play Automatically</span>
           </div>
 
-          <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '480px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>
+          <div style={{ position: 'relative', overflow: 'hidden', width: '100%', aspectRatio: '16/9', maxHeight: '600px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>
             {/* Sliding Track */}
             <div style={{
               display: 'flex',
@@ -249,12 +277,12 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
               {videoUrls.map((url, idx) => (
                 <div key={idx} style={{ minWidth: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <video
+                    ref={el => videoRefs.current[idx] = el}
                     src={url}
                     controls
-                    autoPlay={idx === currentVideoIdx}
-                    muted
+                    playsInline
                     onEnded={handleVideoEnded}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
                 </div>
               ))}
