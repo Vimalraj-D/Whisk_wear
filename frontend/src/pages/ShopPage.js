@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
+import ScrollReveal from '../components/ScrollReveal';
 
 // Icons
 const SearchIcon = () => (
@@ -96,54 +97,58 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
   return (
     <div style={{ padding: '2.5rem 5%', width: '100%', maxWidth: '100%', margin: '0 auto' }}>
       {/* Enhanced Hero Banner */}
-      <div className="page-header" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%)', padding: '3rem 2rem', borderRadius: '16px', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
-        <div style={{ position: 'absolute', bottom: '-50%', right: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem', fontFamily: 'var(--font-serif)', position: 'relative', zIndex: 2 }}>Shop Our Collection</h2>
-        <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 2 }}>Discover our range of premium, artisanal products designed for your everyday life.</p>
-      </div>
+      <ScrollReveal direction="down" threshold={0.05}>
+        <div className="page-header" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%)', padding: '3rem 2rem', borderRadius: '16px', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
+          <div style={{ position: 'absolute', bottom: '-50%', right: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem', fontFamily: 'var(--font-serif)', position: 'relative', zIndex: 2 }}>Shop Our Collection</h2>
+          <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 2 }}>Discover our range of premium, artisanal products designed for your everyday life.</p>
+        </div>
+      </ScrollReveal>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Filter and Search Bar */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glossy-bg)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--glossy-border)' }}>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <select 
-              className="form-control" 
-              style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem 1rem', fontWeight: 600 }}
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-            >
-              <option value="all">All Categories</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}>{c.name}</option>
-              ))}
-            </select>
-            <select 
-              className="form-control" 
-              style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem 1rem' }}
-              value={sortOption}
-              onChange={e => setSortOption(e.target.value)}
-            >
-              <option value="recommended">Recommended</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-            </select>
+        <ScrollReveal direction="up" threshold={0.05} delay={100}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glossy-bg)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--glossy-border)' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <select 
+                className="form-control" 
+                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem 1rem', fontWeight: 600 }}
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+              >
+                <option value="all">All Categories</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}>{c.name}</option>
+                ))}
+              </select>
+              <select 
+                className="form-control" 
+                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem 1rem' }}
+                value={sortOption}
+                onChange={e => setSortOption(e.target.value)}
+              >
+                <option value="recommended">Recommended</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+            </div>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+                <SearchIcon />
+              </span>
+              <input 
+                ref={searchInputRef}
+                type="text" 
+                className="form-control" 
+                placeholder="Search products..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ paddingLeft: '2.5rem', margin: 0, borderRadius: '8px', border: '1px solid var(--border-color)' }}
+              />
+            </div>
           </div>
-          <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
-              <SearchIcon />
-            </span>
-            <input 
-              ref={searchInputRef}
-              type="text" 
-              className="form-control" 
-              placeholder="Search products..." 
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: '2.5rem', margin: 0, borderRadius: '8px', border: '1px solid var(--border-color)' }}
-            />
-          </div>
-        </div>
+        </ScrollReveal>
 
         {/* Product Grid */}
         {loading ? (
@@ -169,61 +174,63 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
           </div>
         ) : (
           <div className="product-grid">
-            {filteredProducts.map(p => {
+            {filteredProducts.map((p, idx) => {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
               const isWishlisted = wishlist.includes(p.id);
               
               return (
-                <div key={p.id} className="product-card">
-                  <div className="product-img-wrapper">
-                    <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
-                    {hasDiscount ? (
-                      <div className="discount-badge">{p.discount_percent}% OFF</div>
-                    ) : (
-                      <div className="product-category-badge badge-kitchen">New Arrival</div>
-                    )}
-                    <button 
-                      className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-                      onClick={() => toggleWishlist(p)}
-                      aria-label="Toggle wishlist"
-                    >
-                      <HeartIcon />
-                    </button>
-                    <div className="product-hover-overlay">
-                      <div className="hover-actions">
-                        <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                        <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>
+                  <div className="product-card">
+                    <div className="product-img-wrapper">
+                      <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
+                      {hasDiscount ? (
+                        <div className="discount-badge">{p.discount_percent}% OFF</div>
+                      ) : (
+                        <div className="product-category-badge badge-kitchen">New Arrival</div>
+                      )}
+                      <button 
+                        className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                        onClick={() => toggleWishlist(p)}
+                        aria-label="Toggle wishlist"
+                      >
+                        <HeartIcon />
+                      </button>
+                      <div className="product-hover-overlay">
+                        <div className="hover-actions">
+                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="product-info">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                      <h3 className="product-name" style={{ marginBottom: 0 }}>{p.name}</h3>
-                      <div className="product-pricing">
-                        {hasDiscount ? (
-                          <>
-                            <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
-                            <span className="original-price" style={{ fontSize: '0.85rem' }}>₹{originalPrice.toFixed(2)}</span>
-                          </>
-                        ) : (
-                          <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
-                        )}
+                    <div className="product-info">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <h3 className="product-name" style={{ marginBottom: 0 }}>{p.name}</h3>
+                        <div className="product-pricing">
+                          {hasDiscount ? (
+                            <>
+                              <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
+                              <span className="original-price" style={{ fontSize: '0.85rem' }}>₹{originalPrice.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
                       </div>
+                      {/* Star Rating */}
+                      <div style={{ display: 'flex', gap: '2px', marginBottom: '0.75rem', alignItems: 'center' }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <svg key={star} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={star <= 4 ? "#F59E0B" : "none"} stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                          </svg>
+                        ))}
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>(24)</span>
+                      </div>
+                      <p className="product-desc">{p.description}</p>
                     </div>
-                    {/* Star Rating */}
-                    <div style={{ display: 'flex', gap: '2px', marginBottom: '0.75rem', alignItems: 'center' }}>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <svg key={star} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={star <= 4 ? "#F59E0B" : "none"} stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                      ))}
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>(24)</span>
-                    </div>
-                    <p className="product-desc">{p.description}</p>
                   </div>
-                </div>
+                </ScrollReveal>
               );
             })}
           </div>

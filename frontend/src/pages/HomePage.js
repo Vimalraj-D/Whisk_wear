@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
+import ScrollReveal from '../components/ScrollReveal';
 
 export default function HomePage({ user, addToCart, openCart, showToast }) {
   const navigate = useNavigate();
@@ -84,9 +85,9 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
 
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
   const videoUrls = [
-    'https://assets.mixkit.co/videos/preview/mixkit-fashion-woman-with-silver-glitter-makeup-40176-large.mp4', // #video url 1
-    'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-standing-in-front-of-a-wall-41618-large.mp4',     // #video url 2
-    'https://assets.mixkit.co/videos/preview/mixkit-woman-modeling-a-yellow-leather-jacket-40177-large.mp4'      // #video url 3
+    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
+    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/like_this_for_chef_appearl_for.mp4',     // #video url 2
+    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
   ];
 
   const handleVideoEnded = () => {
@@ -137,80 +138,86 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
       </section>
 
       {/* Shop By Categories */}
-      <section id="shop-collections" style={{ padding: '3rem 2rem' }}>
-        <div className="section-title-row">
-          <h2 className="section-title">Shop by categories</h2>
-          <button className="arrow-circle-btn" onClick={() => navigate('/collections')}>➔</button>
-        </div>
+      <ScrollReveal direction="up" threshold={0.05}>
+        <section id="shop-collections" style={{ padding: '3rem 2rem' }}>
+          <div className="section-title-row">
+            <h2 className="section-title">Shop by categories</h2>
+            <button className="arrow-circle-btn" onClick={() => navigate('/collections')}>➔</button>
+          </div>
 
-        <div className="categories-container">
-          {categories.map((c, idx) => (
-            <div
-              key={idx}
-              className="category-circle-wrapper"
-              onClick={() => {
-                navigate(`/shop?category=${c.key}`);
-              }}
-            >
-              <div className={`category-circle-card`}>
-                <ImageWithSkeleton src={c.img} alt={c.label} className="category-circle-img" />
-                <div className="category-circle-overlay">
-                  <span className="category-circle-name">{c.label}</span>
+          <div className="categories-container">
+            {categories.map((c, idx) => (
+              <div
+                key={idx}
+                className="category-circle-wrapper"
+                onClick={() => {
+                  navigate(`/shop?category=${c.key}`);
+                }}
+              >
+                <div className={`category-circle-card`}>
+                  <ImageWithSkeleton src={c.img} alt={c.label} className="category-circle-img" />
+                  <div className="category-circle-overlay">
+                    <span className="category-circle-name">{c.label}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* Featured Products Section */}
       <section className="new-arrivals-section">
-        <div className="section-title-row">
-          <h2 className="section-title">Featured Products</h2>
-          <button className="btn btn-outline-teal" style={{ padding: '0.5rem 1rem' }} onClick={() => navigate('/shop')}>
-            View All
-          </button>
-        </div>
+        <ScrollReveal direction="up">
+          <div className="section-title-row">
+            <h2 className="section-title">Featured Products</h2>
+            <button className="btn btn-outline-teal" style={{ padding: '0.5rem 1rem' }} onClick={() => navigate('/shop')}>
+              View All
+            </button>
+          </div>
+        </ScrollReveal>
 
         {loading ? (
           <div className="loading-screen"><div className="spinner" /></div>
         ) : (
           <div className="product-grid">
-            {featuredProducts.map(p => {
+            {featuredProducts.map((p, idx) => {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
               return (
-                <div key={p.id} className="product-card">
-                  <div className="product-img-wrapper">
-                    <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
-                    {hasDiscount && (
-                      <div className="discount-badge">{p.discount_percent}% OFF</div>
-                    )}
-                    <div className="product-hover-overlay">
-                      <div className="hover-actions">
-                        <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                        <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>
+                  <div className="product-card">
+                    <div className="product-img-wrapper">
+                      <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
+                      {hasDiscount && (
+                        <div className="discount-badge">{p.discount_percent}% OFF</div>
+                      )}
+                      <div className="product-hover-overlay">
+                        <div className="hover-actions">
+                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="product-info">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h3 className="product-name">{p.name}</h3>
-                      <div className="product-pricing">
-                        {hasDiscount ? (
-                          <>
-                            <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
-                            <span className="original-price">₹{originalPrice.toFixed(2)}</span>
-                          </>
-                        ) : (
-                          <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
-                        )}
+                    <div className="product-info">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <h3 className="product-name">{p.name}</h3>
+                        <div className="product-pricing">
+                          {hasDiscount ? (
+                            <>
+                              <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
+                              <span className="original-price">₹{originalPrice.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
                       </div>
+                      <p className="product-desc">{p.description}</p>
                     </div>
-                    <p className="product-desc">{p.description}</p>
                   </div>
-                </div>
+                </ScrollReveal>
               );
             })}
             {featuredProducts.length === 0 && (
@@ -223,127 +230,133 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
       </section>
 
       {/* Watch Our Collections Video Slider Section */}
-      <section className="new-arrivals-section" style={{ marginTop: '4rem', padding: '3.5rem 2.5rem', borderRadius: '16px' }}>
-        <div className="section-title-row" style={{ marginBottom: '2.25rem' }}>
-          <h2 className="section-title">Watch Our Collections</h2>
-          <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>✦ Play Automatically</span>
-        </div>
+      <ScrollReveal direction="up" threshold={0.05}>
+        <section className="new-arrivals-section" style={{ marginTop: '4rem', padding: '3.5rem 2.5rem', borderRadius: '16px' }}>
+          <div className="section-title-row" style={{ marginBottom: '2.25rem' }}>
+            <h2 className="section-title">Watch Our Collections</h2>
+            <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>✦ Play Automatically</span>
+          </div>
 
-        <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '480px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>
-          {/* Sliding Track */}
-          <div style={{
-            display: 'flex',
-            transform: `translateX(-${currentVideoIdx * 100}%)`,
-            transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-            width: '100%',
-            height: '100%'
-          }}>
-            {videoUrls.map((url, idx) => (
-              <div key={idx} style={{ minWidth: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <video
-                  src={url}
-                  controls
-                  autoPlay={idx === currentVideoIdx}
-                  muted
-                  onEnded={handleVideoEnded}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '480px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>
+            {/* Sliding Track */}
+            <div style={{
+              display: 'flex',
+              transform: `translateX(-${currentVideoIdx * 100}%)`,
+              transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              width: '100%',
+              height: '100%'
+            }}>
+              {videoUrls.map((url, idx) => (
+                <div key={idx} style={{ minWidth: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <video
+                    src={url}
+                    controls
+                    autoPlay={idx === currentVideoIdx}
+                    muted
+                    onEnded={handleVideoEnded}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            <button 
+              onClick={prevVideo} 
+              style={{
+                position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
+                borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
+              }}
+            >
+              ←
+            </button>
+            <button 
+              onClick={nextVideo} 
+              style={{
+                position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
+                borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
+              }}
+            >
+              →
+            </button>
+
+            {/* Indicator dots */}
+            <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+              {videoUrls.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentVideoIdx(idx)}
+                  style={{
+                    width: '8px', height: '8px', borderRadius: '50%', border: 'none', cursor: 'pointer',
+                    background: currentVideoIdx === idx ? 'var(--brand-purple)' : 'rgba(255, 255, 255, 0.5)',
+                    transition: 'background 0.3s'
+                  }}
                 />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-
-          {/* Navigation Arrows */}
-          <button 
-            onClick={prevVideo} 
-            style={{
-              position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)',
-              background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
-              borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
-            }}
-          >
-            ←
-          </button>
-          <button 
-            onClick={nextVideo} 
-            style={{
-              position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)',
-              background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
-              borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
-            }}
-          >
-            →
-          </button>
-
-          {/* Indicator dots */}
-          <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
-            {videoUrls.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentVideoIdx(idx)}
-                style={{
-                  width: '8px', height: '8px', borderRadius: '50%', border: 'none', cursor: 'pointer',
-                  background: currentVideoIdx === idx ? 'var(--brand-purple)' : 'rgba(255, 255, 255, 0.5)',
-                  transition: 'background 0.3s'
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* Highly Purchased Products Section */}
       <section className="new-arrivals-section" style={{ marginTop: '4rem' }}>
-        <div className="section-title-row">
-          <h2 className="section-title">Best Sellers</h2>
-          <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>★ Highly Purchased Products</span>
-        </div>
+        <ScrollReveal direction="up">
+          <div className="section-title-row">
+            <h2 className="section-title">Best Sellers</h2>
+            <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>★ Highly Purchased Products</span>
+          </div>
+        </ScrollReveal>
 
         {loading ? (
           <div className="loading-screen"><div className="spinner" /></div>
         ) : (
           <div className="product-grid">
-            {bestSellers.map(p => {
+            {bestSellers.map((p, idx) => {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
               return (
-                <div key={p.id} className="product-card">
-                  <div className="product-img-wrapper">
-                    <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
-                    {hasDiscount && (
-                      <div className="discount-badge">{p.discount_percent}% OFF</div>
-                    )}
-                    <div className="product-hover-overlay">
-                      <div className="hover-actions">
-                        <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                        <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
+                  <div className="product-card">
+                    <div className="product-img-wrapper">
+                      <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
+                      {hasDiscount && (
+                        <div className="discount-badge">{p.discount_percent}% OFF</div>
+                      )}
+                      <div className="product-hover-overlay">
+                        <div className="hover-actions">
+                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="product-info">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h3 className="product-name">{p.name}</h3>
-                      <div className="product-pricing">
-                        {hasDiscount ? (
-                          <>
-                            <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
-                            <span className="original-price">₹{originalPrice.toFixed(2)}</span>
-                          </>
-                        ) : (
-                          <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
-                        )}
+                    <div className="product-info">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <h3 className="product-name">{p.name}</h3>
+                        <div className="product-pricing">
+                          {hasDiscount ? (
+                            <>
+                              <span className="discount-price">₹{discountPrice.toFixed(2)}</span>
+                              <span className="original-price">₹{originalPrice.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <span className="discount-price">₹{originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
                       </div>
+                      <p className="product-desc">{p.description}</p>
+                      {p.sales_count > 0 && (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-primary, #e67e22)', fontWeight: 600, marginTop: '0.25rem' }}>
+                          🔥 {p.sales_count} purchased
+                        </div>
+                      )}
                     </div>
-                    <p className="product-desc">{p.description}</p>
-                    {p.sales_count > 0 && (
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-primary, #e67e22)', fontWeight: 600, marginTop: '0.25rem' }}>
-                        🔥 {p.sales_count} purchased
-                      </div>
-                    )}
                   </div>
-                </div>
+                </ScrollReveal>
               );
             })}
             {bestSellers.length === 0 && (
