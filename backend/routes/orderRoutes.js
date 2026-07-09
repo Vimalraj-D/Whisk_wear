@@ -5,6 +5,7 @@ const adminAuth = require('../middleware/auth');
 const userAuth = require('../middleware/userAuth');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const { sendOrderConfirmationEmail } = require('../services/emailService');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -269,7 +270,33 @@ router.post('/verify-payment', async (req, res) => {
     }
 
     // Signature matches, payment verified!
-    // The order remains in 'pending' status (awaiting shipping) which is valid in our DB schema.
+    // Send confirmation email (fire and forget)
+    try {
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('*, order_items(id, quantity, price, products(id, name, image_urls))')
+        .eq('id', order_id)
+        .single();
+
+      if (orderData) {
+        const emailItems = (orderData.order_items || []).map(oi => ({
+          name: oi.products?.name || 'Product',
+          quantity: oi.quantity,
+          price: oi.price,
+          image_url: oi.products?.image_urls?.[0] || ''
+        }));
+        sendOrderConfirmationEmail(
+          orderData.customer_email,
+          orderData.customer_name,
+          orderData.id,
+          orderData.total_amount,
+          emailItems
+        ).catch(err => console.error('Email send error (non-blocking):', err));
+      }
+    } catch (emailErr) {
+      console.error('Failed to send order confirmation email:', emailErr);
+    }
+
     res.status(200).json({ success: true, message: 'Payment verified successfully' });
   } catch (error) {
     console.error('Razorpay Verify Payment Error:', error);
@@ -316,6 +343,107 @@ router.post('/cancel-order', async (req, res) => {
   } catch (error) {
     console.error('Razorpay Cancel Order Error:', error);
     res.status(500).json({ error: error.message || 'Failed to cancel order' });
+  }
+});
+
+// COD: Place order with Cash on Delivery
+router.post('/cod-order', async (req, res) => {
+  try {
+    const { customer_name, customer_email, customer_address, items } = req.body;
+
+    if (!customer_name || !customer_email || !customer_address || !items || items.length === 0) {
+      return res.status(400).json({ error: 'All order details and items are required' });
+    }
+
+    // Check if user is logged in
+    let user_id = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer user_token_')) {
+      const token = authHeader.split(' ')[1];
+      const parts = token.replace('user_token_', '').split('_');
+      if (parts[0]) {
+        user_id = parseInt(parts[0]);
+      }
+    }
+
+    // Calculate total amount
+    let total_amount = 0;
+    for (const item of items) {
+      total_amount += item.price * item.quantity;
+    }
+
+    // Insert order with pending status (COD)
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert([{
+        user_id,
+        customer_name,
+        customer_email,
+        customer_address,
+        total_amount: parseFloat(total_amount),
+        status: 'pending'
+      }])
+      .select();
+
+    if (orderError) throw orderError;
+    const newOrder = orderData[0];
+
+    // Insert order items
+    const orderItemsToInsert = items.map(item => ({
+      order_id: newOrder.id,
+      product_id: item.product_id,
+      quantity: parseInt(item.quantity),
+      price: parseFloat(item.price)
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItemsToInsert);
+
+    if (itemsError) {
+      await supabase.from('orders').delete().eq('id', newOrder.id);
+      throw itemsError;
+    }
+
+    // Update product stock levels and sales count
+    for (const item of items) {
+      try {
+        const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
+        if (prodData) {
+          const newStock = Math.max(0, prodData.stock - item.quantity);
+          const newSales = (prodData.sales_count || 0) + item.quantity;
+          await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
+        }
+      } catch (stockErr) {
+        console.error('Failed to update stock/sales for product', item.product_id, stockErr);
+      }
+    }
+
+    // Send confirmation email
+    try {
+      const emailItems = items.map(item => ({
+        name: item.name || 'Product',
+        quantity: item.quantity,
+        price: item.price,
+        image_url: item.image_url || ''
+      }));
+      sendOrderConfirmationEmail(
+        customer_email,
+        customer_name,
+        newOrder.id,
+        total_amount,
+        emailItems
+      ).catch(err => console.error('COD email send error (non-blocking):', err));
+    } catch (emailErr) {
+      console.error('Failed to send COD order confirmation email:', emailErr);
+    }
+
+    res.status(201).json({
+      message: 'COD order placed successfully',
+      order: newOrder
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

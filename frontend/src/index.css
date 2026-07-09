@@ -1891,11 +1891,11 @@ img { display: block; }
   }
   .nav-links .nav-link {
     width: 100%;
-    text-align: right;
+    text-align: left;
     padding: 0.8rem 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 0.5rem;
     border-radius: 0;
     margin: 0;

@@ -21,6 +21,7 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', address: '' });
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
 
   useEffect(() => {
     if (user) setForm(p => ({ ...p, name: user.name || '', email: user.email || '' }));
@@ -141,6 +142,41 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
     }
   };
 
+  const handleCodCheckout = async (e) => {
+    e.preventDefault();
+    if (cart.length === 0) {
+      showToast('Your cart is empty');
+      return;
+    }
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      await apiService.placeCodOrder({
+        customer_name: form.name,
+        customer_email: form.email,
+        customer_address: form.address,
+        items: cart
+      }, userToken || null);
+
+      showToast('COD Order placed! Confirmation email sent ✦');
+      setCart([]);
+      closeCart();
+    } catch (err) {
+      showToast('COD order failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    if (paymentMethod === 'cod') {
+      handleCodCheckout(e);
+    } else {
+      handleCheckout(e);
+    }
+  };
+
   return (
     <div className={`cart-overlay ${isOpen ? 'open' : ''}`} onClick={closeCart}>
       <div className="cart-drawer" onClick={e => e.stopPropagation()}>
@@ -188,12 +224,71 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
 
             <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
             {userToken ? (
-              <form onSubmit={handleCheckout} className="checkout-form">
+              <form onSubmit={handleSubmit} className="checkout-form">
                 <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
                 <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
                 <textarea placeholder="Delivery address" rows="2" className="form-control" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} required />
+
+                {/* Payment Method Selector */}
+                <div style={{ margin: '0.75rem 0' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>Payment Method</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('razorpay')}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem 0.5rem',
+                        borderRadius: '10px',
+                        border: paymentMethod === 'razorpay' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
+                        background: paymentMethod === 'razorpay' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
+                        color: paymentMethod === 'razorpay' ? 'var(--brand-teal)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>💳</span>
+                      <span>Pay Online</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>UPI / Card / Net Banking</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('cod')}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem 0.5rem',
+                        borderRadius: '10px',
+                        border: paymentMethod === 'cod' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
+                        background: paymentMethod === 'cod' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
+                        color: paymentMethod === 'cod' ? 'var(--brand-teal)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>🏠</span>
+                      <span>Cash on Delivery</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>Pay when delivered</span>
+                    </button>
+                  </div>
+                </div>
+
                 <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
-                  {loading ? 'Opening Payment Gateway...' : 'Complete Order →'}
+                  {loading
+                    ? (paymentMethod === 'cod' ? 'Placing COD Order...' : 'Opening Payment Gateway...')
+                    : (paymentMethod === 'cod' ? 'Place COD Order →' : 'Pay & Complete Order →')
+                  }
                 </button>
               </form>
             ) : (

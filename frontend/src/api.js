@@ -142,4 +142,11 @@ export const apiService = {
     const r = await api.post('/orders/cancel-order', { order_id });
     return r.data;
   },
+
+  // ─── COD Orders ───
+  placeCodOrder: async (orderData, userToken = null) => {
+    const headers = userToken ? getAuthHeaders(userToken).headers : {};
+    const r = await api.post('/orders/cod-order', orderData, { headers });
+    return r.data;
+  },
 };
