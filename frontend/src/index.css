@@ -2006,9 +2006,15 @@ img { display: block; }
   }
 
   /* Footer */
-  .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
-  .footer { padding: 2rem 1.25rem 1rem; }
+  .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .footer { padding: 3rem 1.25rem 1.5rem !important; }
   .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .footer-bottom-enhanced {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 1.2rem !important;
+    align-items: center !important;
+  }
 
   /* Admin */
   .admin-page-container { flex-direction: column; }
