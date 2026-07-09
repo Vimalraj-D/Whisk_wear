@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 
 const loadRazorpayScript = () => {
@@ -17,6 +18,7 @@ const loadRazorpayScript = () => {
 };
 
 export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, updateCartQty, removeFromCart, setCart, showToast }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', address: '' });
   const [loading, setLoading] = useState(false);
 
@@ -185,14 +187,25 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
             <div className="summary-row total"><span>Total</span><span>₹{total.toFixed(2)}</span></div>
 
             <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
-            <form onSubmit={handleCheckout} className="checkout-form">
-              <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
-              <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
-              <textarea placeholder="Delivery address" rows="2" className="form-control" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} required />
-              <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
-                {loading ? 'Opening Payment Gateway...' : 'Complete Order →'}
-              </button>
-            </form>
+            {userToken ? (
+              <form onSubmit={handleCheckout} className="checkout-form">
+                <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
+                <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
+                <textarea placeholder="Delivery address" rows="2" className="form-control" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} required />
+                <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
+                  {loading ? 'Opening Payment Gateway...' : 'Complete Order →'}
+                </button>
+              </form>
+            ) : (
+              <div style={{ marginTop: '1rem', textAlign: 'center', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontWeight: 600 }}>
+                  Please sign in to place an order.
+                </p>
+                <button type="button" className="btn btn-teal w-full" onClick={() => { closeCart(); navigate('/login'); }}>
+                  Sign In to Checkout →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -94,7 +94,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
+    <div style={{ padding: '2.5rem 5%', width: '100%', maxWidth: '100%', margin: '0 auto' }}>
       {/* Enhanced Hero Banner */}
       <div className="page-header" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%)', padding: '3rem 2rem', borderRadius: '16px', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>

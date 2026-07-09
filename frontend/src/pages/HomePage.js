@@ -82,6 +82,23 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
       .finally(() => setLoading(false));
   }, [showToast]);
 
+  const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
+  const videoUrls = [
+    'https://assets.mixkit.co/videos/preview/mixkit-fashion-woman-with-silver-glitter-makeup-40176-large.mp4', // #video url 1
+    'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-standing-in-front-of-a-wall-41618-large.mp4',     // #video url 2
+    'https://assets.mixkit.co/videos/preview/mixkit-woman-modeling-a-yellow-leather-jacket-40177-large.mp4'      // #video url 3
+  ];
+
+  const handleVideoEnded = () => {
+    setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
+  };
+  const prevVideo = () => {
+    setCurrentVideoIdx((prev) => (prev === 0 ? videoUrls.length - 1 : prev - 1));
+  };
+  const nextVideo = () => {
+    setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
+  };
+
   const slide = slides[currentSlide];
 
   return (
@@ -203,6 +220,77 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
             )}
           </div>
         )}
+      </section>
+
+      {/* Watch Our Collections Video Slider Section */}
+      <section className="new-arrivals-section" style={{ marginTop: '4rem', padding: '3.5rem 2.5rem', borderRadius: '16px' }}>
+        <div className="section-title-row" style={{ marginBottom: '2.25rem' }}>
+          <h2 className="section-title">Watch Our Collections</h2>
+          <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>✦ Play Automatically</span>
+        </div>
+
+        <div style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '480px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>
+          {/* Sliding Track */}
+          <div style={{
+            display: 'flex',
+            transform: `translateX(-${currentVideoIdx * 100}%)`,
+            transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            width: '100%',
+            height: '100%'
+          }}>
+            {videoUrls.map((url, idx) => (
+              <div key={idx} style={{ minWidth: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <video
+                  src={url}
+                  controls
+                  autoPlay={idx === currentVideoIdx}
+                  muted
+                  onEnded={handleVideoEnded}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Navigation Arrows */}
+          <button 
+            onClick={prevVideo} 
+            style={{
+              position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)',
+              background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
+              borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
+            }}
+          >
+            ←
+          </button>
+          <button 
+            onClick={nextVideo} 
+            style={{
+              position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)',
+              background: 'rgba(255, 255, 255, 0.7)', border: 'none', width: '44px', height: '44px',
+              borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.3s'
+            }}
+          >
+            →
+          </button>
+
+          {/* Indicator dots */}
+          <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+            {videoUrls.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentVideoIdx(idx)}
+                style={{
+                  width: '8px', height: '8px', borderRadius: '50%', border: 'none', cursor: 'pointer',
+                  background: currentVideoIdx === idx ? 'var(--brand-purple)' : 'rgba(255, 255, 255, 0.5)',
+                  transition: 'background 0.3s'
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Highly Purchased Products Section */}
