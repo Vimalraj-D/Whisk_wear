@@ -5,6 +5,12 @@ import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
 
+const VIDEO_URLS = [
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/like_this_for_chef_appearl_for.mp4',     // #video url 2
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
+];
+
 export default function HomePage({ user, addToCart, openCart, showToast }) {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -84,26 +90,21 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
   }, [showToast]);
 
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
-  const videoUrls = [
-    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
-    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/like_this_for_chef_appearl_for.mp4',     // #video url 2
-    'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
-  ];
-
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef([]);
 
   const handleVideoEnded = () => {
-    setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
+    setCurrentVideoIdx((prev) => (prev + 1) % VIDEO_URLS.length);
   };
   const prevVideo = () => {
-    setCurrentVideoIdx((prev) => (prev === 0 ? videoUrls.length - 1 : prev - 1));
+    setCurrentVideoIdx((prev) => (prev === 0 ? VIDEO_URLS.length - 1 : prev - 1));
   };
   const nextVideo = () => {
-    setCurrentVideoIdx((prev) => (prev + 1) % videoUrls.length);
+    setCurrentVideoIdx((prev) => (prev + 1) % VIDEO_URLS.length);
   };
 
   useEffect(() => {
-    videoUrls.forEach((_, idx) => {
+    VIDEO_URLS.forEach((_, idx) => {
       const videoEl = videoRefs.current[idx];
       if (!videoEl) return;
 
@@ -126,7 +127,19 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
         videoEl.muted = true;
       }
     });
-  }, [currentVideoIdx, videoUrls]);
+  }, [currentVideoIdx]);
+
+  useEffect(() => {
+    // If active video is currently playing, let it play to the end and trigger handleVideoEnded
+    if (isPlaying) return;
+
+    // Otherwise (autoplay blocked, manually paused, etc.), slide automatically after 6 seconds
+    const timer = setTimeout(() => {
+      nextVideo();
+    }, 6000);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentVideoIdx]);
 
   const slide = slides[currentSlide];
 
@@ -274,13 +287,15 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
               width: '100%',
               height: '100%'
             }}>
-              {videoUrls.map((url, idx) => (
+              {VIDEO_URLS.map((url, idx) => (
                 <div key={idx} style={{ minWidth: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <video
                     ref={el => videoRefs.current[idx] = el}
                     src={url}
                     controls
                     playsInline
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
                     onEnded={handleVideoEnded}
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
@@ -314,7 +329,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
 
             {/* Indicator dots */}
             <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
-              {videoUrls.map((_, idx) => (
+              {VIDEO_URLS.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentVideoIdx(idx)}
