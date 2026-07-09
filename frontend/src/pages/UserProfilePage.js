@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../api';
 
-export default function UserProfilePage({ user, setUser, showToast, onUserLogout }) {
+export default function UserProfilePage({ user, setUser, userToken, showToast, onUserLogout }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
 
   const fetchOrders = async () => {
     try {
-      const data = await apiService.getUserOrders(user.id);
+      const data = await apiService.getMyOrders(userToken);
       setOrders(data);
     } catch (err) {
       console.error(err);
@@ -178,6 +178,7 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
                       <tr>
                         <th>Order ID</th>
                         <th>Date</th>
+                        <th>Items</th>
                         <th>Total Amount</th>
                         <th>Status</th>
                       </tr>
@@ -185,9 +186,16 @@ export default function UserProfilePage({ user, setUser, showToast, onUserLogout
                     <tbody>
                       {orders.map(o => (
                         <tr key={o.id}>
-                          <td>#{o.id}</td>
+                          <td><strong>#{o.id}</strong></td>
                           <td>{new Date(o.created_at).toLocaleDateString()}</td>
-                          <td>${o.total_amount}</td>
+                          <td>
+                            {o.order_items?.map(item => (
+                              <div key={item.id} style={{ fontSize: '0.82rem', marginBottom: '0.15rem' }}>
+                                · {item.products?.name || 'Item'} <span style={{ color: 'var(--text-muted)' }}>×{item.quantity}</span>
+                              </div>
+                            ))}
+                          </td>
+                          <td><strong>₹{parseFloat(o.total_amount).toFixed(2)}</strong></td>
                           <td>
                             <span className={`status-badge status-${o.status}`}>{o.status}</span>
                           </td>

@@ -137,7 +137,7 @@ function AppLayout({
             <OrdersPage userToken={userToken} showToast={showToast} onSessionExpired={handleUserLogout} /> :
             <Navigate to="/login" replace />} />
           <Route path="/profile" element={userToken ?
-            <UserProfilePage user={user} setUser={setUser} showToast={showToast} onUserLogout={handleUserLogout} /> :
+            <UserProfilePage user={user} setUser={setUser} userToken={userToken} showToast={showToast} onUserLogout={handleUserLogout} /> :
             <Navigate to="/login" replace />} />
             
           <Route path="/admin/login" element={adminToken ? <Navigate to="/admin" replace /> :
