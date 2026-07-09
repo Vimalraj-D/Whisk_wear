@@ -3,6 +3,14 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/auth');
 const userAuth = require('../middleware/userAuth');
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 
 // Create a new order (Checkout)
 router.post('/', async (req, res) => {
@@ -169,6 +177,145 @@ router.put('/:id', adminAuth, async (req, res) => {
     res.json(data[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Razorpay: Create Order
+router.post('/create-order', async (req, res) => {
+  try {
+    const { amount, currency = 'INR', receipt } = req.body;
+
+    // Validate amount (paise) >= 100
+    if (!amount || amount < 100) {
+      return res.status(400).json({ error: 'Amount is required and must be at least 100 paise' });
+    }
+
+    if (!receipt) {
+      return res.status(400).json({ error: 'Receipt (order reference) is required' });
+    }
+
+    const options = {
+      amount: parseInt(amount),
+      currency,
+      receipt: String(receipt)
+    };
+
+    const razorpayOrder = await razorpay.orders.create(options);
+
+    res.status(201).json({
+      order_id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency
+    });
+  } catch (error) {
+    console.error('Razorpay Create Order Error:', error);
+    
+    // Handle auth failures
+    if (error.statusCode === 401 || (error.message && error.message.toLowerCase().includes('auth'))) {
+      return res.status(401).json({ error: 'Razorpay authentication failed' });
+    }
+    
+    res.status(500).json({ error: error.message || 'Failed to create Razorpay order' });
+  }
+});
+
+// Razorpay: Verify Payment Signature
+router.post('/verify-payment', async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, order_id } = req.body;
+
+    // Validate missing fields
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !order_id) {
+      return res.status(400).json({ error: 'Missing required payment verification fields' });
+    }
+
+    // Verify signature
+    const generated_signature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
+
+    if (generated_signature !== razorpay_signature) {
+      console.warn(`Payment signature mismatch for Order ID: ${order_id}`);
+      
+      // Update order status to 'cancelled' on signature mismatch
+      await supabase
+        .from('orders')
+        .update({ status: 'cancelled' })
+        .eq('id', order_id);
+
+      // Restore stock levels
+      const { data: items } = await supabase
+        .from('order_items')
+        .select('product_id, quantity')
+        .eq('order_id', order_id);
+
+      if (items) {
+        for (const item of items) {
+          try {
+            const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
+            if (prodData) {
+              const newStock = prodData.stock + item.quantity;
+              const newSales = Math.max(0, (prodData.sales_count || 0) - item.quantity);
+              await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
+            }
+          } catch (stockErr) {
+            console.error('Failed to restore stock on verification failure:', stockErr);
+          }
+        }
+      }
+
+      return res.status(400).json({ error: 'Payment verification failed: Signature mismatch' });
+    }
+
+    // Signature matches, payment verified!
+    // The order remains in 'pending' status (awaiting shipping) which is valid in our DB schema.
+    res.status(200).json({ success: true, message: 'Payment verified successfully' });
+  } catch (error) {
+    console.error('Razorpay Verify Payment Error:', error);
+    res.status(500).json({ error: error.message || 'Payment verification failed' });
+  }
+});
+
+// Razorpay: Cancel Order
+router.post('/cancel-order', async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    if (!order_id) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    // Update order status to 'cancelled'
+    await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', order_id);
+
+    // Restore stock levels
+    const { data: items } = await supabase
+      .from('order_items')
+      .select('product_id, quantity')
+      .eq('order_id', order_id);
+
+    if (items) {
+      for (const item of items) {
+        try {
+          const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
+          if (prodData) {
+            const newStock = prodData.stock + item.quantity;
+            const newSales = Math.max(0, (prodData.sales_count || 0) - item.quantity);
+            await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
+          }
+        } catch (stockErr) {
+          console.error('Failed to restore stock on cancel:', stockErr);
+        }
+      }
+    }
+
+    res.status(200).json({ success: true, message: 'Order cancelled and stock restored' });
+  } catch (error) {
+    console.error('Razorpay Cancel Order Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to cancel order' });
   }
 });
 

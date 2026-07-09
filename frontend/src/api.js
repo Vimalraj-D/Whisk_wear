@@ -128,4 +128,18 @@ export const apiService = {
     const r = await api.put(`/orders/${id}`, { status }, getAuthHeaders(token));
     return r.data;
   },
+
+  // ─── Razorpay Payments ───
+  createRazorpayOrder: async (amount, receipt) => {
+    const r = await api.post('/orders/create-order', { amount, receipt });
+    return r.data;
+  },
+  verifyPayment: async (paymentDetails) => {
+    const r = await api.post('/orders/verify-payment', paymentDetails);
+    return r.data;
+  },
+  cancelOrder: async (order_id) => {
+    const r = await api.post('/orders/cancel-order', { order_id });
+    return r.data;
+  },
 };

@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, getImageUrl } from '../api';
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, updateCartQty, removeFromCart, setCart, showToast }) {
   const [form, setForm] = useState({ name: '', email: '', address: '' });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) setForm(p => ({ ...p, name: user.name || '', email: user.email || '' }));
@@ -13,12 +29,114 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
 
   const handleCheckout = async (e) => {
     e.preventDefault();
-    if (cart.length === 0) { showToast('Your cart is empty'); return; }
+    if (cart.length === 0) {
+      showToast('Your cart is empty');
+      return;
+    }
+    if (loading) return;
+
+    setLoading(true);
+
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      showToast('Failed to load Razorpay SDK. Are you offline?');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await apiService.placeOrder({ customer_name: form.name, customer_email: form.email, customer_address: form.address, items: cart }, userToken || null);
-      showToast('Order placed! Thank you for shopping with WhiskWear ✦');
-      setCart([]); closeCart();
-    } catch (err) { showToast('Checkout failed: ' + (err.response?.data?.error || err.message)); }
+      // 1. Create order in the local database (status: pending)
+      const orderResponse = await apiService.placeOrder({
+        customer_name: form.name,
+        customer_email: form.email,
+        customer_address: form.address,
+        items: cart
+      }, userToken || null);
+      
+      const dbOrder = orderResponse.order;
+      if (!dbOrder || !dbOrder.id) {
+        throw new Error('Order creation failed on server');
+      }
+
+      // Convert total to paise (1 INR = 100 paise)
+      const amountInPaise = Math.round(total * 100);
+      if (amountInPaise < 100) {
+        showToast('Order amount must be at least ₹1.00');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Create order in Razorpay
+      const rpOrder = await apiService.createRazorpayOrder(amountInPaise, dbOrder.id);
+      
+      // 3. Configure and open Razorpay Checkout Modal
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: rpOrder.amount,
+        currency: rpOrder.currency || "INR",
+        name: "WhiskWear",
+        description: `Order #${dbOrder.id} Payment`,
+        image: "https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=100", // Placeholder or logo image
+        order_id: rpOrder.order_id,
+        handler: async function (response) {
+          try {
+            // 4. Verify signature on successful payment
+            await apiService.verifyPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              order_id: dbOrder.id
+            });
+
+            showToast('Payment successful! Thank you for shopping with WhiskWear ✦');
+            setCart([]);
+            closeCart();
+          } catch (verifyErr) {
+            showToast('Payment verification failed: ' + (verifyErr.response?.data?.error || verifyErr.message));
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: form.name,
+          email: form.email,
+        },
+        notes: {
+          address: form.address,
+          db_order_id: dbOrder.id.toString()
+        },
+        theme: {
+          color: "#0d9488" // Teal color to match theme
+        },
+        modal: {
+          ondismiss: async function () {
+            console.log('Payment modal closed by user');
+            showToast('Payment cancelled');
+            try {
+              // 5. Cancel order and restore stock if user cancelled checkout
+              await apiService.cancelOrder(dbOrder.id);
+            } catch (cancelErr) {
+              console.error('Failed to cancel order on modal close:', cancelErr);
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        showToast('Payment failed: ' + response.error.description);
+        setLoading(false);
+      });
+
+      rzp.open();
+    } catch (err) {
+      showToast('Checkout failed: ' + (err.response?.data?.error || err.message));
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,7 +189,9 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
               <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
               <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
               <textarea placeholder="Delivery address" rows="2" className="form-control" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} required />
-              <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }}>Complete Order →</button>
+              <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
+                {loading ? 'Opening Payment Gateway...' : 'Complete Order →'}
+              </button>
             </form>
           </div>
         )}

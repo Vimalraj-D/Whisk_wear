@@ -39,13 +39,18 @@ function App() {
     if (product.stock <= 0) { showToast('Item is out of stock'); return; }
     const selectedSize = product.selectedSize || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Standard');
     const selectedColor = product.selectedColor || (product.colors && product.colors.length > 0 ? product.colors[0] : '');
+    const quantityToAdd = product.quantity || 1;
 
     setCart(prev => {
       const ex = prev.find(i => i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor);
       if (ex) {
-        if (ex.quantity >= product.stock) { showToast(`Only ${product.stock} in stock`); return prev; }
-        showToast(`Added another ${product.name} to cart`);
-        return prev.map(i => (i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor) ? { ...i, quantity: i.quantity + 1 } : i);
+        const nextQty = ex.quantity + quantityToAdd;
+        if (nextQty > product.stock) {
+          showToast(`Only ${product.stock} items available in stock`);
+          return prev.map(i => (i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor) ? { ...i, quantity: product.stock } : i);
+        }
+        showToast(`Added ${quantityToAdd} more ${product.name} to cart`);
+        return prev.map(i => (i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor) ? { ...i, quantity: nextQty } : i);
       }
       showToast(`${product.name} added to cart ✓`);
       const imgUrl = (product.image_urls && product.image_urls[0]) ? product.image_urls[0] : product.image_url;
@@ -53,10 +58,11 @@ function App() {
         product_id: product.id, 
         name: product.name, 
         price: product.price, 
-        quantity: 1, 
+        quantity: quantityToAdd, 
         image_url: imgUrl,
         selectedSize,
-        selectedColor
+        selectedColor,
+        embroidery: product.embroidery || false
       }];
     });
   };
