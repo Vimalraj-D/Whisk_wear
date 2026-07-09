@@ -275,7 +275,6 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
         <section className="new-arrivals-section" style={{ marginTop: '4rem', padding: '3.5rem 2.5rem', borderRadius: '16px' }}>
           <div className="section-title-row" style={{ marginBottom: '2.25rem' }}>
             <h2 className="section-title">Watch Our Collections</h2>
-            <span style={{ fontSize: '0.9rem', color: 'var(--brand-teal)', fontWeight: 600 }}>✦ Play Automatically</span>
           </div>
 
           <div style={{ position: 'relative', overflow: 'hidden', width: '100%', aspectRatio: '16/9', maxHeight: '600px', borderRadius: '16px', background: '#000', boxShadow: 'var(--shadow-lg)' }}>

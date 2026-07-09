@@ -64,7 +64,7 @@ export default function CollectionsPage() {
                   <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
                     <ImageWithSkeleton src={cat.image_url || defaultImg} alt={cat.name} style={{ width: '85%', maxWidth: '400px', borderRadius: '50%', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', aspectRatio: '1/1', objectFit: 'cover' }} />
                   </div>
-                  <div style={{ flex: '1 1 400px' }}>
+                  <div className="collections-text-container" style={{ flex: '1 1 400px' }}>
                     <h3 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-primary)' }}>{cat.name}</h3>
                     <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: 1.6 }}>Browse our {cat.name.toLowerCase()} collection.</p>
                     <button className="btn btn-teal" onClick={() => navigate(`/shop?category=${catKey}`)} style={{ marginBottom: '1.5rem' }}>

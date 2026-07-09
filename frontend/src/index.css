@@ -1891,9 +1891,12 @@ img { display: block; }
   }
   .nav-links .nav-link {
     width: 100%;
-    text-align: left;
+    text-align: center;
     padding: 0.8rem 1.5rem;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     border-radius: 0;
     margin: 0;
     box-sizing: border-box;
@@ -1942,8 +1945,22 @@ img { display: block; }
 
   /* Section titles */
   .section-title { font-size: 1.5rem; }
-  .section-title-row { padding: 2rem 1rem 1rem; }
+  .section-title-row {
+    padding: 2rem 1rem 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
   .new-arrivals-section { padding: 1.5rem 1rem; }
+  .collections-text-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 
   /* Footer */
   .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
