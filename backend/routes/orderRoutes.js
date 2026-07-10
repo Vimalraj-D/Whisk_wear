@@ -270,34 +270,35 @@ router.post('/verify-payment', async (req, res) => {
     }
 
     // Signature matches, payment verified!
-    // Send confirmation email (fire and forget)
-    try {
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('*, order_items(id, quantity, price, products(id, name, image_urls))')
-        .eq('id', order_id)
-        .single();
-
-      if (orderData) {
-        const emailItems = (orderData.order_items || []).map(oi => ({
-          name: oi.products?.name || 'Product',
-          quantity: oi.quantity,
-          price: oi.price,
-          image_url: oi.products?.image_urls?.[0] || ''
-        }));
-        console.log(`Sending payment verified email confirmation for Order ID: ${orderData.id} to ${orderData.customer_email}`);
-        await sendOrderConfirmationEmail(
-          orderData.customer_email,
-          orderData.customer_name,
-          orderData.id,
-          orderData.total_amount,
-          emailItems
-        );
-        console.log(`Payment verified email sent successfully for Order ID: ${orderData.id}`);
-      }
-    } catch (emailErr) {
-      console.error('Failed to send order confirmation email:', emailErr);
-    }
+    // Send confirmation email in background (truly fire and forget)
+    supabase
+      .from('orders')
+      .select('*, order_items(id, quantity, price, products(id, name, image_urls))')
+      .eq('id', order_id)
+      .single()
+      .then(({ data: orderData }) => {
+        if (orderData) {
+          const emailItems = (orderData.order_items || []).map(oi => ({
+            name: oi.products?.name || 'Product',
+            quantity: oi.quantity,
+            price: oi.price,
+            image_url: oi.products?.image_urls?.[0] || ''
+          }));
+          console.log(`Queueing payment verified email confirmation for Order ID: ${orderData.id} to ${orderData.customer_email}`);
+          return sendOrderConfirmationEmail(
+            orderData.customer_email,
+            orderData.customer_name,
+            orderData.id,
+            orderData.total_amount,
+            emailItems
+          ).then(() => {
+            console.log(`Payment verified email sent successfully for Order ID: ${orderData.id}`);
+          });
+        }
+      })
+      .catch(emailErr => {
+        console.error('Failed to send order confirmation email:', emailErr);
+      });
 
     res.status(200).json({ success: true, message: 'Payment verified successfully' });
   } catch (error) {
@@ -421,26 +422,25 @@ router.post('/cod-order', async (req, res) => {
       }
     }
 
-    // Send confirmation email
-    try {
-       const emailItems = items.map(item => ({
-        name: item.name || 'Product',
-        quantity: item.quantity,
-        price: item.price,
-        image_url: item.image_url || ''
-      }));
-      console.log(`Sending COD email confirmation for Order ID: ${newOrder.id} to ${customer_email}`);
-      await sendOrderConfirmationEmail(
-        customer_email,
-        customer_name,
-        newOrder.id,
-        total_amount,
-        emailItems
-      );
+    // Send confirmation email (in the background, non-blocking)
+    const emailItems = items.map(item => ({
+      name: item.name || 'Product',
+      quantity: item.quantity,
+      price: item.price,
+      image_url: item.image_url || ''
+    }));
+    console.log(`Queueing COD email confirmation for Order ID: ${newOrder.id} to ${customer_email}`);
+    sendOrderConfirmationEmail(
+      customer_email,
+      customer_name,
+      newOrder.id,
+      total_amount,
+      emailItems
+    ).then(() => {
       console.log(`COD email sent successfully for Order ID: ${newOrder.id}`);
-    } catch (emailErr) {
+    }).catch(emailErr => {
       console.error('Failed to send COD order confirmation email:', emailErr);
-    }
+    });
 
     res.status(201).json({
       message: 'COD order placed successfully',
