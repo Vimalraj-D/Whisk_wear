@@ -285,13 +285,15 @@ router.post('/verify-payment', async (req, res) => {
           price: oi.price,
           image_url: oi.products?.image_urls?.[0] || ''
         }));
-        sendOrderConfirmationEmail(
+        console.log(`Sending payment verified email confirmation for Order ID: ${orderData.id} to ${orderData.customer_email}`);
+        await sendOrderConfirmationEmail(
           orderData.customer_email,
           orderData.customer_name,
           orderData.id,
           orderData.total_amount,
           emailItems
-        ).catch(err => console.error('Email send error (non-blocking):', err));
+        );
+        console.log(`Payment verified email sent successfully for Order ID: ${orderData.id}`);
       }
     } catch (emailErr) {
       console.error('Failed to send order confirmation email:', emailErr);
@@ -421,19 +423,21 @@ router.post('/cod-order', async (req, res) => {
 
     // Send confirmation email
     try {
-      const emailItems = items.map(item => ({
+       const emailItems = items.map(item => ({
         name: item.name || 'Product',
         quantity: item.quantity,
         price: item.price,
         image_url: item.image_url || ''
       }));
-      sendOrderConfirmationEmail(
+      console.log(`Sending COD email confirmation for Order ID: ${newOrder.id} to ${customer_email}`);
+      await sendOrderConfirmationEmail(
         customer_email,
         customer_name,
         newOrder.id,
         total_amount,
         emailItems
-      ).catch(err => console.error('COD email send error (non-blocking):', err));
+      );
+      console.log(`COD email sent successfully for Order ID: ${newOrder.id}`);
     } catch (emailErr) {
       console.error('Failed to send COD order confirmation email:', emailErr);
     }
