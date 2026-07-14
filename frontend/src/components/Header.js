@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { getImageUrl } from '../api';
 
-export default function Header({ cartCount, openCart, user, adminToken, onUserLogout, onAdminLogout }) {
+export default function Header({ cartCount, openCart, user, adminToken, onUserLogout, onAdminLogout, wishlist = [], toggleWishlist, addToCart }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -35,8 +37,11 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
           </div>
         ) : user ? (
           <>
-            <div className="nav-link mobile-only profile-link" onClick={() => { navigate('/profile'); closeMenu(); }}>
+            <div className="nav-link mobile-only" onClick={() => { navigate('/profile'); closeMenu(); }}>
               👤 Profile Settings
+            </div>
+            <div className="nav-link mobile-only" onClick={() => { setIsWishlistOpen(true); closeMenu(); }}>
+              ❤️ Wishlist {wishlist.length > 0 && <span className="cart-badge-inline">{wishlist.length}</span>}
             </div>
             <div className="nav-link mobile-only logout-link" onClick={(e) => { e.stopPropagation(); onUserLogout(); navigate('/'); closeMenu(); }}>
               Logout
@@ -58,6 +63,15 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </button>
+
+        {user && !adminToken && (
+          <button className="icon-btn wishlist-btn-header desktop-only-nav-item" onClick={() => { setIsWishlistOpen(true); closeMenu(); }} title="Wishlist" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            {wishlist.length > 0 && <span className="cart-badge" style={{ backgroundColor: 'var(--brand-purple)' }}>{wishlist.length}</span>}
+          </button>
+        )}
 
         {!adminToken && (
           <button className="icon-btn cart-btn desktop-only-nav-item" onClick={() => { openCart(); closeMenu(); }} title="Cart" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
@@ -132,6 +146,60 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
           </svg>
         </button>
       </div>
+
+      {/* Wishlist Dropdown/Modal */}
+      {isWishlistOpen && (
+        <div className="wishlist-modal-overlay" onClick={() => setIsWishlistOpen(false)}>
+          <div className="wishlist-modal-dropdown" onClick={(e) => e.stopPropagation()}>
+            <div className="wishlist-modal-header">
+              <h3>My Wishlist ({wishlist.length})</h3>
+              <button className="wishlist-modal-close" onClick={() => setIsWishlistOpen(false)}>×</button>
+            </div>
+            <div className="wishlist-modal-items">
+              {wishlist.length === 0 ? (
+                <div className="wishlist-modal-empty">Your wishlist is empty.</div>
+              ) : (
+                wishlist.map(item => (
+                  <div key={item.id} className="wishlist-modal-item">
+                    <img
+                      src={getImageUrl(item.image_urls && item.image_urls[0] ? item.image_urls[0] : item.image_url)}
+                      alt={item.name}
+                      className="wishlist-modal-item-img"
+                      onClick={() => { navigate(`/product/${item.id}`); setIsWishlistOpen(false); }}
+                    />
+                    <div className="wishlist-modal-item-info">
+                      <h4 className="wishlist-modal-item-name" onClick={() => { navigate(`/product/${item.id}`); setIsWishlistOpen(false); }}>
+                        {item.name}
+                      </h4>
+                      <span className="wishlist-modal-item-price">₹{parseFloat(item.price).toFixed(2)}</span>
+                      <div className="wishlist-modal-item-actions">
+                        <button
+                          className="wishlist-modal-add-btn"
+                          onClick={() => {
+                            addToCart({
+                              ...item,
+                              price: item.discount_percent > 0 ? parseFloat(item.price) * (1 - item.discount_percent / 100) : parseFloat(item.price)
+                            });
+                            setIsWishlistOpen(false);
+                          }}
+                        >
+                          Add to Bag
+                        </button>
+                        <button
+                          className="wishlist-modal-remove-btn"
+                          onClick={() => toggleWishlist(item)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

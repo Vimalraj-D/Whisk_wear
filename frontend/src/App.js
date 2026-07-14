@@ -30,6 +30,40 @@ function App() {
   });
   const [userToken, setUserToken] = useState(() => localStorage.getItem('whiskwear_user_token') || '');
   const [adminToken, setAdminToken] = useState(() => localStorage.getItem('whiskwear_admin_token') || '');
+  const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      try {
+        const stored = JSON.parse(localStorage.getItem(`whiskwear_wishlist_${user.id}`));
+        setWishlist(stored || []);
+      } catch {
+        setWishlist([]);
+      }
+    } else {
+      setWishlist([]);
+    }
+  }, [user]);
+
+  const toggleWishlist = (product) => {
+    if (!user) {
+      showToast('Please sign in to add items to your wishlist.');
+      return;
+    }
+    setWishlist(prev => {
+      const exists = prev.find(item => item.id === product.id);
+      let updated;
+      if (exists) {
+        updated = prev.filter(item => item.id !== product.id);
+        showToast(`${product.name} removed from wishlist`);
+      } else {
+        updated = [...prev, product];
+        showToast(`${product.name} added to wishlist`);
+      }
+      localStorage.setItem(`whiskwear_wishlist_${user.id}`, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(''), 4000); return () => clearTimeout(t); }
@@ -102,6 +136,7 @@ function App() {
         adminToken={adminToken} setAdminToken={setAdminToken}
         addToCart={addToCart} updateCartQty={updateCartQty} removeFromCart={removeFromCart}
         handleUserLogout={handleUserLogout} handleAdminLogout={handleAdminLogout}
+        wishlist={wishlist} toggleWishlist={toggleWishlist}
       />
     </Router>
   );
@@ -110,7 +145,8 @@ function App() {
 function AppLayout({
   cart, setCart, isCartOpen, setIsCartOpen, toast, setToast, showToast,
   user, setUser, userToken, setUserToken, adminToken, setAdminToken,
-  addToCart, updateCartQty, removeFromCart, handleUserLogout, handleAdminLogout
+  addToCart, updateCartQty, removeFromCart, handleUserLogout, handleAdminLogout,
+  wishlist, toggleWishlist
 }) {
   const { pathname } = useLocation();
   const isAuthPage = pathname === '/login' || pathname === '/admin/login';
@@ -119,23 +155,26 @@ function AppLayout({
   return (
     <div className="app-container">
       {!isAuthPage && !isAdminPanel && (
-        <>
+        <div className="sticky-header-wrapper">
           <Header
             cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
             openCart={() => setIsCartOpen(true)}
             user={user} userToken={userToken} adminToken={adminToken}
             onUserLogout={handleUserLogout} onAdminLogout={handleAdminLogout}
+            wishlist={wishlist}
+            toggleWishlist={toggleWishlist}
+            addToCart={addToCart}
           />
           <CategoryTicker />
-        </>
+        </div>
       )}
 
       <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Routes>
-          <Route path="/" element={<HomePage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
-          <Route path="/shop" element={<ShopPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
-          <Route path="/collections" element={<CollectionsPage />} />
-          <Route path="/product/:id" element={<ProductDetailPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
+          <Route path="/" element={<HomePage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+          <Route path="/shop" element={<ShopPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+          <Route path="/collections" element={<CollectionsPage wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+          <Route path="/product/:id" element={<ProductDetailPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
           
           <Route path="/login" element={userToken ? <Navigate to="/" replace /> :
             <AuthPage setUser={setUser} setUserToken={setUserToken} showToast={showToast} />} />

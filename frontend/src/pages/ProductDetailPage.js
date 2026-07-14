@@ -5,7 +5,7 @@ import ReviewSection from '../components/ReviewSection';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
 
-export default function ProductDetailPage({ user, addToCart, openCart, showToast }) {
+export default function ProductDetailPage({ user, addToCart, openCart, showToast, wishlist = [], toggleWishlist }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -19,7 +19,6 @@ export default function ProductDetailPage({ user, addToCart, openCart, showToast
   const [wantsEmbroidery, setWantsEmbroidery] = useState(false);
   const [is360Active, setIs360Active] = useState(false);
   const [spinAngle, setSpinAngle] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
     // Scroll to top when product ID changes
@@ -95,6 +94,7 @@ export default function ProductDetailPage({ user, addToCart, openCart, showToast
   const discountPrice = hasDiscount ? originalPrice * (1 - product.discount_percent / 100) : originalPrice;
   const totalPrice = discountPrice * quantity;
   const itemSku = `ABN0${product.id || 7}BLK${selectedColor ? selectedColor.slice(1, 3).toUpperCase() : '0'}`;
+  const isWishlisted = wishlist.some(item => item.id === product.id);
 
   const handleAddToCart = () => {
     if (product.stock <= 0) {
@@ -427,25 +427,24 @@ export default function ProductDetailPage({ user, addToCart, openCart, showToast
               <div>🚚 Ships from and sold by WhiskWear</div>
               
               {/* Wishlist toggle */}
-              <button 
-                onClick={() => {
-                  setWishlisted(!wishlisted);
-                  showToast(wishlisted ? 'Removed from Wishlist' : 'Added to Wishlist');
-                }}
-                style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--brand-purple)', padding: '4px 0', marginTop: '8px' }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill={wishlisted ? 'var(--brand-purple)' : 'none'}
-                  stroke="var(--brand-purple)"
-                  strokeWidth="2.5"
+              {user && (
+                <button 
+                  onClick={() => toggleWishlist(product)}
+                  style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--brand-purple)', padding: '4px 0', marginTop: '8px' }}
                 >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                {wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-              </button>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill={isWishlisted ? 'var(--brand-purple)' : 'none'}
+                    stroke="var(--brand-purple)"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                </button>
+              )}
             </div>
           </div>
         </div>

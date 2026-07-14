@@ -30,7 +30,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-export default function ShopPage({ user, addToCart, openCart, showToast }) {
+export default function ShopPage({ user, addToCart, openCart, showToast, wishlist = [], toggleWishlist }) {
   const navigate = useNavigate();
   const query = useQuery();
   const focusParam = query.get('focus');
@@ -41,7 +41,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
   const [search, setSearch] = useState('');
   const [sortOption, setSortOption] = useState('recommended');
   const [loading, setLoading] = useState(true);
-  const [wishlist, setWishlist] = useState([]);
   const [categories, setCategories] = useState([]);
   const searchInputRef = useRef(null);
 
@@ -72,15 +71,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
       .finally(() => setLoading(false));
   }, [filter, showToast]);
 
-  const toggleWishlist = (product) => {
-    if (wishlist.includes(product.id)) {
-      setWishlist(wishlist.filter(id => id !== product.id));
-      showToast(`${product.name} removed from wishlist`);
-    } else {
-      setWishlist([...wishlist, product.id]);
-      showToast(`${product.name} added to wishlist`);
-    }
-  };
+
 
   let filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -177,7 +168,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
-              const isWishlisted = wishlist.includes(p.id);
+              const isWishlisted = wishlist.some(item => item.id === p.id);
               
               return (
                 <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>

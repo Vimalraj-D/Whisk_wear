@@ -10,12 +10,19 @@ const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
 ];
 
-export default function HomePage({ user, addToCart, openCart, showToast }) {
+const HeartIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: '16px', height: '16px', display: 'block' }}>
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"></path>
+  </svg>
+);
+
+export default function HomePage({ user, addToCart, openCart, showToast, wishlist = [], toggleWishlist }) {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [isMuted, setIsMuted] = useState(true);
   
   // Carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -107,25 +114,18 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
       if (!videoEl) return;
 
       if (idx === currentVideoIdx) {
-        // Active video: unmute, reset play time, and play
-        videoEl.muted = false;
+        // Active video: mute according to state, reset play time, and play
+        videoEl.muted = isMuted;
         videoEl.currentTime = 0;
         
-        const playPromise = videoEl.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.log("Autoplay unmuted blocked, falling back to muted play:", err);
-            videoEl.muted = true;
-            videoEl.play().catch(e => console.error("Muted play failed:", e));
-          });
-        }
+        videoEl.play().catch(e => console.error("Video play failed:", e));
       } else {
         // Inactive videos: pause and mute to avoid double audio playing
         videoEl.pause();
         videoEl.muted = true;
       }
     });
-  }, [currentVideoIdx]);
+  }, [currentVideoIdx, isMuted]);
 
   useEffect(() => {
     // If active video is currently playing, let it play to the end and trigger handleVideoEnded
@@ -157,7 +157,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
         </div>
         <div className="hero-right" style={{ animation: 'fadeUp 0.5s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
           <div className="hero-bg-shape" />
-          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '420px', height: 'clamp(220px, 40vw, 360px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
+          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '560px', height: 'clamp(280px, 45vw, 460px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
         </div>
         
         {/* Carousel Indicators */}
@@ -224,13 +224,43 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
+              const isWishlisted = wishlist.some(item => item.id === p.id);
               return (
                 <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>
                   <div className="product-card">
                     <div className="product-img-wrapper">
                       <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
-                      {hasDiscount && (
+                      {hasDiscount ? (
                         <div className="discount-badge">{p.discount_percent}% OFF</div>
+                      ) : (
+                        <div className="product-category-badge badge-kitchen">New Arrival</div>
+                      )}
+                      {user && (
+                        <button 
+                          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                          onClick={() => toggleWishlist(p)}
+                          aria-label="Toggle wishlist"
+                          style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            zIndex: 10,
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: isWishlisted ? 'var(--color-cancelled)' : 'var(--text-secondary)',
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'color 0.2s, background-color 0.2s'
+                          }}
+                        >
+                          <HeartIcon />
+                        </button>
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
@@ -300,6 +330,43 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
               ))}
             </div>
 
+            {/* Mute/Unmute floating button overlay */}
+            <button
+              onClick={() => setIsMuted(prev => !prev)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255, 255, 255, 0.85)',
+                border: 'none',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                zIndex: 15,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                color: 'var(--text-primary)',
+                transition: 'transform 0.2s, background-color 0.2s'
+              }}
+              title={isMuted ? "Unmute sound" : "Mute sound"}
+            >
+              {isMuted ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <line x1="23" y1="9" x2="17" y2="15"></line>
+                  <line x1="17" y1="9" x2="23" y2="15"></line>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+              )}
+            </button>
+
             {/* Navigation Arrows */}
             <button 
               onClick={prevVideo} 
@@ -359,6 +426,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
+              const isWishlisted = wishlist.some(item => item.id === p.id);
               return (
                 <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
                   <div className="product-card">
@@ -366,6 +434,33 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
                       <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
                       {hasDiscount && (
                         <div className="discount-badge">{p.discount_percent}% OFF</div>
+                      )}
+                      {user && (
+                        <button 
+                          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                          onClick={() => toggleWishlist(p)}
+                          aria-label="Toggle wishlist"
+                          style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            zIndex: 10,
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: isWishlisted ? 'var(--color-cancelled)' : 'var(--text-secondary)',
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'color 0.2s, background-color 0.2s'
+                          }}
+                        >
+                          <HeartIcon />
+                        </button>
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
