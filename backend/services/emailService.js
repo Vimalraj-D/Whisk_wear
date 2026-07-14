@@ -6,23 +6,17 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: smtpPort,
   secure: smtpPort === 465,
-  pool: true,
-  maxConnections: 3,
-  maxMessages: 100,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 30000,
-  greetingTimeout: 15000,
-  socketTimeout: 30000,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   tls: { rejectUnauthorized: false }
 });
 
-// Non-blocking SMTP check on startup
-transporter.verify()
-  .then(() => console.log('✅ SMTP connection verified successfully'))
-  .catch(err => console.error('⚠️ SMTP connection check failed:', err.message));
+console.log(`📧 SMTP configured: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${smtpPort}`);
 
 // A helper to generate the formal template envelope
 function getFormalTemplate(title, bodyHtml) {
