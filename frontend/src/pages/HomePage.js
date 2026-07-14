@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
-import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
 
@@ -15,7 +14,6 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
-  const [detailProduct, setDetailProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   
@@ -237,7 +235,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
                           <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                          <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
                     </div>
@@ -372,7 +370,7 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
                           <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                          <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
                     </div>
@@ -410,15 +408,6 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
         )}
       </section>
 
-      {detailProduct && (
-        <ProductDetailModal 
-          product={detailProduct} 
-          user={user}
-          onClose={() => setDetailProduct(null)} 
-          addToCart={addToCart} 
-          openCart={openCart}
-        />
-      )}
     </div>
   );
 }

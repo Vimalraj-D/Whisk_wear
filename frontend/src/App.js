@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Header from './components/Header';
 import SiteFooter from './components/SiteFooter';
 import CartDrawer from './components/CartDrawer';
+import CategoryTicker from './components/CategoryTicker';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -13,6 +14,7 @@ import CollectionsPage from './pages/CollectionsPage';
 import AuthPage from './pages/AuthPage';
 import OrdersPage from './pages/OrdersPage';
 import UserProfilePage from './pages/UserProfilePage';
+import ProductDetailPage from './pages/ProductDetailPage';
 
 // Admin Pages
 import AdminAuthPage from './pages/admin/AdminAuthPage';
@@ -117,12 +119,15 @@ function AppLayout({
   return (
     <div className="app-container">
       {!isAuthPage && !isAdminPanel && (
-        <Header
-          cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
-          openCart={() => setIsCartOpen(true)}
-          user={user} userToken={userToken} adminToken={adminToken}
-          onUserLogout={handleUserLogout} onAdminLogout={handleAdminLogout}
-        />
+        <>
+          <Header
+            cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
+            openCart={() => setIsCartOpen(true)}
+            user={user} userToken={userToken} adminToken={adminToken}
+            onUserLogout={handleUserLogout} onAdminLogout={handleAdminLogout}
+          />
+          <CategoryTicker />
+        </>
       )}
 
       <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -130,6 +135,7 @@ function AppLayout({
           <Route path="/" element={<HomePage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
           <Route path="/shop" element={<ShopPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
           <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} />} />
           
           <Route path="/login" element={userToken ? <Navigate to="/" replace /> :
             <AuthPage setUser={setUser} setUserToken={setUserToken} showToast={showToast} />} />

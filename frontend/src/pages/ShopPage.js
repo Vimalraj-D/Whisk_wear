@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
-import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
 
@@ -32,6 +31,7 @@ function useQuery() {
 }
 
 export default function ShopPage({ user, addToCart, openCart, showToast }) {
+  const navigate = useNavigate();
   const query = useQuery();
   const focusParam = query.get('focus');
   const categoryParam = query.get('category') || 'all';
@@ -40,7 +40,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
   const [filter, setFilter] = useState(categoryParam);
   const [search, setSearch] = useState('');
   const [sortOption, setSortOption] = useState('recommended');
-  const [detailProduct, setDetailProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -200,7 +199,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
                           <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
-                          <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
+                          <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
                     </div>
@@ -237,15 +236,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast }) {
         )}
       </div>
 
-      {detailProduct && (
-        <ProductDetailModal 
-          product={detailProduct} 
-          user={user}
-          onClose={() => setDetailProduct(null)} 
-          addToCart={addToCart} 
-          openCart={openCart}
-        />
-      )}
     </div>
   );
 }
