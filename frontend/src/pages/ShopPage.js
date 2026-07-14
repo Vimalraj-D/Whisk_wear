@@ -50,11 +50,9 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const [maxPrice, setMaxPrice] = useState(5000);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
 
   // Option lists derived or predefined
-  const availableSizes = ['Standard', '6M', '12M', '18M', '24M', '2T', '3T', '4T', '5T'];
-  const availableMaterials = ['Organic Cotton', 'Denim', 'Knit Cotton', 'Waffle Weave'];
+  const availableSizes = ['S', 'M', 'L', 'XL', 'XXL', 'Standard'];
   
   // Custom aesthetic colors palette for filter swatches (mapping hex codes to readable labels)
   const availableColors = [
@@ -112,12 +110,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     );
   };
 
-  const toggleMaterialFilter = (material) => {
-    setSelectedMaterials(prev => 
-      prev.includes(material) ? prev.filter(m => m !== material) : [...prev, material]
-    );
-  };
-
   const resetAllFilters = () => {
     setFilter('all');
     setSearch('');
@@ -125,7 +117,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     setMaxPrice(5000);
     setSelectedSizes([]);
     setSelectedColors([]);
-    setSelectedMaterials([]);
     setSortOption('recommended');
   };
 
@@ -155,21 +146,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     const matchesColors = selectedColors.length === 0 || 
                           (Array.isArray(p.colors) && p.colors.some(c => selectedColors.includes(c)));
 
-    // 6. Cloth Material (derived from description / title matching)
-    let matchesMaterial = true;
-    if (selectedMaterials.length > 0) {
-      matchesMaterial = selectedMaterials.some(mat => {
-        const desc = (p.description || '').toLowerCase();
-        const name = (p.name || '').toLowerCase();
-        if (mat === 'Denim') return desc.includes('denim') || name.includes('denim');
-        if (mat === 'Organic Cotton') return desc.includes('organic') || name.includes('organic');
-        if (mat === 'Waffle Weave') return desc.includes('waffle') || name.includes('waffle');
-        if (mat === 'Knit Cotton') return desc.includes('knit') || name.includes('knit');
-        return false;
-      });
-    }
-
-    return matchesSearch && matchesCategory && matchesPrice && matchesSizes && matchesColors && matchesMaterial;
+    return matchesSearch && matchesCategory && matchesPrice && matchesSizes && matchesColors;
   }) : [];
 
   // ─── Sorting Logic ───
@@ -329,23 +306,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             </div>
           </div>
 
-          {/* Cloth Material filter */}
-          <div className="filter-group" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '0.5px' }}>Material</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {availableMaterials.map(mat => (
-                <label key={mat} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedMaterials.includes(mat)}
-                    onChange={() => toggleMaterialFilter(mat)}
-                    style={{ accentColor: 'var(--brand-purple)' }}
-                  />
-                  {mat}
-                </label>
-              ))}
-            </div>
-          </div>
+
 
           {/* Size checklist pills */}
           <div className="filter-group" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
@@ -408,28 +369,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
 
         {/* Right Content Area: Results and Products Grid */}
         <main className="shop-products-column">
-          
-          {/* Header Row: Result count & Sort option */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glossy-bg)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid var(--glossy-border)', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
-            </span>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Sort by:</span>
-              <select 
-                className="form-control" 
-                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem 1rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, background: 'var(--bg-card)' }}
-                value={sortOption}
-                onChange={e => setSortOption(e.target.value)}
-              >
-                <option value="recommended">Recommended</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="discount">Highest Discount</option>
-              </select>
-            </div>
-          </div>
 
           {/* Loading state */}
           {loading ? (
