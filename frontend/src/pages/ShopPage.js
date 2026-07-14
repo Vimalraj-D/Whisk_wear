@@ -215,7 +215,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         <aside className="shop-filter-sidebar" style={{ background: 'var(--glossy-bg)', border: '1px solid var(--glossy-border)', borderRadius: '16px', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', position: 'sticky', top: '130px', maxHeight: '82vh', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', margin: 0 }}>Filter By</h3>
-            {(filter !== 'all' || search !== '' || minPrice !== 0 || maxPrice !== 5000 || selectedSizes.length > 0 || selectedColors.length > 0 || selectedMaterials.length > 0) && (
+            {(filter !== 'all' || search !== '' || minPrice !== 0 || maxPrice !== 5000 || selectedSizes.length > 0 || selectedColors.length > 0) && (
               <button 
                 onClick={resetAllFilters} 
                 style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
