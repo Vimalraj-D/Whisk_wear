@@ -140,7 +140,7 @@ export default function UserProfilePage({ user, setUser, userToken, showToast, o
       </div>
 
       <div className="admin-main-content">
-        <div className="admin-content-inner" style={{ background: 'var(--bg-card)', borderRadius: '12px', padding: '2rem' }}>
+        <div className="admin-content-inner" style={{ background: '#fff', borderRadius: '12px', padding: '2rem' }}>
           {activeTab === 'profile' && (
             <div>
               <h3>Profile Details</h3>
@@ -149,7 +149,7 @@ export default function UserProfilePage({ user, setUser, userToken, showToast, o
               <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
                 <div className="form-group">
                   <label>Email (Cannot be changed)</label>
-                  <input type="email" className="input-field" value={email} disabled style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)' }} />
+                  <input type="email" className="input-field" value={email} disabled style={{ background: '#f5f5f5' }} />
                 </div>
                 <div className="form-group">
                   <label>Full Name</label>
@@ -213,12 +213,12 @@ export default function UserProfilePage({ user, setUser, userToken, showToast, o
               <h3>Security & Password</h3>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Reset your password via Email OTP.</p>
               
-              <div style={{ maxWidth: '400px', background: 'var(--bg-secondary)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <div style={{ maxWidth: '400px', background: '#fafafa', padding: '2rem', borderRadius: '12px', border: '1px solid #eee' }}>
                 {resetStep === 1 ? (
                   <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Email Address</label>
-                      <input type="email" className="input-field" value={resetEmail} disabled style={{ background: 'var(--bg-primary)', color: 'var(--text-muted)' }} />
+                      <input type="email" className="input-field" value={resetEmail} disabled style={{ background: '#eee' }} />
                     </div>
                     <button type="submit" className="btn btn-teal" style={{ width: '100%' }}>Send Verification Code</button>
                   </form>
