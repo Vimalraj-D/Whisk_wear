@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════
    WhiskWear — Light Lavender & Deep Purple Design System
    Brand: Lavender & Midnight Purple
-   Font: Playfair Display (Serif) & Inter (Sans-Serif)
+   Font: Playfair Display (Serif), Inter (Sans-Serif), & Outfit (Heading)
 ═══════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ─── CSS Custom Properties ─── */
 :root {
@@ -55,6 +55,39 @@
 
   --transition: 0.3s cubic-bezier(0.16,1,0.3,1);
   --transition-slow: 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+.dark-mode {
+  --bg-primary:   #0B0816; /* Deep charcoal lavender */
+  --bg-secondary: #130E24; /* Dark violet secondary */
+  --bg-card:      #19142C; /* Dark card surface */
+  --text-primary: #EDE8F5; /* Crisp lavender-white */
+  --text-secondary: #B1A8CE; /* Violet gray secondary */
+  --text-muted:   #796F9B; /* Muted violet gray */
+  --border-color: #2F274E; /* Dark violet borders */
+  --border-focus: #B59AE1;
+
+  --brand-navy:    #EDE8F5;
+  --brand-purple:  #B59AE1;
+  --brand-teal:    #B59AE1;
+  --brand-teal-lt: rgba(181, 154, 225, 0.15);
+  --brand-glow:    rgba(181, 154, 225, 0.4);
+  
+  --brand-orange:  #7E57C2;
+  --brand-orange-glow: rgba(126, 87, 194, 0.4);
+
+  --accent-kitchen: #7E57C2;
+  --accent-kids:    #B59AE1;
+  --accent-kitchen-lt: rgba(126, 87, 194, 0.15);
+  --accent-kids-lt:    rgba(181, 154, 225, 0.2);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+
+  --glossy-bg:     rgba(25, 20, 44, 0.85);
+  --glossy-border: rgba(255, 255, 255, 0.08);
+  --glossy-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -2254,3 +2287,195 @@ img { display: block; }
 .profile-dropdown-body { display: flex; flex-direction: column; padding: 0.5rem 0; }
 .profile-dropdown-item { padding: 0.8rem 1.2rem; font-size: 0.9rem; color: var(--text-primary); text-decoration: none; transition: background 0.2s; }
 .profile-dropdown-item:hover { background: rgba(0,0,0,0.03); }
+
+/* ─── Expandable Search bar ─── */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+}
+.search-bar-container.expanded {
+  width: 240px;
+  padding-right: 10px;
+  border-color: var(--brand-purple);
+  box-shadow: 0 0 0 3px var(--brand-teal-lt);
+}
+.search-bar-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0 10px 0 40px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.search-bar-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+/* ─── Dark Mode Toggle Button ─── */
+.theme-toggle-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.theme-toggle-btn:hover {
+  background: var(--brand-purple);
+  color: #fff;
+  border-color: var(--brand-purple);
+  box-shadow: 0 0 15px var(--brand-glow);
+}
+
+/* ─── Cart Badge Bounce ─── */
+@keyframes cartBounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2) rotate(-8deg); }
+  50% { transform: scale(1.2) rotate(8deg); }
+  75% { transform: scale(1.1) rotate(-4deg); }
+  100% { transform: scale(1); }
+}
+.cart-bounce {
+  animation: cartBounce 0.45s ease-out;
+}
+
+/* ─── Double Image Hover Swap (Crossfade) ─── */
+.product-img-primary {
+  transition: opacity 0.4s ease !important;
+}
+.product-img-secondary {
+  position: absolute !important;
+  inset: 0 !important;
+  opacity: 0 !important;
+  transition: opacity 0.4s ease !important;
+}
+.product-card:hover .product-img-primary {
+  opacity: 0 !important;
+}
+.product-card:hover .product-img-secondary {
+  opacity: 1 !important;
+}
+
+/* ─── Image Zoom in Modal ─── */
+.zoom-gallery-container {
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zoom-gallery-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.15s ease-out;
+  transform-origin: center center;
+}
+.zoom-gallery-container:hover .zoom-gallery-image {
+  transform: scale(1.6);
+}
+
+/* ─── Two Stage Checkout Drawer ─── */
+.checkout-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1.5px solid var(--border-color);
+}
+.checkout-step {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: color 0.3s;
+}
+.checkout-step.active {
+  color: var(--brand-purple);
+}
+.checkout-step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+.checkout-step.active .checkout-step-num {
+  background: var(--brand-purple);
+  color: #fff;
+}
+
+.summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-sticky-bar {
+  display: none;
+}
+
+/* ─── Sticky Mobile Action Bar for Modal ─── */
+@media (max-width: 768px) {
+  .mobile-sticky-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--glossy-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    animation: slideUp 0.3s ease-out;
+  }
+}
+

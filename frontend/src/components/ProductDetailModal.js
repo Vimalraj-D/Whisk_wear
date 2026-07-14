@@ -12,6 +12,17 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
   const [spinAngle, setSpinAngle] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
 
+  // Hover magnifier zoom coordinates state
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  const handleMouseMove = (e) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomPos({ x, y });
+  };
+
   const images = product.image_urls && product.image_urls.length > 0 ? product.image_urls : [product.image_url];
   const originalPrice = parseFloat(product.price);
   const hasDiscount = product.discount_percent > 0;
@@ -74,7 +85,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                 key={idx}
                 style={{
                   ...thumbnailWrapperStyle,
-                  borderColor: currentIndex === idx && !is360Active ? '#c21e25' : '#ddd',
+                  borderColor: currentIndex === idx && !is360Active ? 'var(--brand-purple)' : 'var(--border-color)',
                 }}
                 onClick={() => {
                   setIs360Active(false);
@@ -97,30 +108,38 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
             <div
               style={{
                 ...thumbnailWrapperStyle,
-                borderColor: is360Active ? '#c21e25' : '#ddd',
-                background: '#f8f9fa',
+                borderColor: is360Active ? 'var(--brand-purple)' : 'var(--border-color)',
+                background: 'var(--bg-secondary)',
               }}
               onClick={toggle360}
             >
               <div style={icon360Style}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d3436" strokeWidth="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2">
                   <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                 </svg>
-                <span style={{ fontSize: '0.65rem', fontWeight: 'bold', marginTop: '2px' }}>360°</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 'bold', marginTop: '2px', color: 'var(--text-primary)' }}>360°</span>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Main Product Image Display */}
+          {/* Column 2: Main Product Image Display with Hover Zoom */}
           <div className="quickview-image-display-column" style={imageDisplayColumnStyle}>
-            <div style={mainImageContainerStyle}>
+            <div 
+              style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: is360Active ? 'default' : 'zoom-in' }}
+              onMouseMove={handleMouseMove}
+              onMouseEnter={() => { if (!is360Active) setIsZoomed(true); }}
+              onMouseLeave={() => setIsZoomed(false)}
+            >
               <img
                 src={getImageUrl(images[currentIndex])}
                 alt={product.name}
                 style={{
                   ...mainImageStyle,
-                  transform: spinAngle ? `rotateY(${spinAngle}deg)` : 'none',
-                  transition: is360Active ? 'none' : 'transform 0.3s ease',
+                  transform: is360Active 
+                    ? (spinAngle ? `rotateY(${spinAngle}deg)` : 'none') 
+                    : (isZoomed ? 'scale(1.8)' : 'scale(1)'),
+                  transformOrigin: isZoomed ? `${zoomPos.x}% ${zoomPos.y}%` : 'center center',
+                  transition: is360Active || isZoomed ? 'none' : 'transform 0.25s ease-out',
                 }}
                 onError={(e) => {
                   e.target.onerror = null;
@@ -174,7 +193,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                         style={{
                           ...swatchButtonStyle,
                           backgroundColor: color,
-                          boxShadow: selectedColor === color ? '0 0 0 2px #fff, 0 0 0 4px #c21e25' : '0 0 0 1px #ddd',
+                          boxShadow: selectedColor === color ? '0 0 0 2px var(--bg-card), 0 0 0 4px var(--brand-purple)' : '0 0 0 1px var(--border-color)',
                         }}
                         title={color}
                       />
@@ -196,9 +215,9 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                       onClick={() => setSelectedSize(size)}
                       style={{
                         ...sizeButtonStyle,
-                        borderColor: selectedSize === size ? '#c21e25' : '#ccc',
-                        color: selectedSize === size ? '#c21e25' : '#2d3436',
-                        background: selectedSize === size ? '#fdf2f2' : 'transparent',
+                        borderColor: selectedSize === size ? 'var(--brand-purple)' : 'var(--border-color)',
+                        color: selectedSize === size ? 'var(--brand-purple)' : 'var(--text-primary)',
+                        background: selectedSize === size ? 'var(--brand-teal-lt)' : 'transparent',
                       }}
                     >
                       {size}
@@ -217,7 +236,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
 
             {/* Compare checklist item */}
             <div style={compareContainerStyle}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d3436" strokeWidth="2" style={{ marginRight: '6px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2" style={{ marginRight: '6px' }}>
                 <path d="M12 20V10M18 20V4M6 20V16"/>
               </svg>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }} onClick={() => alert("Added to comparison list!")}>COMPARE</span>
@@ -255,7 +274,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
               <button
                 style={{
                   ...wishlistButtonStyle,
-                  background: wishlisted ? '#fdf2f2' : '#f1f2f6',
+                  background: wishlisted ? 'var(--brand-teal-lt)' : 'var(--bg-secondary)',
                 }}
                 onClick={() => {
                   setWishlisted(!wishlisted);
@@ -266,8 +285,8 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
-                  fill={wishlisted ? '#c21e25' : 'none'}
-                  stroke={wishlisted ? '#c21e25' : '#2d3436'}
+                  fill={wishlisted ? 'var(--brand-purple)' : 'none'}
+                  stroke={wishlisted ? 'var(--brand-purple)' : 'var(--text-primary)'}
                   strokeWidth="2.5"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -275,10 +294,25 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
               </button>
 
               {/* Add to Cart Button */}
-              <button style={addToCartButtonStyle} onClick={handleAddClick}>
+              <button style={{ ...addToCartButtonStyle, backgroundColor: 'var(--brand-purple)' }} onClick={handleAddClick}>
                 ADD TO CART
               </button>
             </div>
+
+            {/* Sticky Mobile Add to Cart Bar */}
+            <div className="mobile-sticky-bar">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>{product.name}</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--brand-purple)' }}>₹{discountPrice.toFixed(2)}</span>
+              </div>
+              <button 
+                className="btn btn-teal btn-sm" 
+                onClick={handleAddClick} 
+                style={{ borderRadius: '50px', padding: '0.6rem 1.25rem', backgroundColor: 'var(--brand-purple)', color: '#fff', border: 'none' }}
+              >
+                ADD TO CART
+              </button>
+            </div>    
 
             {/* Shipping & Returns Details */}
             <div style={shippingInfoStyle}>

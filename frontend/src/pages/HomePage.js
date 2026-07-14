@@ -4,6 +4,7 @@ import { apiService, getImageUrl } from '../api';
 import ProductDetailModal from '../components/ProductDetailModal';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
+import { animateFlyToCart } from '../utils/animationHelper';
 
 const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
@@ -230,13 +231,20 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
                 <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>
                   <div className="product-card">
                     <div className="product-img-wrapper">
-                      <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
+                      <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img product-img-primary" style={{ position: 'absolute', inset: 0 }} />
+                      {p.image_urls && p.image_urls.length > 1 && (
+                        <ImageWithSkeleton src={getImageUrl(p.image_urls[1])} alt={`${p.name} hover`} className="product-img product-img-secondary" style={{ position: 'absolute', inset: 0 }} />
+                      )}
                       {hasDiscount && (
                         <div className="discount-badge">{p.discount_percent}% OFF</div>
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <button className="btn btn-teal" onClick={(e) => {
+                            const mainImg = p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url;
+                            addToCart({ ...p, price: discountPrice, image_url: mainImg });
+                            animateFlyToCart(e, getImageUrl(mainImg));
+                          }}>Add to Bag</button>
                           <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
                         </div>
                       </div>
@@ -365,13 +373,20 @@ export default function HomePage({ user, addToCart, openCart, showToast }) {
                 <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
                   <div className="product-card">
                     <div className="product-img-wrapper">
-                      <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
+                      <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img product-img-primary" style={{ position: 'absolute', inset: 0 }} />
+                      {p.image_urls && p.image_urls.length > 1 && (
+                        <ImageWithSkeleton src={getImageUrl(p.image_urls[1])} alt={`${p.name} hover`} className="product-img product-img-secondary" style={{ position: 'absolute', inset: 0 }} />
+                      )}
                       {hasDiscount && (
                         <div className="discount-badge">{p.discount_percent}% OFF</div>
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <button className="btn btn-teal" onClick={(e) => {
+                            const mainImg = p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url;
+                            addToCart({ ...p, price: discountPrice, image_url: mainImg });
+                            animateFlyToCart(e, getImageUrl(mainImg));
+                          }}>Add to Bag</button>
                           <button className="btn-outline-white" onClick={() => setDetailProduct(p)}>Quick View</button>
                         </div>
                       </div>
