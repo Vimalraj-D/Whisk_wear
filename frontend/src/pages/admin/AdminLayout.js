@@ -6,6 +6,7 @@ import CategoriesPage from './CategoriesPage';
 import StockAlertsPage from './StockAlertsPage';
 import AnalyticsPage from './AnalyticsPage';
 import ReviewsPage from './ReviewsPage';
+import NewsletterPage from './NewsletterPage';
 
 export default function AdminLayout({ adminToken, showToast, onSessionExpired }) {
   const navigate = useNavigate();
@@ -142,7 +143,8 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
     { name: 'Orders', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg> },
     { name: 'Stock Alerts', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> },
     { name: 'Analytics', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> },
-    { name: 'Reviews', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> }
+    { name: 'Reviews', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> },
+    { name: 'Newsletter', icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> }
   ];
 
   return (
@@ -204,6 +206,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                 {tab === 'Stock Alerts' && `${lowStock} items low on stock`}
                 {tab === 'Analytics' && 'View detailed store analytics.'}
                 {tab === 'Reviews' && 'Manage customer reviews across all products.'}
+                {tab === 'Newsletter' && 'Compose and send formal newsletter campaigns to subscribers.'}
               </p>
             </div>
             
@@ -313,6 +316,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
             {tab === 'Stock Alerts' && <StockAlertsPage products={products} adminToken={adminToken} showToast={showToast} onUpdate={load} />}
             {tab === 'Analytics' && <AnalyticsPage adminToken={adminToken} showToast={showToast} />}
             {tab === 'Reviews' && <ReviewsPage adminToken={adminToken} showToast={showToast} />}
+            {tab === 'Newsletter' && <NewsletterPage adminToken={adminToken} showToast={showToast} />}
         </div>
 
         {/* Product Modal */}

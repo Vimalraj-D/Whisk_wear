@@ -149,4 +149,14 @@ export const apiService = {
     const r = await api.post('/orders/cod-order', orderData, { headers });
     return r.data;
   },
+
+  // ─── Newsletter Subscriptions ───
+  subscribeNewsletter: async (email) => {
+    const r = await api.post('/subscribers/subscribe', { email });
+    return r.data;
+  },
+  sendNewsletterCampaign: async (campaignData, token) => {
+    const r = await api.post('/subscribers/send-campaign', campaignData, getAuthHeaders(token));
+    return r.data;
+  },
 };

@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
+import { apiService } from '../api';
 
 export default function SiteFooter() {
   const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [statusType, setStatusType] = useState('success');
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!email) return;
-    setSubscribed(true);
-    setEmail('');
-    setTimeout(() => setSubscribed(false), 4000);
+    setSubmitting(true);
+    setMessage('');
+    try {
+      const res = await apiService.subscribeNewsletter(email);
+      setStatusType('success');
+      setMessage(res.message || 'Subscribed successfully!');
+      setEmail('');
+    } catch (err) {
+      console.error(err);
+      setStatusType('error');
+      setMessage(err.response?.data?.error || 'Failed to subscribe. Please try again.');
+    } finally {
+      setSubmitting(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
   };
 
   return (
@@ -107,6 +122,7 @@ export default function SiteFooter() {
             />
             <button 
               type="submit" 
+              disabled={submitting}
               style={{
                 background: 'var(--brand-teal)',
                 color: 'var(--brand-navy)',
@@ -114,18 +130,23 @@ export default function SiteFooter() {
                 outline: 'none',
                 padding: '0 1.2rem',
                 borderRadius: '20px',
-                cursor: 'pointer',
+                cursor: submitting ? 'not-allowed' : 'pointer',
                 fontWeight: 700,
                 fontSize: '0.85rem',
+                opacity: submitting ? 0.7 : 1,
                 transition: 'background 0.3s'
               }}
             >
-              Join
+              {submitting ? '...' : 'Join'}
             </button>
           </form>
-          {subscribed && (
-            <div style={{ fontSize: '0.8rem', color: 'var(--brand-teal)', animation: 'fadeIn 0.3s ease' }}>
-              ✓ Thank you for subscribing!
+          {message && (
+            <div style={{ 
+              fontSize: '0.8rem', 
+              color: statusType === 'success' ? 'var(--brand-teal)' : 'var(--color-cancelled)', 
+              animation: 'fadeIn 0.3s ease' 
+            }}>
+              {statusType === 'success' ? '✓ ' : '✕ '} {message}
             </div>
           )}
         </div>

@@ -16,6 +16,7 @@ const orderRoutes = require('../routes/orderRoutes');
 const categoryRoutes = require('../routes/categoryRoutes');
 const analyticsRoutes = require('../routes/analyticsRoutes');
 const reviewRoutes = require('../routes/reviewRoutes');
+const subscriberRoutes = require('../routes/subscriberRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +34,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/subscribers', subscriberRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
