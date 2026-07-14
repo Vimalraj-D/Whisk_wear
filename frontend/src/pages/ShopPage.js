@@ -29,6 +29,8 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+const getCategoryKey = (name) => name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '_') : '';
+
 export default function ShopPage({ user, addToCart, openCart, showToast, wishlist = [], toggleWishlist }) {
   const navigate = useNavigate();
   const query = useQuery();
