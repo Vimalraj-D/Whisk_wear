@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 
 # Pass build time environment variables
-ARG REACT_APP_API_URL=http://localhost:5000/api
+ARG REACT_APP_API_URL=https://whisk-wear.onrender.com/api
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 RUN npm run build

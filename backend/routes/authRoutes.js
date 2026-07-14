@@ -59,7 +59,10 @@ router.post('/user/initiate', async (req, res) => {
       if (insertErr) throw insertErr;
     }
 
-    await sendVerificationEmail(email.toLowerCase(), name, code);
+    // Fire-and-forget: don't await so the API responds instantly
+    sendVerificationEmail(email.toLowerCase(), name, code).catch(err => {
+      console.error(`⚠️ Background verification email failed for ${email}:`, err.message);
+    });
     res.json({ success: true, email: email.toLowerCase(), message: 'Verification code sent to your email.' });
   } catch (err) {
     console.error('Initiate error:', err);
@@ -162,7 +165,10 @@ router.post('/user/resend-code', async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
-    await sendVerificationEmail(user.email, user.name, code);
+    // Fire-and-forget: don't await so the API responds instantly
+    sendVerificationEmail(user.email, user.name, code).catch(err => {
+      console.error(`⚠️ Background resend email failed for ${user.email}:`, err.message);
+    });
     res.json({ success: true, message: 'New code sent to your email.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -192,7 +198,10 @@ router.post('/user/login', async (req, res) => {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
-      await sendVerificationEmail(user.email, user.name, code);
+      // Fire-and-forget: don't await so the API responds instantly
+      sendVerificationEmail(user.email, user.name, code).catch(err => {
+        console.error(`⚠️ Background login verification email failed for ${user.email}:`, err.message);
+      });
       return res.status(403).json({
         error: 'Email not verified. A new code has been sent.',
         requires_verification: true,
@@ -230,7 +239,10 @@ router.post('/user/forgot-password', async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
-    await sendVerificationEmail(user.email, user.name, code);
+    // Fire-and-forget: don't await so the API responds instantly
+    sendVerificationEmail(user.email, user.name, code).catch(err => {
+      console.error(`⚠️ Background forgot-password email failed for ${user.email}:`, err.message);
+    });
     
     res.json({ success: true, message: 'Password reset code sent to your email.' });
   } catch (err) {

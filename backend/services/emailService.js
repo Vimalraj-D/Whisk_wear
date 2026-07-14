@@ -13,8 +13,18 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 8000,  // Timeout connection after 8s
+  connectionTimeout: 30000,  // 30s connection timeout
+  greetingTimeout: 15000,    // 15s greeting timeout
+  socketTimeout: 30000,      // 30s socket timeout
+  tls: {
+    rejectUnauthorized: false // Accept self-signed certs if needed
+  }
 });
+
+// Verify SMTP connection on startup (non-blocking)
+transporter.verify()
+  .then(() => console.log('✅ SMTP connection verified successfully'))
+  .catch(err => console.error('⚠️ SMTP connection check failed:', err.message));
 
 // A helper to generate the formal template envelope
 function getFormalTemplate(title, bodyHtml) {
