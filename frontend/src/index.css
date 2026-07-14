@@ -3015,5 +3015,79 @@ img { display: block; }
   }
 }
 
+/* ==========================================
+   INTERACTIVE SIDEBAR & ACTIVE FILTERS
+   ========================================== */
+.active-filter-tags-row {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.filter-pill-tag {
+  transition: all var(--transition);
+}
+
+.filter-pill-tag:hover {
+  background: var(--brand-purple-lt) !important;
+  color: var(--brand-purple) !important;
+  border-color: var(--brand-purple) !important;
+  transform: translateY(-1px);
+}
+
+.clear-all-pills-btn:hover {
+  text-decoration: underline;
+  color: var(--brand-purple-hover) !important;
+}
+
+.sidebar-toggle-btn {
+  transition: all var(--transition) !important;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--bg-secondary) !important;
+  border-color: var(--brand-purple) !important;
+  color: var(--brand-purple) !important;
+}
+
+/* Accordion Collapsible Sections */
+.filter-group-accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group-header {
+  transition: color var(--transition);
+}
+
+.filter-group-header:hover {
+  color: var(--brand-purple);
+}
+
+.filter-group-header .accordion-arrow {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filter-group-header:hover .accordion-arrow {
+  color: var(--brand-purple);
+}
+
+.filter-group-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 
 

@@ -19,9 +19,11 @@ const HeartIcon = () => (
 );
 
 const TrashIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
   </svg>
 );
 
@@ -44,6 +46,15 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const searchInputRef = useRef(null);
+
+  // Sidebar toggles and collapsible sections
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [openSections, setOpenSections] = useState({
+    category: true,
+    price: true,
+    size: true,
+    color: true
+  });
 
   // Advanced Sidebar Filters State
   const [minPrice, setMinPrice] = useState(0);
@@ -88,7 +99,6 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
 
   useEffect(() => {
     setLoading(true);
-    // Fetch all products (then filter on client side for responsive instant response)
     apiService.getProducts()
       .then(res => {
         const prodList = res.data || res;
@@ -108,6 +118,10 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     setSelectedColors(prev => 
       prev.includes(hex) ? prev.filter(c => c !== hex) : [...prev, hex]
     );
+  };
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const resetAllFilters = () => {
@@ -166,11 +180,44 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     filteredProducts.sort((a, b) => (b.discount_percent || 0) - (a.discount_percent || 0));
   }
 
+  // ─── Active Tags Helpers ───
+  const getActiveFilters = () => {
+    const list = [];
+    if (filter !== 'all') {
+      const catObj = categories.find(c => getCategoryKey(c.name) === filter);
+      list.push({ type: 'category', label: catObj ? catObj.name : filter, value: filter });
+    }
+    if (search !== '') {
+      list.push({ type: 'search', label: `"${search}"`, value: search });
+    }
+    if (minPrice > 0 || maxPrice < 5000) {
+      list.push({ type: 'price', label: `₹${minPrice} - ₹${maxPrice}`, value: { minPrice, maxPrice } });
+    }
+    selectedSizes.forEach(sz => {
+      list.push({ type: 'size', label: `Size: ${sz}`, value: sz });
+    });
+    selectedColors.forEach(col => {
+      const colorObj = availableColors.find(c => c.hex === col);
+      list.push({ type: 'color', label: colorObj ? colorObj.name : col, value: col });
+    });
+    return list;
+  };
+
+  const removeFilterItem = (item) => {
+    if (item.type === 'category') setFilter('all');
+    else if (item.type === 'search') setSearch('');
+    else if (item.type === 'price') { setMinPrice(0); setMaxPrice(5000); }
+    else if (item.type === 'size') setSelectedSizes(prev => prev.filter(s => s !== item.value));
+    else if (item.type === 'color') setSelectedColors(prev => prev.filter(c => c !== item.value));
+  };
+
+  const activeFilters = getActiveFilters();
+
   return (
     <div className="shop-page-wrapper" style={{ padding: '2.5rem 5%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
       
       {/* 1. Center-Aligned Premium Search Header (Top) */}
-      <div className="shop-search-header" style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'center' }}>
+      <div className="shop-search-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
         <div className="search-bar-wrapper" style={{ position: 'relative', width: '100%', maxWidth: '680px', display: 'flex', alignItems: 'center' }}>
           <span style={{ position: 'absolute', left: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
             <SearchIcon />
@@ -183,7 +230,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             onChange={e => setSearch(e.target.value)}
             style={{
               width: '100%',
-              padding: '1rem 1rem 1rem 3rem',
+              padding: '1.1rem 1.1rem 1.1rem 3.25rem',
               borderRadius: '50px',
               border: '1.5px solid var(--border-color)',
               background: 'var(--bg-card)',
@@ -191,7 +238,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               fontSize: '1rem',
               outline: 'none',
               boxShadow: 'var(--shadow-sm)',
-              transition: 'border-color 0.2s, box-shadow 0.2s'
+              transition: 'border-color 0.25s, box-shadow 0.25s'
             }}
             className="shop-main-search-input"
           />
@@ -208,171 +255,338 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         </div>
       </div>
 
-      {/* 2. 2-Column Sidebar Grid */}
-      <div className="shop-layout-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '2.5rem', alignItems: 'start' }}>
+      {/* 2. Interactive Active Filters Tag Bar */}
+      {activeFilters.length > 0 && (
+        <div className="active-filter-tags-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '0.75rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-muted)', marginRight: '6px' }}>Active Filters:</span>
+          {activeFilters.map((item, idx) => (
+            <span 
+              key={idx} 
+              className="filter-pill-tag"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                padding: '4px 10px',
+                borderRadius: '50px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onClick={() => removeFilterItem(item)}
+            >
+              {item.label}
+              <span style={{ color: 'var(--color-cancelled)', fontSize: '0.9rem', marginLeft: '2px', fontWeight: 'bold' }}>×</span>
+            </span>
+          ))}
+          <button 
+            onClick={resetAllFilters} 
+            style={{
+              background: 'none', border: 'none', color: 'var(--brand-purple)', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', marginLeft: 'auto', padding: '4px 8px', transition: 'text-decoration 0.2s'
+            }}
+            className="clear-all-pills-btn"
+          >
+            Clear All
+          </button>
+        </div>
+      )}
+
+      {/* 3. 2-Column Sidebar Grid */}
+      <div 
+        className="shop-layout-grid" 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isSidebarCollapsed ? '0px 1fr' : '280px 1fr', 
+          gap: isSidebarCollapsed ? '0' : '2.5rem', 
+          alignItems: 'start',
+          transition: 'grid-template-columns 0.45s cubic-bezier(0.16, 1, 0.3, 1), gap 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
         
-        {/* Left Sidebar: Advanced Filter Panels */}
-        <aside className="shop-filter-sidebar" style={{ background: 'var(--glossy-bg)', border: '1px solid var(--glossy-border)', borderRadius: '16px', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', position: 'sticky', top: '130px', maxHeight: '82vh', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        {/* Left Sidebar: Collapsible Accordion Filter Panels */}
+        <aside 
+          className={`shop-filter-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} 
+          style={{ 
+            background: 'var(--glossy-bg)', 
+            border: isSidebarCollapsed ? 'none' : '1px solid var(--glossy-border)', 
+            borderRadius: '16px', 
+            padding: isSidebarCollapsed ? '0' : '1.5rem', 
+            boxShadow: isSidebarCollapsed ? 'none' : 'var(--shadow-sm)', 
+            position: 'sticky', 
+            top: '130px', 
+            maxHeight: '82vh', 
+            overflowY: 'auto',
+            opacity: isSidebarCollapsed ? 0 : 1,
+            pointerEvents: isSidebarCollapsed ? 'none' : 'auto',
+            transition: 'opacity 0.35s ease, padding 0.45s cubic-bezier(0.16, 1, 0.3, 1), border 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', margin: 0 }}>Filter By</h3>
-            {(filter !== 'all' || search !== '' || minPrice !== 0 || maxPrice !== 5000 || selectedSizes.length > 0 || selectedColors.length > 0) && (
+            {activeFilters.length > 0 && (
               <button 
                 onClick={resetAllFilters} 
                 style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
-                <TrashIcon /> Clear All
+                <TrashIcon /> Reset
               </button>
             )}
           </div>
 
-          {/* Filter Category selection */}
-          <div className="filter-group" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '0.5px' }}>Category</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="category_filter"
-                  checked={filter === 'all'} 
-                  onChange={() => setFilter('all')} 
-                  style={{ accentColor: 'var(--brand-purple)' }}
-                />
-                All Collections
-              </label>
-              {categories.map(cat => {
-                const catKey = getCategoryKey(cat.name);
-                return (
-                  <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="category_filter"
-                      checked={filter === catKey} 
-                      onChange={() => setFilter(catKey)} 
-                      style={{ accentColor: 'var(--brand-purple)' }}
-                    />
-                    {cat.name}
-                  </label>
-                );
-              })}
+          {/* Collapsible Accordion: Category */}
+          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <div 
+              className="filter-group-header" 
+              onClick={() => toggleSection('category')}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
+            >
+              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Category</h4>
+              <span className={`accordion-arrow ${openSections.category ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.category ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
             </div>
-          </div>
-
-          {/* Price Range setting */}
-          <div className="filter-group" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '0.5px' }}>Price (₹)</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input 
-                  type="number" 
-                  placeholder="Min" 
-                  value={minPrice} 
-                  onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' }}
-                />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
-                <input 
-                  type="number" 
-                  placeholder="Max" 
-                  value={maxPrice} 
-                  onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                  style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' }}
-                />
-              </div>
-              
-              {/* Preset Price Ranges */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                <button 
-                  onClick={() => { setMinPrice(0); setMaxPrice(1000); }}
-                  className="preset-price-btn"
-                  style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                >
-                  Under ₹1,000
-                </button>
-                <button 
-                  onClick={() => { setMinPrice(1000); setMaxPrice(2000); }}
-                  className="preset-price-btn"
-                  style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                >
-                  ₹1,000 to ₹2,000
-                </button>
-                <button 
-                  onClick={() => { setMinPrice(2000); setMaxPrice(5000); }}
-                  className="preset-price-btn"
-                  style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                >
-                  Over ₹2,000
-                </button>
-              </div>
-            </div>
-          </div>
-
-
-
-          {/* Size checklist pills */}
-          <div className="filter-group" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '0.5px' }}>Sizes</h4>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {availableSizes.map(size => {
-                const isSelected = selectedSizes.includes(size);
-                return (
-                  <button
-                    key={size}
-                    onClick={() => toggleSizeFilter(size)}
-                    style={{
-                      border: '1.5px solid',
-                      borderColor: isSelected ? 'var(--brand-purple)' : 'var(--border-color)',
-                      background: isSelected ? 'var(--brand-teal-lt)' : 'var(--bg-card)',
-                      color: isSelected ? 'var(--brand-purple)' : 'var(--text-secondary)',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Color swatch selection */}
-          <div className="filter-group">
-            <h4 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '0.5px' }}>Colors</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-              {availableColors.map(color => {
-                const isSelected = selectedColors.includes(color.hex);
-                return (
-                  <button
-                    key={color.hex}
-                    onClick={() => toggleColorFilter(color.hex)}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      backgroundColor: color.hex,
-                      border: '2px solid #fff',
-                      cursor: 'pointer',
-                      outline: 'none',
-                      boxShadow: isSelected ? '0 0 0 2px var(--brand-purple)' : '0 0 0 1px var(--border-color)',
-                      transition: 'all 0.2s'
-                    }}
-                    title={color.name}
+            {openSections.category && (
+              <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="category_filter"
+                    checked={filter === 'all'} 
+                    onChange={() => setFilter('all')} 
+                    style={{ accentColor: 'var(--brand-purple)' }}
                   />
-                );
-              })}
+                  All Collections
+                </label>
+                {categories.map(cat => {
+                  const catKey = getCategoryKey(cat.name);
+                  return (
+                    <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="category_filter"
+                        checked={filter === catKey} 
+                        onChange={() => setFilter(catKey)} 
+                        style={{ accentColor: 'var(--brand-purple)' }}
+                      />
+                      {cat.name}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible Accordion: Price Range */}
+          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <div 
+              className="filter-group-header" 
+              onClick={() => toggleSection('price')}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
+            >
+              <h4 style={{ fontSize: '0.8rem', fontWeight: '855', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Price (₹)</h4>
+              <span className={`accordion-arrow ${openSections.price ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.price ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
             </div>
+            {openSections.price && (
+              <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    type="number" 
+                    placeholder="Min" 
+                    value={minPrice} 
+                    onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                    style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  />
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
+                  <input 
+                    type="number" 
+                    placeholder="Max" 
+                    value={maxPrice} 
+                    onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                    style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                
+                {/* Preset Price Ranges */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                  <button 
+                    onClick={() => { setMinPrice(0); setMaxPrice(1000); }}
+                    className="preset-price-btn"
+                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
+                  >
+                    Under ₹1,000
+                  </button>
+                  <button 
+                    onClick={() => { setMinPrice(1000); setMaxPrice(2000); }}
+                    className="preset-price-btn"
+                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
+                  >
+                    ₹1,000 to ₹2,000
+                  </button>
+                  <button 
+                    onClick={() => { setMinPrice(2000); setMaxPrice(5000); }}
+                    className="preset-price-btn"
+                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
+                  >
+                    Over ₹2,000
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible Accordion: Sizes */}
+          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <div 
+              className="filter-group-header" 
+              onClick={() => toggleSection('size')}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
+            >
+              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Sizes</h4>
+              <span className={`accordion-arrow ${openSections.size ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.size ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+            </div>
+            {openSections.size && (
+              <div className="filter-group-content" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
+                {availableSizes.map(size => {
+                  const isSelected = selectedSizes.includes(size);
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => toggleSizeFilter(size)}
+                      style={{
+                        border: '1.5px solid',
+                        borderColor: isSelected ? 'var(--brand-purple)' : 'var(--border-color)',
+                        background: isSelected ? 'var(--brand-teal-lt)' : 'var(--bg-card)',
+                        color: isSelected ? 'var(--brand-purple)' : 'var(--text-secondary)',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible Accordion: Colors */}
+          <div className="filter-group-accordion" style={{ marginBottom: '0.5rem' }}>
+            <div 
+              className="filter-group-header" 
+              onClick={() => toggleSection('color')}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
+            >
+              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Colors</h4>
+              <span className={`accordion-arrow ${openSections.color ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.color ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+            </div>
+            {openSections.color && (
+              <div className="filter-group-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '10px' }}>
+                {availableColors.map(color => {
+                  const isSelected = selectedColors.includes(color.hex);
+                  return (
+                    <button
+                      key={color.hex}
+                      onClick={() => toggleColorFilter(color.hex)}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        backgroundColor: color.hex,
+                        border: '2px solid #fff',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        boxShadow: isSelected ? '0 0 0 2px var(--brand-purple)' : '0 0 0 1px var(--border-color)',
+                        transition: 'all 0.2s'
+                      }}
+                      title={color.name}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         </aside>
 
-        {/* Right Content Area: Results and Products Grid */}
+        {/* Right Content Area: Results toolbar and Products Grid */}
         <main className="shop-products-column">
+          
+          {/* Header Row: Result count, Collapse Button, & Sort option */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glossy-bg)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid var(--glossy-border)', boxShadow: 'var(--shadow-sm)', flexWrap: 'wrap', gap: '12px' }}>
+            
+            {/* Collapse toggle and counts */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button 
+                onClick={() => setIsSidebarCollapsed(prev => !prev)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'var(--bg-card)',
+                  border: '1.5px solid var(--border-color)',
+                  padding: '0.45rem 1rem',
+                  borderRadius: '30px',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  color: 'var(--text-primary)',
+                  boxShadow: 'var(--shadow-xs)',
+                  transition: 'all 0.2s'
+                }}
+                className="sidebar-toggle-btn desktop-only-nav-item"
+              >
+                <svg 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2.5" 
+                  style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+                >
+                  <line x1="21" y1="4" x2="14" y2="4"></line>
+                  <line x1="10" y1="4" x2="3" y2="4"></line>
+                  <line x1="21" y1="12" x2="12" y2="12"></line>
+                  <line x1="8" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="20" x2="16" y2="20"></line>
+                  <line x1="12" y1="20" x2="3" y2="20"></line>
+                  <circle cx="12" cy="4" r="2"></circle>
+                  <circle cx="10" cy="12" r="2"></circle>
+                  <circle cx="14" cy="20" r="2"></circle>
+                </svg>
+                {isSidebarCollapsed ? 'Show Filters' : 'Hide Filters'}
+              </button>
+              
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+              </span>
+            </div>
+            
+            {/* Sort Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Sort by:</span>
+              <select 
+                className="form-control" 
+                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem 1rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                value={sortOption}
+                onChange={e => setSortOption(e.target.value)}
+              >
+                <option value="recommended">Recommended</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="discount">Highest Discount</option>
+              </select>
+            </div>
+          </div>
 
           {/* Loading state */}
           {loading ? (
-            <div className="product-grid">
+            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="skeleton-card">
                   <div className="skeleton-img"></div>
