@@ -1,30 +1,95 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
 
-const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: smtpPort,
-  secure: smtpPort === 465, // true for 465, false for other ports
-  pool: true,               // Enable connection pooling
-  maxConnections: 3,        // Limit concurrent connections
-  maxMessages: 100,         // Limit messages per connection
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  connectionTimeout: 30000,  // 30s connection timeout
-  greetingTimeout: 15000,    // 15s greeting timeout
-  socketTimeout: 30000,      // 30s socket timeout
-  tls: {
-    rejectUnauthorized: false // Accept self-signed certs if needed
-  }
-});
+// ─── Dual Email Provider ───
+// Resend (HTTP API, port 443) → works on Render and all cloud platforms
+// Nodemailer SMTP → works locally / on hosts that allow port 465/587
+//
+// Strategy: Try Resend first (if API key exists), fall back to SMTP.
 
-// Verify SMTP connection on startup (non-blocking)
-transporter.verify()
-  .then(() => console.log('✅ SMTP connection verified successfully'))
-  .catch(err => console.error('⚠️ SMTP connection check failed:', err.message));
+let resend = null;
+let transporter = null;
+
+// Set up Resend (primary — HTTP-based, bypasses Render's SMTP port block)
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log('📧 Resend (HTTP API) configured as primary email provider');
+}
+
+// Set up SMTP (fallback — for local dev or hosts that allow SMTP)
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: smtpPort,
+    secure: smtpPort === 465,
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    tls: { rejectUnauthorized: false }
+  });
+
+  // Non-blocking SMTP check on startup
+  transporter.verify()
+    .then(() => console.log('✅ SMTP connection verified — available as fallback'))
+    .catch(err => console.warn('⚠️ SMTP unavailable (blocked port?):', err.message));
+}
+
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const SMTP_FROM = process.env.SMTP_USER;
+
+/**
+ * Unified email sender: Resend first, SMTP fallback
+ */
+async function sendEmail({ to, subject, html }) {
+  // 1. Try Resend (HTTP — always works on Render)
+  if (resend) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: `WhiskWear <${RESEND_FROM}>`,
+        to: [to],
+        subject,
+        html,
+      });
+      if (error) {
+        console.error('❌ Resend API returned error:', JSON.stringify(error));
+        throw new Error(error.message || 'Resend API error');
+      }
+      console.log(`✅ Email sent via Resend to ${to} | ID: ${data?.id}`);
+      return data;
+    } catch (resendErr) {
+      console.error('❌ Resend failed:', resendErr.message);
+      // Fall through to SMTP
+    }
+  }
+
+  // 2. Fallback to SMTP (works locally / non-Render hosts)
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"WhiskWear" <${SMTP_FROM}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log(`✅ Email sent via SMTP to ${to} | Message ID: ${info.messageId}`);
+      return info;
+    } catch (smtpErr) {
+      console.error('❌ SMTP also failed:', smtpErr.message);
+      throw smtpErr;
+    }
+  }
+
+  throw new Error('No email provider available — set RESEND_API_KEY or SMTP credentials');
+}
 
 // A helper to generate the formal template envelope
 function getFormalTemplate(title, bodyHtml) {
@@ -99,7 +164,7 @@ function getFormalTemplate(title, bodyHtml) {
 }
 
 /**
- * Sends a beautiful branded HTML verification email via nodemailer
+ * Sends a beautiful branded HTML verification email
  */
 async function sendVerificationEmail(toEmail, toName, code) {
   const firstName = toName ? toName.split(' ')[0] : 'Valued Customer';
@@ -140,19 +205,12 @@ async function sendVerificationEmail(toEmail, toName, code) {
 
   const html = getFormalTemplate('Verify Your WhiskWear Account', bodyHtml);
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: `${code} — Your WhiskWear Verification Code`,
-      html: html,
-    });
-    console.log(`✅ Verification email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error('❌ Email send error:', error);
-    throw new Error(`Failed to send verification email: ${error.message}`);
-  }
+  const info = await sendEmail({
+    to: toEmail,
+    subject: `${code} — Your WhiskWear Verification Code`,
+    html: html,
+  });
+  return info;
 }
 
 async function sendOrderConfirmationEmail(toEmail, toName, orderId, totalAmount, items) {
@@ -234,19 +292,12 @@ async function sendOrderConfirmationEmail(toEmail, toName, orderId, totalAmount,
 
   const html = getFormalTemplate('Order Confirmation - WhiskWear', bodyHtml);
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: `Order Confirmed! WhiskWear Order #${orderId}`,
-      html: html
-    });
-    console.log(`✅ Order confirmation email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error('❌ Order confirmation email error:', error);
-    throw error;
-  }
+  const info = await sendEmail({
+    to: toEmail,
+    subject: `Order Confirmed! WhiskWear Order #${orderId}`,
+    html: html
+  });
+  return info;
 }
 
 /**
@@ -279,19 +330,12 @@ async function sendSubscriptionWelcomeEmail(toEmail) {
 
   const html = getFormalTemplate('Welcome to WhiskWear Newsletter!', bodyHtml);
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: `Welcome to WhiskWear! ✦ Subscription Confirmed`,
-      html: html
-    });
-    console.log(`✅ Welcome newsletter email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error('❌ Subscription welcome email error:', error);
-    throw error;
-  }
+  const info = await sendEmail({
+    to: toEmail,
+    subject: `Welcome to WhiskWear! ✦ Subscription Confirmed`,
+    html: html
+  });
+  return info;
 }
 
 /**
@@ -344,19 +388,12 @@ async function sendNewsletterCampaignEmail(toEmail, subject, campaignTitle, text
 
   const html = getFormalTemplate(campaignTitle, bodyHtml);
 
-  try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: subject || campaignTitle,
-      html: html
-    });
-    console.log(`✅ Campaign email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error(`❌ Campaign email failed for ${toEmail}:`, error);
-    throw error;
-  }
+  const info = await sendEmail({
+    to: toEmail,
+    subject: subject || campaignTitle,
+    html: html
+  });
+  return info;
 }
 
 module.exports = { 
