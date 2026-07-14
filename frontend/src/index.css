@@ -184,13 +184,9 @@ img { display: block; }
 .logo-container:hover { opacity: 0.85; }
 
 .logo-img {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  background: var(--bg-secondary);
-  padding: 3px;
-  border: 1px solid var(--border-color);
 }
 .logo-wordmark {
   font-family: var(--font-serif);
