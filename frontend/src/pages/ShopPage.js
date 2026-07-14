@@ -90,7 +90,10 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     setLoading(true);
     // Fetch all products (then filter on client side for responsive instant response)
     apiService.getProducts()
-      .then(setProducts)
+      .then(res => {
+        const prodList = res.data || res;
+        setProducts(Array.isArray(prodList) ? prodList : []);
+      })
       .catch(e => showToast('Failed to load products'))
       .finally(() => setLoading(false));
   }, [showToast]);
@@ -125,35 +128,37 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   };
 
   // ─── Filter Logic ───
-  let filteredProducts = products.filter(p => {
+  let filteredProducts = Array.isArray(products) ? products.filter(p => {
     // 1. Search Query
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                          p.description.toLowerCase().includes(search.toLowerCase());
+    const nameText = (p.name || '').toLowerCase();
+    const descText = (p.description || '').toLowerCase();
+    const matchesSearch = nameText.includes(search.toLowerCase()) || 
+                          descText.includes(search.toLowerCase());
 
     // 2. Category
     const dbCategoryKey = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '_') : '';
     const matchesCategory = filter === 'all' || dbCategoryKey === filter;
 
     // 3. Price
-    const op = parseFloat(p.price);
+    const op = parseFloat(p.price) || 0;
     const hasDiscount = p.discount_percent > 0;
     const finalPrice = hasDiscount ? op * (1 - p.discount_percent / 100) : op;
     const matchesPrice = finalPrice >= minPrice && finalPrice <= maxPrice;
 
     // 4. Sizes
     const matchesSizes = selectedSizes.length === 0 || 
-                         (p.sizes && p.sizes.some(s => selectedSizes.includes(s)));
+                         (Array.isArray(p.sizes) && p.sizes.some(s => selectedSizes.includes(s)));
 
     // 5. Colors
     const matchesColors = selectedColors.length === 0 || 
-                          (p.colors && p.colors.some(c => selectedColors.includes(c)));
+                          (Array.isArray(p.colors) && p.colors.some(c => selectedColors.includes(c)));
 
     // 6. Cloth Material (derived from description / title matching)
     let matchesMaterial = true;
     if (selectedMaterials.length > 0) {
       matchesMaterial = selectedMaterials.some(mat => {
-        const desc = p.description.toLowerCase();
-        const name = p.name.toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        const name = (p.name || '').toLowerCase();
         if (mat === 'Denim') return desc.includes('denim') || name.includes('denim');
         if (mat === 'Organic Cotton') return desc.includes('organic') || name.includes('organic');
         if (mat === 'Waffle Weave') return desc.includes('waffle') || name.includes('waffle');
@@ -163,7 +168,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     }
 
     return matchesSearch && matchesCategory && matchesPrice && matchesSizes && matchesColors && matchesMaterial;
-  });
+  }) : [];
 
   // ─── Sorting Logic ───
   if (sortOption === 'price_asc') {
