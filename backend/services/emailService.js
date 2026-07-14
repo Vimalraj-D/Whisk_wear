@@ -6,10 +6,14 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: smtpPort,
   secure: smtpPort === 465, // true for 465, false for other ports
+  pool: true,               // Enable connection pooling
+  maxConnections: 3,        // Limit concurrent connections
+  maxMessages: 100,         // Limit messages per connection
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 8000,  // Timeout connection after 8s
 });
 
 // A helper to generate the formal template envelope

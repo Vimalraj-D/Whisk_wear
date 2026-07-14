@@ -69,27 +69,28 @@ router.post('/send-campaign', adminAuth, async (req, res) => {
     const recipientEmails = subs.map(s => s.email);
     const photoUrls = Array.isArray(photos) ? photos.filter(Boolean) : [];
 
-    // Trigger emails in parallel/sequence
-    const results = { success: [], failed: [] };
-    
-    await Promise.all(
-      recipientEmails.map(async (email) => {
+    // Respond immediately to prevent client-side hanging and HTTP timeouts
+    res.status(202).json({
+      message: `Newsletter campaign dispatch started in the background for ${recipientEmails.length} subscribers.`,
+      sentCount: recipientEmails.length
+    });
+
+    // Run dispatch sequentially in the background
+    (async () => {
+      console.log(`✉️ Background newsletter campaign dispatch started for ${recipientEmails.length} recipients.`);
+      for (const email of recipientEmails) {
         try {
           await sendNewsletterCampaignEmail(email, subject, title, content, photoUrls);
-          results.success.push(email);
+          console.log(`✅ Campaign email delivered successfully to ${email}`);
+          // Add a small 400ms delay between dispatches to prevent Gmail SMTP spam rate-limits
+          await new Promise(r => setTimeout(r, 400));
         } catch (err) {
-          console.error(`Campaign email failed for ${email}:`, err);
-          results.failed.push({ email, error: err.message });
+          console.error(`❌ Background campaign email failed for ${email}:`, err);
         }
-      })
-    );
+      }
+      console.log(`✉️ Background newsletter campaign dispatch completed.`);
+    })();
 
-    res.json({
-      message: `Campaign dispatches complete! Sent: ${results.success.length}, Failed: ${results.failed.length}`,
-      sentCount: results.success.length,
-      failedCount: results.failed.length,
-      failures: results.failed
-    });
   } catch (err) {
     console.error('Campaign dispatch error:', err);
     res.status(500).json({ error: err.message });
