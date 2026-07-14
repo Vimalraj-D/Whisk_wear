@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Header from './components/Header';
 import SiteFooter from './components/SiteFooter';
 import CartDrawer from './components/CartDrawer';
+import WishlistModal from './components/WishlistModal';
 import CategoryTicker from './components/CategoryTicker';
 
 // Pages
@@ -23,6 +24,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [toast, setToast] = useState('');
 
   const [user, setUser] = useState(() => {
@@ -130,6 +132,7 @@ function App() {
       <AppLayout
         cart={cart} setCart={setCart}
         isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen}
+        isWishlistOpen={isWishlistOpen} setIsWishlistOpen={setIsWishlistOpen}
         toast={toast} setToast={setToast} showToast={showToast}
         user={user} setUser={setUser}
         userToken={userToken} setUserToken={setUserToken}
@@ -143,7 +146,7 @@ function App() {
 }
 
 function AppLayout({
-  cart, setCart, isCartOpen, setIsCartOpen, toast, setToast, showToast,
+  cart, setCart, isCartOpen, setIsCartOpen, isWishlistOpen, setIsWishlistOpen, toast, setToast, showToast,
   user, setUser, userToken, setUserToken, adminToken, setAdminToken,
   addToCart, updateCartQty, removeFromCart, handleUserLogout, handleAdminLogout,
   wishlist, toggleWishlist
@@ -164,6 +167,8 @@ function AppLayout({
             wishlist={wishlist}
             toggleWishlist={toggleWishlist}
             addToCart={addToCart}
+            isWishlistOpen={isWishlistOpen}
+            setIsWishlistOpen={setIsWishlistOpen}
           />
           <CategoryTicker />
         </div>
@@ -205,6 +210,14 @@ function AppLayout({
           setCart={setCart} showToast={showToast}
         />
       )}
+
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        wishlist={wishlist}
+        toggleWishlist={toggleWishlist}
+        addToCart={addToCart}
+      />
 
       {toast && (
         <div className="toast">

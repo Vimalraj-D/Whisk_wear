@@ -157,7 +157,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         </div>
         <div className="hero-right" style={{ animation: 'fadeUp 0.5s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
           <div className="hero-bg-shape" />
-          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '560px', height: 'clamp(280px, 45vw, 460px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
+          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '700px', height: 'clamp(360px, 60vw, 600px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
         </div>
         
         {/* Carousel Indicators */}
