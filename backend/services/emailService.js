@@ -255,7 +255,7 @@ async function sendSubscriptionWelcomeEmail(toEmail) {
       In the meantime, feel free to explore our shop and check out what's new.
     </p>
     <div style="text-align:center;margin:25px 0 10px;">
-      <a href="http://localhost:3000/shop" style="display:inline-block;background:#1b4332;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 30px;border-radius:50px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 3px 6px rgba(0,0,0,0.1);">Shop Now</a>
+      <a href="https://whisk-wear.vercel.app/" style="display:inline-block;background:#1b4332;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 30px;border-radius:50px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 3px 6px rgba(0,0,0,0.1);">Shop Now</a>
     </div>
   `;
 
@@ -321,7 +321,7 @@ async function sendNewsletterCampaignEmail(toEmail, subject, campaignTitle, text
     ${photosHtml}
 
     <div style="text-align:center;margin:30px 0 10px;">
-      <a href="http://localhost:3000/shop" style="display:inline-block;background:#1b4332;color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 24px;border-radius:50px;text-transform:uppercase;letter-spacing:1px;">Visit WhiskWear Store</a>
+      <a href="https://whisk-wear.vercel.app" style="display:inline-block;background:#1b4332;color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 24px;border-radius:50px;text-transform:uppercase;letter-spacing:1px;">Visit WhiskWear Store</a>
     </div>
   `;
 
