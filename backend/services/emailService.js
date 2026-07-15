@@ -1,22 +1,10 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
 
-const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: smtpPort,
-  secure: smtpPort === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  tls: { rejectUnauthorized: false }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
-console.log(`📧 SMTP configured: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${smtpPort}`);
+console.log(`📧 Email provider: Resend (HTTP API) — from: ${FROM_EMAIL}`);
 
 // A helper to generate the formal template envelope
 function getFormalTemplate(title, bodyHtml) {
@@ -91,7 +79,7 @@ function getFormalTemplate(title, bodyHtml) {
 }
 
 /**
- * Sends a beautiful branded HTML verification email via nodemailer
+ * Sends a beautiful branded HTML verification email via Resend
  */
 async function sendVerificationEmail(toEmail, toName, code) {
   const firstName = toName ? toName.split(' ')[0] : 'Valued Customer';
@@ -133,14 +121,15 @@ async function sendVerificationEmail(toEmail, toName, code) {
   const html = getFormalTemplate('Verify Your WhiskWear Account', bodyHtml);
 
   try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
+    const { data, error } = await resend.emails.send({
+      from: `WhiskWear <${FROM_EMAIL}>`,
+      to: [toEmail],
       subject: `${code} — Your WhiskWear Verification Code`,
       html: html,
     });
-    console.log(`✅ Verification email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
+    if (error) throw new Error(error.message || JSON.stringify(error));
+    console.log(`✅ Verification email sent to ${toEmail} | ID: ${data?.id}`);
+    return data;
   } catch (error) {
     console.error('❌ Email send error:', error);
     throw new Error(`Failed to send verification email: ${error.message}`);
@@ -227,14 +216,15 @@ async function sendOrderConfirmationEmail(toEmail, toName, orderId, totalAmount,
   const html = getFormalTemplate('Order Confirmation - WhiskWear', bodyHtml);
 
   try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
+    const { data, error } = await resend.emails.send({
+      from: `WhiskWear <${FROM_EMAIL}>`,
+      to: [toEmail],
       subject: `Order Confirmed! WhiskWear Order #${orderId}`,
-      html: html
+      html: html,
     });
-    console.log(`✅ Order confirmation email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
+    if (error) throw new Error(error.message || JSON.stringify(error));
+    console.log(`✅ Order confirmation email sent to ${toEmail} | ID: ${data?.id}`);
+    return data;
   } catch (error) {
     console.error('❌ Order confirmation email error:', error);
     throw error;
@@ -272,14 +262,15 @@ async function sendSubscriptionWelcomeEmail(toEmail) {
   const html = getFormalTemplate('Welcome to WhiskWear Newsletter!', bodyHtml);
 
   try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
+    const { data, error } = await resend.emails.send({
+      from: `WhiskWear <${FROM_EMAIL}>`,
+      to: [toEmail],
       subject: `Welcome to WhiskWear! ✦ Subscription Confirmed`,
-      html: html
+      html: html,
     });
-    console.log(`✅ Welcome newsletter email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
+    if (error) throw new Error(error.message || JSON.stringify(error));
+    console.log(`✅ Welcome newsletter email sent to ${toEmail} | ID: ${data?.id}`);
+    return data;
   } catch (error) {
     console.error('❌ Subscription welcome email error:', error);
     throw error;
@@ -323,7 +314,7 @@ async function sendNewsletterCampaignEmail(toEmail, subject, campaignTitle, text
   const bodyHtml = `
     <h2 style="font-size:22px;color:#1b4332;margin:0 0 15px;font-family:'Segoe UI',Arial,sans-serif;line-height:1.3;font-weight:700;">${campaignTitle}</h2>
     
-    <div className="campaign-paragraphs">
+    <div>
       ${paragraphsHtml}
     </div>
 
@@ -337,14 +328,15 @@ async function sendNewsletterCampaignEmail(toEmail, subject, campaignTitle, text
   const html = getFormalTemplate(campaignTitle, bodyHtml);
 
   try {
-    const info = await transporter.sendMail({
-      from: `"WhiskWear" <${process.env.SMTP_USER}>`,
-      to: toEmail,
+    const { data, error } = await resend.emails.send({
+      from: `WhiskWear <${FROM_EMAIL}>`,
+      to: [toEmail],
       subject: subject || campaignTitle,
-      html: html
+      html: html,
     });
-    console.log(`✅ Campaign email sent to ${toEmail} | Message ID: ${info.messageId}`);
-    return info;
+    if (error) throw new Error(error.message || JSON.stringify(error));
+    console.log(`✅ Campaign email sent to ${toEmail} | ID: ${data?.id}`);
+    return data;
   } catch (error) {
     console.error(`❌ Campaign email failed for ${toEmail}:`, error);
     throw error;
