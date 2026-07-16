@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const csurf = require('csurf');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const fs = require('fs');
@@ -38,6 +39,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 // CSRF protection – using double submit cookie method
+// cookie-parser must be added before csurf to parse cookies
+app.use(cookieParser());
 app.use(csurf({ cookie: true }));
 app.use('/uploads', express.static('uploads'));
 
