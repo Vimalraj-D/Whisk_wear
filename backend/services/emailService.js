@@ -7,6 +7,9 @@ const EMAILJS_PRIVATE_KEY = 'ttFf99Gpe0k0SmpqEC8b3';
 const OTP_TEMPLATE_ID = 'template_8p551dj';
 const ORDER_TEMPLATE_ID = 'template_67lu7ps';
 
+// Brand logo shown in email templates (Supabase Storage public URL)
+const BRAND_LOGO_URL = 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png';
+
 console.log('📧 Email provider initialized: EmailJS (REST API with Browser Spoofing)');
 
 /**
@@ -63,6 +66,11 @@ async function sendVerificationEmail(toEmail, toName, code) {
     name: toName,
     first_name: firstName,
 
+    // Brand logo (covers common variable name variants)
+    logo: BRAND_LOGO_URL,
+    logo_url: BRAND_LOGO_URL,
+    company_logo: BRAND_LOGO_URL,
+
     // OTP Code parameters
     code: code,
     verification_code: code,
@@ -113,6 +121,11 @@ async function sendOrderConfirmationEmail(toEmail, toName, orderId, totalAmount,
     // Recipient - template uses top-level {{email}}
     email: toEmail,
     to_email: toEmail,
+
+    // Brand logo (covers common variable name variants)
+    logo: BRAND_LOGO_URL,
+    logo_url: BRAND_LOGO_URL,
+    company_logo: BRAND_LOGO_URL,
 
     // Name parameters (kept for compatibility, not used by this template)
     to_name: toName,
