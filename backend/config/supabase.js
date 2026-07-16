@@ -12,6 +12,9 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     persistSession: false
+  },
+  realtime: {
+    enabled: false
   }
 });
 
