@@ -51,10 +51,15 @@ app.use('/api/subscribers', subscriberRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const anonKey = process.env.SUPABASE_ANON_KEY || '';
+  const keySnippet = anonKey ? `${anonKey.substring(0, 8)}...${anonKey.substring(anonKey.length - 8)}` : 'missing';
+  
   res.json({ 
     status: 'OK', 
     message: 'Whiskwear Backend API is running',
-    supabaseUrl: process.env.SUPABASE_URL
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKeySnippet: keySnippet,
+    supabaseKeyLength: anonKey.length
   });
 });
 
