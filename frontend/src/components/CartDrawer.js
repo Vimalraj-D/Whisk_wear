@@ -252,8 +252,8 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
             <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
             {userToken ? (
               <form onSubmit={handleSubmit} className="checkout-form">
-                <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
-                <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
+                <input type="text" placeholder="Your name" className="form-control" value={form.name} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
+                <input type="email" placeholder="Email address" className="form-control" value={form.email} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
                 {/* Detailed address fields */}
                 <input type="text" placeholder="Building / Apartment No." className="form-control" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
                 <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
