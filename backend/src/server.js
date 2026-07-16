@@ -51,7 +51,11 @@ app.use('/api/subscribers', subscriberRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Whiskwear Backend API is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Whiskwear Backend API is running',
+    supabaseUrl: process.env.SUPABASE_URL
+  });
 });
 
 // Error handling middleware
