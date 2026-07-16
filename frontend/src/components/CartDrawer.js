@@ -19,13 +19,39 @@ const loadRazorpayScript = () => {
 
 export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, updateCartQty, removeFromCart, setCart, showToast }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', address: '' });
+  // Expanded form fields for detailed address (building, street, city, state, zip, country)
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    building: '',
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  });
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
 
   useEffect(() => {
-    if (user) setForm(p => ({ ...p, name: user.name || '', email: user.email || '' }));
-    else setForm({ name: '', email: '', address: '' });
+    if (user) {
+      setForm(p => ({
+        ...p,
+        name: user.name || '',
+        email: user.email || ''
+      }));
+    } else {
+      setForm({
+        name: '',
+        email: '',
+        building: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: ''
+      });
+    }
   }, [user]);
 
   const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -52,7 +78,8 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
       const orderResponse = await apiService.placeOrder({
         customer_name: form.name,
         customer_email: form.email,
-        customer_address: form.address,
+        // Concatenate address fields into a single string for backend compatibility
+        customer_address: `${form.building}, ${form.street}, ${form.city}, ${form.state}, ${form.zip}, ${form.country}`,
         items: cart
       }, userToken || null);
       
@@ -155,7 +182,7 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
       await apiService.placeCodOrder({
         customer_name: form.name,
         customer_email: form.email,
-        customer_address: form.address,
+        customer_address: `${form.building}, ${form.street}, ${form.city}, ${form.state}, ${form.zip}, ${form.country}`,
         items: cart
       }, userToken || null);
 
@@ -227,7 +254,13 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
               <form onSubmit={handleSubmit} className="checkout-form">
                 <input type="text" placeholder="Your name" className="form-control" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
                 <input type="email" placeholder="Email address" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
-                <textarea placeholder="Delivery address" rows="2" className="form-control" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} required />
+                {/* Detailed address fields */}
+                <input type="text" placeholder="Building / Apartment No." className="form-control" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
+                <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
+                <input type="text" placeholder="City" className="form-control" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
+                <input type="text" placeholder="State / Province" className="form-control" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
+                <input type="text" placeholder="ZIP / Postal Code" className="form-control" value={form.zip} onChange={e => setForm(p => ({ ...p, zip: e.target.value }))} required />
+                <input type="text" placeholder="Country" className="form-control" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
 
                 {/* Payment Method Selector */}
                 <div style={{ margin: '0.75rem 0' }}>
