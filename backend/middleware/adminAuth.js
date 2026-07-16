@@ -1,21 +1,21 @@
 const jwt = require('jsonwebtoken');
-const adminSecret = process.env.ADMIN_SECRET;
 
 function adminAuth(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No admin token provided' });
+  }
+  const token = authHeader.split(' ')[1];
   if (!token) {
     return res.status(401).json({ error: 'No admin token provided' });
   }
   try {
-    // Simple token verification – token is just the secret string for this demo
-    if (token !== adminSecret) {
-      throw new Error('Invalid admin token');
-    }
-    // attach admin info
-    req.admin = { role: 'administrator' };
+    const payload = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+    // Attach admin info to request
+    req.admin = { role: payload.role || 'administrator' };
     next();
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid admin credentials' });
+    return res.status(403).json({ error: 'Invalid admin token' });
   }
 }
 

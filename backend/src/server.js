@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const csurf = require('csurf');
 require('dotenv').config();
 
 const fs = require('fs');
@@ -25,6 +28,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+// Security middlewares
+app.use(helmet());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+// CSRF protection – using double submit cookie method
+app.use(csurf({ cookie: true }));
 app.use('/uploads', express.static('uploads'));
 
 // Routes

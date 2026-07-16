@@ -4,6 +4,7 @@ const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/adminAuth');
 const { upload, s3Config } = require('../middleware/upload');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const sanitizeHtml = require('sanitize-html');
 
 // Helper to delete images from S3 bucket
 async function deleteImagesFromS3(urls) {
@@ -75,11 +76,12 @@ router.post('/', adminAuth, upload.array('images', 10), async (req, res) => {
     const projectId = process.env.SUPABASE_PROJECT_ID || 'aoppjuuqdgajcidduqld';
     const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
     const image_urls = files && files.length > 0 ? files.map(f => `https://${projectId}.supabase.co/storage/v1/object/public/${bucket}/${f.key}`) : [];
+    const sanitizedDescription = description ? sanitizeHtml(description) : '';
     const { data, error } = await supabase
       .from('products')
       .insert([{ 
         name, 
-        description, 
+        description: sanitizedDescription, 
         price: parseFloat(price), 
         category, 
         category_id: category_id ? parseInt(category_id) : null,
@@ -108,7 +110,7 @@ router.put('/:id', adminAuth, upload.array('images', 10), async (req, res) => {
     // Build update fields
     const updateFields = {};
     if (name !== undefined) updateFields.name = name;
-    if (description !== undefined) updateFields.description = description;
+    if (description !== undefined) updateFields.description = sanitizeHtml(description);
     if (price !== undefined) updateFields.price = parseFloat(price);
     if (category !== undefined) updateFields.category = category;
     if (category_id !== undefined) updateFields.category_id = category_id ? parseInt(category_id) : null;

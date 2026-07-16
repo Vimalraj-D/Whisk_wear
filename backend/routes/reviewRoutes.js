@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/adminAuth');
-const auth = require('../middleware/auth'); // assuming user auth middleware exists
+const userAuth = require('../middleware/userAuth'); // user authentication middleware
 
 // Note: Because we use JWT from our own auth routes for users, we might need to 
 // verify user tokens before they can post a review. Wait, I should check if there's a 
@@ -25,9 +25,8 @@ router.get('/:product_id', async (req, res) => {
   }
 });
 
-// Post a review (User action)
-// In a real app we'd use auth middleware to get req.user.id
-router.post('/', async (req, res) => {
+// Post a review (User action) – requires authenticated user
+router.post('/', userAuth, async (req, res) => {
   try {
     const { product_id, user_name, rating, comment } = req.body;
     

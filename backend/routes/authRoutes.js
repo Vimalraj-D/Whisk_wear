@@ -3,16 +3,28 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const { sendVerificationEmail } = require('../services/emailService');
 require('dotenv').config();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // ──────────────────────────────────────────
 //  ADMIN LOGIN
 // ──────────────────────────────────────────
-router.post('/admin/login', (req, res) => {
+router.post('/admin/login', async (req, res) => {
   const { username, password } = req.body;
-  if (username === 'admin' && password === 'whiskwear2026') {
-    return res.json({ success: true, token: process.env.ADMIN_SECRET, user: { username: 'admin', role: 'administrator' } });
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+  if (!adminUsername || !adminPasswordHash) {
+    return res.status(500).json({ error: 'Admin credentials not configured' });
   }
-  return res.status(401).json({ error: 'Invalid admin credentials' });
+  if (username !== adminUsername) {
+    return res.status(401).json({ error: 'Invalid admin credentials' });
+  }
+  const match = await bcrypt.compare(password, adminPasswordHash);
+  if (!match) {
+    return res.status(401).json({ error: 'Invalid admin credentials' });
+  }
+  const token = jwt.sign({ role: 'administrator' }, process.env.ADMIN_JWT_SECRET, { expiresIn: '2h' });
+  return res.json({ success: true, token, user: { username: adminUsername, role: 'administrator' } });
 });
 
 // ──────────────────────────────────────────
@@ -129,8 +141,10 @@ router.post('/user/complete', async (req, res) => {
     if (!user) return res.status(400).json({ error: 'Account not found.' });
     if (!user.is_verified) return res.status(400).json({ error: 'Email not verified yet.' });
 
-    // Save the password — registration complete
-    await supabase.from('users').update({ password }).eq('id', user.id);
+    // Hash the password before saving
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    await supabase.from('users').update({ password: passwordHash }).eq('id', user.id);
 
     const token = `user_token_${user.id}_${Date.now()}`;
     res.json({
@@ -190,7 +204,12 @@ router.post('/user/login', async (req, res) => {
       .maybeSingle();
     if (fetchErr) throw fetchErr;
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -209,7 +228,7 @@ router.post('/user/login', async (req, res) => {
       });
     }
 
-    const token = `user_token_${user.id}_${Date.now()}`;
+    const token = jwt.sign({ sub: user.id, email: user.email }, process.env.USER_JWT_SECRET, { expiresIn: '1h' });
     res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -276,8 +295,10 @@ router.post('/user/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'Verification code has expired.' });
     }
 
+    const saltRounds = 12;
+    const newHash = await bcrypt.hash(newPassword, saltRounds);
     await supabase.from('users').update({ 
-      password: newPassword,
+      password: newHash,
       verification_code: null,
       code_expires_at: null
     }).eq('id', user.id);

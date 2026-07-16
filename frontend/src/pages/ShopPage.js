@@ -43,6 +43,8 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const [filter, setFilter] = useState(categoryParam);
   const [search, setSearch] = useState('');
   const [sortOption, setSortOption] = useState('recommended');
+  // New view mode state: 'grid' or 'list'
+  const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const searchInputRef = useRef(null);
@@ -567,7 +569,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               </span>
             </div>
             
-            {/* Sort Dropdown */}
+            {/* Sort Dropdown and View Mode Toggle */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Sort by:</span>
               <select 
@@ -581,6 +583,27 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                 <option value="price_desc">Price: High to Low</option>
                 <option value="discount">Highest Discount</option>
               </select>
+            {/* View Mode Toggle */}
+            <button
+              onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                padding: '0.35rem 0.75rem',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                color: 'var(--text-primary)',
+                boxShadow: 'var(--shadow-xs)',
+                transition: 'background 0.2s'
+              }}
+              aria-label="Toggle view mode"
+            >
+              {viewMode === 'grid' ? 'List View' : 'Grid View'}
+            </button>
             </div>
           </div>
 
@@ -613,7 +636,11 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               </button>
             </div>
           ) : (
-            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div className="product-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(240px, 1fr))' : '1fr',
+              gap: '1.5rem'
+            }}>
               {filteredProducts.map((p, idx) => {
                 const originalPrice = parseFloat(p.price);
                 const hasDiscount = p.discount_percent > 0;
@@ -622,7 +649,23 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                 
                 return (
                   <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
-                    <div className="product-card">
+                    <div className="product-card" style={{
+                      transition: 'transform 0.25s, box-shadow 0.25s',
+                      cursor: 'pointer',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      background: 'var(--bg-card)',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                    }}
+                    >
                       <div className="product-img-wrapper" style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${p.id}`)}>
                         <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
                         {hasDiscount ? (
