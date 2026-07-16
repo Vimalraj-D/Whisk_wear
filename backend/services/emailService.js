@@ -94,58 +94,39 @@ async function sendVerificationEmail(toEmail, toName, code) {
 async function sendOrderConfirmationEmail(toEmail, toName, orderId, totalAmount, items) {
   const firstName = toName ? toName.split(' ')[0] : 'Valued Customer';
   
-  // Format items as a readable text list for templates
-  const itemsText = items.map(item => {
-    return `${item.quantity}x ${item.name} - ₹${parseFloat(item.price).toFixed(2)}`;
-  }).join('\n');
+  // Fallback image if a product has no real image URL
+  const fallbackImg = 'https://images.unsplash.com/photo-1558769132-cb1fac08b475?w=200';
 
-  // Format items as HTML rows for templates supporting HTML variables
-  const itemsHtml = items.map(item => {
-    const itemPrice = parseFloat(item.price).toFixed(2);
-    const itemTotal = (parseFloat(item.price) * item.quantity).toFixed(2);
-    const imgUrl = item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `https://images.unsplash.com/photo-1558769132-cb1fac08b475?w=200`) : `https://images.unsplash.com/photo-1558769132-cb1fac08b475?w=200`;
-    
-    return `
-      <tr style="border-bottom:1px solid #eee;">
-        <td style="padding:12px 8px;vertical-align:middle;text-align:center;">
-          <img src="${imgUrl}" alt="${item.name}" width="50" height="50" style="border-radius:4px;object-fit:cover;display:block;margin:0 auto;background:#f8f9fa;" />
-        </td>
-        <td style="padding:12px 8px;vertical-align:middle;color:#333;font-size:14px;font-weight:600;">
-          ${item.name}
-        </td>
-        <td style="padding:12px 8px;vertical-align:middle;color:#555;font-size:14px;text-align:center;">
-          ${item.quantity}
-        </td>
-        <td style="padding:12px 8px;vertical-align:middle;color:#333;font-size:14px;text-align:right;font-weight:600;">
-          ₹${itemPrice}
-        </td>
-        <td style="padding:12px 8px;vertical-align:middle;color:#333;font-size:14px;text-align:right;font-weight:700;">
-          ₹${itemTotal}
-        </td>
-      </tr>
-    `;
-  }).join('');
+  // Build the {{#orders}}...{{/orders}} loop array expected by the EmailJS
+  // "Order Confirmation" template: each item needs image, name, units, price
+  const orders = items.map(item => ({
+    image: item.image_url && item.image_url.startsWith('http') ? item.image_url : fallbackImg,
+    name: item.name,
+    units: item.quantity,
+    price: parseFloat(item.price).toFixed(2)
+  }));
 
+  // NOTE: shipping/tax are not tracked anywhere in the orders table today
+  // (checked supabase_schema.sql - only total_amount exists), so they're
+  // sent as 0.00 for now. Update this if real shipping/tax logic is added.
   const templateParams = {
-    // Provide multiple variations of recipient email fields to match user's template configuration
-    to_email: toEmail,
+    // Recipient - template uses top-level {{email}}
     email: toEmail,
-    user_email: toEmail,
-    contact_email: toEmail,
-    to: toEmail,
-    recipient: toEmail,
+    to_email: toEmail,
 
-    // Name parameters
+    // Name parameters (kept for compatibility, not used by this template)
     to_name: toName,
     user_name: toName,
-    name: toName,
     first_name: firstName,
 
-    // Order parameters
+    // Order parameters matching the template's actual variable names
     order_id: orderId.toString(),
-    total_amount: parseFloat(totalAmount).toFixed(2),
-    items_text: itemsText,
-    items_html: itemsHtml
+    orders: orders,
+    cost: {
+      shipping: '0.00',
+      tax: '0.00',
+      total: parseFloat(totalAmount).toFixed(2)
+    }
   };
 
   try {
