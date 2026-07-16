@@ -65,7 +65,16 @@ async function sendVerificationEmail(toEmail, toName, code) {
 
     // OTP Code parameters
     code: code,
-    verification_code: code
+    verification_code: code,
+    passcode: code,
+
+    // Expiry time parameter (template uses {{time}}) - matches the 10-minute
+    // expiry set in authRoutes.js (Date.now() + 10 * 60 * 1000)
+    time: new Date(Date.now() + 10 * 60 * 1000).toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   };
 
   try {
