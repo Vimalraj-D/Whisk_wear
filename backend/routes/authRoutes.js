@@ -5,6 +5,7 @@ const { sendVerificationEmail } = require('../services/emailService');
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const userAuth = require('../middleware/userAuth');
 
 // ──────────────────────────────────────────
 //  ADMIN LOGIN
@@ -146,7 +147,8 @@ router.post('/user/complete', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
     await supabase.from('users').update({ password: passwordHash }).eq('id', user.id);
 
-    const token = `user_token_${user.id}_${Date.now()}`;
+    // Issue a real signed JWT (never a guessable/forgeable string token)
+    const token = jwt.sign({ sub: user.id, email: user.email }, process.env.USER_JWT_SECRET, { expiresIn: '1h' });
     res.json({
       success: true,
       token,
@@ -310,11 +312,17 @@ router.post('/user/reset-password', async (req, res) => {
 });
 
 // ──────────────────────────────────────────
-//  USER PROFILE (GET)
+//  USER PROFILE (GET) — auth required, owner-only
 // ──────────────────────────────────────────
-router.get('/user/profile/:userId', async (req, res) => {
+router.get('/user/profile/:userId', userAuth, async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Ownership check: a user may only read their own profile
+    if (String(req.user.id) !== String(userId)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { data: user, error: fetchErr } = await supabase
       .from('users')
       .select('id, name, email, address')
@@ -331,11 +339,17 @@ router.get('/user/profile/:userId', async (req, res) => {
 });
 
 // ──────────────────────────────────────────
-//  USER PROFILE (PUT)
+//  USER PROFILE (PUT) — auth required, owner-only
 // ──────────────────────────────────────────
-router.put('/user/profile/:userId', async (req, res) => {
+router.put('/user/profile/:userId', userAuth, async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Ownership check: a user may only update their own profile
+    if (String(req.user.id) !== String(userId)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { name, address } = req.body;
     
     const { data: user, error: updateErr } = await supabase

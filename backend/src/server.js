@@ -25,7 +25,25 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+// CORS is restricted to explicitly allowed origins (set FRONTEND_URL in .env,
+// comma-separated for multiple). Falling back to '*' here would let any
+// website make authenticated cross-origin requests against this API.
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow same-origin/non-browser requests (no Origin header, e.g. curl, mobile)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 // Security middlewares
@@ -40,6 +58,18 @@ app.use(limiter);
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
+// Tighter limiter for auth endpoints (login, OTP verification, password reset)
+// to slow down credential-stuffing and OTP brute-force attempts specifically,
+// on top of the general API-wide limiter above.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts, please try again later.' },
+});
+app.use('/api/auth', authLimiter);
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -49,17 +79,11 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 
-// Health check endpoint
+// Health check endpoint — intentionally minimal; no infra/config details exposed
 app.get('/api/health', (req, res) => {
-  const anonKey = process.env.SUPABASE_ANON_KEY || '';
-  const keySnippet = anonKey ? `${anonKey.substring(0, 8)}...${anonKey.substring(anonKey.length - 8)}` : 'missing';
-  
-  res.json({ 
-    status: 'OK', 
-    message: 'Whiskwear Backend API is running',
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseKeySnippet: keySnippet,
-    supabaseKeyLength: anonKey.length
+  res.json({
+    status: 'OK',
+    message: 'Whiskwear Backend API is running'
   });
 });
 

@@ -3,7 +3,48 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/adminAuth');
 const userAuth = require('../middleware/userAuth');
+const optionalUserAuth = require('../middleware/optionalUserAuth');
 const crypto = require('crypto');
+
+// Recomputes order totals from the DB (never trusts client-supplied prices),
+// validates stock, and returns { total_amount, priceById } or throws.
+async function priceOrderItems(supabase, items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw Object.assign(new Error('No items provided'), { status: 400 });
+  }
+  const productIds = [...new Set(items.map(i => i.product_id))];
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('id, price, discount_percent, stock')
+    .in('id', productIds);
+  if (error) throw error;
+
+  const priceById = {};
+  const stockById = {};
+  for (const p of products) {
+    const discount = p.discount_percent || 0;
+    priceById[p.id] = Math.round((p.price * (1 - discount / 100)) * 100) / 100;
+    stockById[p.id] = p.stock;
+  }
+
+  let total_amount = 0;
+  for (const item of items) {
+    const unitPrice = priceById[item.product_id];
+    if (unitPrice === undefined) {
+      throw Object.assign(new Error(`Product ${item.product_id} not found`), { status: 400 });
+    }
+    const qty = parseInt(item.quantity);
+    if (!qty || qty <= 0) {
+      throw Object.assign(new Error('Invalid quantity'), { status: 400 });
+    }
+    if (stockById[item.product_id] !== undefined && qty > stockById[item.product_id]) {
+      throw Object.assign(new Error(`Insufficient stock for product ${item.product_id}`), { status: 400 });
+    }
+    total_amount += unitPrice * qty;
+  }
+
+  return { total_amount: Math.round(total_amount * 100) / 100, priceById };
+}
 const Razorpay = require('razorpay');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
 
@@ -14,30 +55,20 @@ const razorpay = new Razorpay({
 
 
 // Create a new order (Checkout)
-router.post('/', async (req, res) => {
+router.post('/', optionalUserAuth, async (req, res) => {
   try {
     const { customer_name, customer_email, customer_address, items } = req.body;
     
     if (!customer_name || !customer_email || !customer_address || !items || items.length === 0) {
       return res.status(400).json({ error: 'All order details and items are required' });
     }
-    
-    // Check if user is logged in (optional user_id mapping)
-    let user_id = null;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer user_token_')) {
-      const token = authHeader.split(' ')[1];
-      const parts = token.replace('user_token_', '').split('_');
-      if (parts[0]) {
-        user_id = parseInt(parts[0]);
-      }
-    }
-    
-    // Calculate total amount
-    let total_amount = 0;
-    for (const item of items) {
-      total_amount += item.price * item.quantity;
-    }
+
+    // user_id (if any) now comes only from a verified JWT — never from client input
+    const user_id = req.user ? req.user.id : null;
+
+    // Price/stock are recalculated server-side from the products table;
+    // client-supplied `item.price` is ignored to prevent price tampering.
+    const { total_amount, priceById } = await priceOrderItems(supabase, items);
     
     // Insert order
     const { data: orderData, error: orderError } = await supabase
@@ -56,12 +87,12 @@ router.post('/', async (req, res) => {
     
     const newOrder = orderData[0];
     
-    // Prepare order items
+    // Prepare order items using server-verified prices
     const orderItemsToInsert = items.map(item => ({
       order_id: newOrder.id,
       product_id: item.product_id,
       quantity: parseInt(item.quantity),
-      price: parseFloat(item.price)
+      price: priceById[item.product_id]
     }));
     
     // Insert order items
@@ -94,7 +125,7 @@ router.post('/', async (req, res) => {
       order: newOrder
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -221,9 +252,9 @@ router.post('/create-order', async (req, res) => {
 });
 
 // Razorpay: Verify Payment Signature
-router.post('/verify-payment', async (req, res) => {
+router.post('/verify-payment', optionalUserAuth, async (req, res) => {
   try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, order_id } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, order_id, customer_email } = req.body;
 
     // Validate missing fields
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !order_id) {
@@ -269,7 +300,44 @@ router.post('/verify-payment', async (req, res) => {
       return res.status(400).json({ error: 'Payment verification failed: Signature mismatch' });
     }
 
-    // Signature matches, payment verified!
+    // Fetch the order and confirm ownership before trusting order_id
+    const { data: dbOrder, error: dbOrderErr } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', order_id)
+      .single();
+
+    if (dbOrderErr || !dbOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (req.user && dbOrder.user_id && String(dbOrder.user_id) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (!req.user && dbOrder.customer_email && customer_email &&
+        dbOrder.customer_email.toLowerCase() !== String(customer_email).toLowerCase()) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    // Critical: confirm the amount actually paid on Razorpay matches what
+    // this order is supposed to cost. Without this check, an attacker could
+    // pay for a cheap Razorpay order and apply the signature to a much more
+    // expensive internal order_id (amount-substitution fraud).
+    try {
+      const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
+      const expectedPaise = Math.round(dbOrder.total_amount * 100);
+      if (razorpayOrder.amount !== expectedPaise) {
+        console.warn(`Amount mismatch for Order ID ${order_id}: paid ${razorpayOrder.amount}, expected ${expectedPaise}`);
+        await supabase.from('orders').update({ status: 'cancelled' }).eq('id', order_id);
+        return res.status(400).json({ error: 'Payment verification failed: amount mismatch' });
+      }
+    } catch (fetchErr) {
+      console.error('Failed to fetch Razorpay order for amount verification:', fetchErr);
+      return res.status(502).json({ error: 'Unable to verify payment amount' });
+    }
+
+    // Signature and amount verified — payment confirmed
+
     // Send confirmation email in background (truly fire and forget)
     supabase
       .from('orders')
@@ -308,11 +376,36 @@ router.post('/verify-payment', async (req, res) => {
 });
 
 // Razorpay: Cancel Order
-router.post('/cancel-order', async (req, res) => {
+router.post('/cancel-order', optionalUserAuth, async (req, res) => {
   try {
-    const { order_id } = req.body;
+    const { order_id, customer_email } = req.body;
     if (!order_id) {
       return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    // Ownership check: fetch the order first and confirm the requester
+    // either owns it (logged-in) or supplied the matching guest email.
+    const { data: dbOrder, error: dbOrderErr } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', order_id)
+      .single();
+
+    if (dbOrderErr || !dbOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    if (req.user) {
+      if (String(dbOrder.user_id) !== String(req.user.id)) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    } else {
+      if (!customer_email || dbOrder.customer_email.toLowerCase() !== String(customer_email).toLowerCase()) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    }
+    // Only pending orders can be cancelled this way
+    if (dbOrder.status !== 'pending') {
+      return res.status(400).json({ error: `Order cannot be cancelled (status: ${dbOrder.status})` });
     }
 
     // Update order status to 'cancelled'
@@ -350,7 +443,7 @@ router.post('/cancel-order', async (req, res) => {
 });
 
 // COD: Place order with Cash on Delivery
-router.post('/cod-order', async (req, res) => {
+router.post('/cod-order', optionalUserAuth, async (req, res) => {
   try {
     const { customer_name, customer_email, customer_address, items } = req.body;
 
@@ -358,22 +451,12 @@ router.post('/cod-order', async (req, res) => {
       return res.status(400).json({ error: 'All order details and items are required' });
     }
 
-    // Check if user is logged in
-    let user_id = null;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer user_token_')) {
-      const token = authHeader.split(' ')[1];
-      const parts = token.replace('user_token_', '').split('_');
-      if (parts[0]) {
-        user_id = parseInt(parts[0]);
-      }
-    }
+    // user_id (if any) now comes only from a verified JWT — never from client input
+    const user_id = req.user ? req.user.id : null;
 
-    // Calculate total amount
-    let total_amount = 0;
-    for (const item of items) {
-      total_amount += item.price * item.quantity;
-    }
+    // Price/stock are recalculated server-side from the products table;
+    // client-supplied `item.price` is ignored to prevent price tampering.
+    const { total_amount, priceById } = await priceOrderItems(supabase, items);
 
     // Insert order with pending status (COD)
     const { data: orderData, error: orderError } = await supabase
@@ -391,12 +474,12 @@ router.post('/cod-order', async (req, res) => {
     if (orderError) throw orderError;
     const newOrder = orderData[0];
 
-    // Insert order items
+    // Insert order items using server-verified prices
     const orderItemsToInsert = items.map(item => ({
       order_id: newOrder.id,
       product_id: item.product_id,
       quantity: parseInt(item.quantity),
-      price: parseFloat(item.price)
+      price: priceById[item.product_id]
     }));
 
     const { error: itemsError } = await supabase
@@ -426,7 +509,7 @@ router.post('/cod-order', async (req, res) => {
     const emailItems = items.map(item => ({
       name: item.name || 'Product',
       quantity: item.quantity,
-      price: item.price,
+      price: priceById[item.product_id],
       image_url: item.image_url || ''
     }));
     console.log(`Queueing COD email confirmation for Order ID: ${newOrder.id} to ${customer_email}`);
@@ -447,7 +530,7 @@ router.post('/cod-order', async (req, res) => {
       order: newOrder
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 

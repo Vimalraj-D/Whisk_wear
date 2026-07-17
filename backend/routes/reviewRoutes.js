@@ -28,19 +28,31 @@ router.get('/:product_id', async (req, res) => {
 // Post a review (User action) – requires authenticated user
 router.post('/', userAuth, async (req, res) => {
   try {
-    const { product_id, user_name, rating, comment } = req.body;
+    const { product_id, rating, comment } = req.body;
     
-    if (!product_id || !user_name || !rating) {
-      return res.status(400).json({ error: 'product_id, user_name, and rating are required' });
+    if (!product_id || !rating) {
+      return res.status(400).json({ error: 'product_id and rating are required' });
     }
 
     if (rating < 1 || rating > 5) {
       return res.status(400).json({ error: 'Rating must be between 1 and 5' });
     }
 
+    // The displayed reviewer name is looked up from the authenticated
+    // user's own record — a logged-in user can't post a review under
+    // someone else's name by supplying an arbitrary user_name.
+    const { data: userRecord, error: userErr } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', req.user.id)
+      .single();
+    if (userErr || !userRecord) {
+      return res.status(400).json({ error: 'Unable to verify reviewer identity' });
+    }
+
     const { data, error } = await supabase
       .from('reviews')
-      .insert([{ product_id, user_name, rating, comment }])
+      .insert([{ product_id, user_name: userRecord.name, rating, comment }])
       .select();
 
     if (error) throw error;

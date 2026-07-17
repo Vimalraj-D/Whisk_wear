@@ -1,16 +1,25 @@
 require('dotenv').config();
 
-const EMAILJS_SERVICE_ID = 'service_tvab0su';
-const EMAILJS_PUBLIC_KEY = 'MVsO7JZh_dp87mVPG';
-const EMAILJS_PRIVATE_KEY = 'ttFf99Gpe0k0SmpqEC8b3';
+// SECURITY: these were previously hardcoded here and committed to the public
+// GitHub repo — including EMAILJS_PRIVATE_KEY, a live secret. They must be
+// supplied via environment variables instead. The exposed key should be
+// treated as compromised and rotated in the EmailJS dashboard regardless of
+// this code change, since it already exists in git history.
+const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
+const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
+const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
 
-const OTP_TEMPLATE_ID = 'template_8p551dj';
-const ORDER_TEMPLATE_ID = 'template_67lu7ps';
+if (!EMAILJS_SERVICE_ID || !EMAILJS_PUBLIC_KEY || !EMAILJS_PRIVATE_KEY) {
+  console.warn('⚠️  EmailJS credentials are not fully set in environment variables. Email sending will fail until EMAILJS_SERVICE_ID, EMAILJS_PUBLIC_KEY, and EMAILJS_PRIVATE_KEY are configured.');
+}
+
+const OTP_TEMPLATE_ID = process.env.EMAILJS_OTP_TEMPLATE_ID || 'template_8p551dj';
+const ORDER_TEMPLATE_ID = process.env.EMAILJS_ORDER_TEMPLATE_ID || 'template_67lu7ps';
 
 // Brand logo shown in email templates (Supabase Storage public URL)
-const BRAND_LOGO_URL = 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png';
+const BRAND_LOGO_URL = process.env.BRAND_LOGO_URL || 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png';
 
-console.log('📧 Email provider initialized: EmailJS (REST API with Browser Spoofing)');
+console.log('📧 Email provider initialized: EmailJS');
 
 /**
  * Sends an email using EmailJS REST API with spoofed headers to bypass non-browser blocks
