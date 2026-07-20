@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
+import Parallax3DFashion from '../components/Parallax3DFashion';
 
 const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
@@ -204,6 +205,9 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
           </div>
         </section>
       </ScrollReveal>
+
+      {/* 3D Parallax Fashion Showcase */}
+      <Parallax3DFashion />
 
       {/* Featured Products Section */}
       <section className="new-arrivals-section">

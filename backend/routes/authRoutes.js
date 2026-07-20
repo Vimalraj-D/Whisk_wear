@@ -6,6 +6,14 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userAuth = require('../middleware/userAuth');
+const crypto = require('crypto');
+
+// Generates a cryptographically secure 6-digit OTP (100000-999999).
+// Math.random() is not a CSPRNG and shouldn't be used for anything
+// security-sensitive like verification codes.
+function generateOtp() {
+  return crypto.randomInt(100000, 1000000).toString();
+}
 
 // ──────────────────────────────────────────
 //  ADMIN LOGIN
@@ -48,7 +56,7 @@ router.post('/user/initiate', async (req, res) => {
       return res.status(400).json({ error: 'An account with this email already exists. Please log in.' });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     if (existing) {
@@ -177,7 +185,7 @@ router.post('/user/resend-code', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'No account found.' });
     if (user.is_verified) return res.status(400).json({ error: 'This account is already verified.' });
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
@@ -216,7 +224,7 @@ router.post('/user/login', async (req, res) => {
     }
 
     if (!user.is_verified) {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const code = generateOtp();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);
       // Fire-and-forget: don't await so the API responds instantly
@@ -256,7 +264,7 @@ router.post('/user/forgot-password', async (req, res) => {
       return res.status(404).json({ error: 'No account found with this email.' });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     await supabase.from('users').update({ verification_code: code, code_expires_at: expiresAt }).eq('id', user.id);

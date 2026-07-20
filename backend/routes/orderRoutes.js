@@ -27,23 +27,81 @@ async function priceOrderItems(supabase, items) {
     stockById[p.id] = p.stock;
   }
 
-  let total_amount = 0;
+  // Aggregate requested quantity per product BEFORE checking stock — an
+  // order can legitimately contain multiple line items for the same
+  // product_id (different size/color), and checking each line item against
+  // stock independently would let quantity be split to bypass the limit
+  // (e.g. two lines of 5 each against a stock of 8, each individually ≤ 8).
+  const qtyByProduct = {};
   for (const item of items) {
-    const unitPrice = priceById[item.product_id];
-    if (unitPrice === undefined) {
-      throw Object.assign(new Error(`Product ${item.product_id} not found`), { status: 400 });
-    }
     const qty = parseInt(item.quantity);
     if (!qty || qty <= 0) {
       throw Object.assign(new Error('Invalid quantity'), { status: 400 });
     }
-    if (stockById[item.product_id] !== undefined && qty > stockById[item.product_id]) {
-      throw Object.assign(new Error(`Insufficient stock for product ${item.product_id}`), { status: 400 });
+    if (priceById[item.product_id] === undefined) {
+      throw Object.assign(new Error(`Product ${item.product_id} not found`), { status: 400 });
     }
+    qtyByProduct[item.product_id] = (qtyByProduct[item.product_id] || 0) + qty;
+  }
+  for (const [productId, totalQty] of Object.entries(qtyByProduct)) {
+    if (stockById[productId] !== undefined && totalQty > stockById[productId]) {
+      throw Object.assign(new Error(`Insufficient stock for product ${productId}`), { status: 400 });
+    }
+  }
+
+  let total_amount = 0;
+  for (const item of items) {
+    const unitPrice = priceById[item.product_id];
+    const qty = parseInt(item.quantity);
     total_amount += unitPrice * qty;
   }
 
   return { total_amount: Math.round(total_amount * 100) / 100, priceById };
+}
+
+// Atomically decrements stock per product using the decrement_stock RPC
+// (see supabase_migration_atomic_stock.sql). This closes the read-then-write
+// race condition that let concurrent checkouts oversell limited stock.
+// Quantities are aggregated by product_id first (an order can have multiple
+// line items for the same product), then each product is decremented once.
+// If any product loses the race (stock ran out between validation and
+// commit), everything already decremented in this call is rolled back via
+// restore_stock, and the function throws a 409 so the caller can cancel the
+// order.
+async function decrementStockAtomic(supabase, items) {
+  const qtyByProduct = {};
+  for (const item of items) {
+    const qty = parseInt(item.quantity);
+    qtyByProduct[item.product_id] = (qtyByProduct[item.product_id] || 0) + qty;
+  }
+
+  const applied = [];
+  for (const [productId, qty] of Object.entries(qtyByProduct)) {
+    const { data, error } = await supabase.rpc('decrement_stock', {
+      p_product_id: Number(productId),
+      p_qty: qty
+    });
+    if (error) {
+      await rollbackStock(supabase, applied);
+      throw Object.assign(new Error(`Stock update failed for product ${productId}: ${error.message}`), { status: 500 });
+    }
+    if (!data || data.length === 0) {
+      // WHERE stock >= qty matched no row: someone else took the remaining stock first
+      await rollbackStock(supabase, applied);
+      throw Object.assign(new Error(`Insufficient stock for product ${productId}`), { status: 409 });
+    }
+    applied.push({ productId: Number(productId), qty });
+  }
+}
+
+async function rollbackStock(supabase, applied) {
+  for (const { productId, qty } of applied) {
+    try {
+      await supabase.rpc('restore_stock', { p_product_id: productId, p_qty: qty });
+    } catch (e) {
+      console.error(`Failed to roll back stock for product ${productId} after a failed order:`, e);
+    }
+  }
 }
 const Razorpay = require('razorpay');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
@@ -106,18 +164,14 @@ router.post('/', optionalUserAuth, async (req, res) => {
       throw itemsError;
     }
     
-    // Update product stock levels and sales count (best effort)
-    for (const item of items) {
-      try {
-        const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
-        if (prodData) {
-          const newStock = Math.max(0, prodData.stock - item.quantity);
-          const newSales = (prodData.sales_count || 0) + item.quantity;
-          await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
-        }
-      } catch (stockErr) {
-        console.error('Failed to update stock/sales for product', item.product_id, stockErr);
-      }
+    // Atomically decrement stock (race-safe). If stock ran out between
+    // validation and now, this rolls itself back and we cancel the order
+    // rather than shipping something we can't fulfill.
+    try {
+      await decrementStockAtomic(supabase, items);
+    } catch (stockErr) {
+      await supabase.from('orders').delete().eq('id', newOrder.id); // cascades to order_items
+      throw stockErr;
     }
     
     res.status(201).json({
@@ -285,12 +339,7 @@ router.post('/verify-payment', optionalUserAuth, async (req, res) => {
       if (items) {
         for (const item of items) {
           try {
-            const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
-            if (prodData) {
-              const newStock = prodData.stock + item.quantity;
-              const newSales = Math.max(0, (prodData.sales_count || 0) - item.quantity);
-              await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
-            }
+            await supabase.rpc('restore_stock', { p_product_id: item.product_id, p_qty: item.quantity });
           } catch (stockErr) {
             console.error('Failed to restore stock on verification failure:', stockErr);
           }
@@ -423,12 +472,7 @@ router.post('/cancel-order', optionalUserAuth, async (req, res) => {
     if (items) {
       for (const item of items) {
         try {
-          const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
-          if (prodData) {
-            const newStock = prodData.stock + item.quantity;
-            const newSales = Math.max(0, (prodData.sales_count || 0) - item.quantity);
-            await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
-          }
+          await supabase.rpc('restore_stock', { p_product_id: item.product_id, p_qty: item.quantity });
         } catch (stockErr) {
           console.error('Failed to restore stock on cancel:', stockErr);
         }
@@ -491,18 +535,12 @@ router.post('/cod-order', optionalUserAuth, async (req, res) => {
       throw itemsError;
     }
 
-    // Update product stock levels and sales count
-    for (const item of items) {
-      try {
-        const { data: prodData } = await supabase.from('products').select('stock, sales_count').eq('id', item.product_id).single();
-        if (prodData) {
-          const newStock = Math.max(0, prodData.stock - item.quantity);
-          const newSales = (prodData.sales_count || 0) + item.quantity;
-          await supabase.from('products').update({ stock: newStock, sales_count: newSales }).eq('id', item.product_id);
-        }
-      } catch (stockErr) {
-        console.error('Failed to update stock/sales for product', item.product_id, stockErr);
-      }
+    // Atomically decrement stock (race-safe); cancel the order if it lost the race
+    try {
+      await decrementStockAtomic(supabase, items);
+    } catch (stockErr) {
+      await supabase.from('orders').delete().eq('id', newOrder.id); // cascades to order_items
+      throw stockErr;
     }
 
     // Send confirmation email (in the background, non-blocking)
