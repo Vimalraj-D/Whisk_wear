@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
@@ -48,6 +49,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const searchInputRef = useRef(null);
+  const portalNodeRef = useRef(null);
 
   // Sidebar toggles and collapsible sections
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
@@ -94,6 +96,21 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const el = document.createElement('div');
+      el.id = 'shoppage-portal-root';
+      document.body.appendChild(el);
+      portalNodeRef.current = el;
+      return () => {
+        if (portalNodeRef.current) {
+          document.body.removeChild(portalNodeRef.current);
+          portalNodeRef.current = null;
+        }
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -320,44 +337,26 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         }}
       >
         
-        {/* Backdrop for mobile overlay */}
-        {isMobile && !isSidebarCollapsed && (
-          <div
-            onClick={() => setIsSidebarCollapsed(true)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              background: 'rgba(0,0,0,0.35)',
-              zIndex: 490
-            }}
-          />
-        )}
-
-        {/* Right Sidebar: Collapsible Filter Panels - Now on RIGHT with overlay on mobile */}
+        {/* Sidebar/backdrop container: render into body for mobile so fixed positioning isn't confined by transformed ancestors */}
+        {/* Prepare portal node */}
+        
+        {/* create portal node once */}
+        
+        {/**/}
         <aside 
           className={`shop-filter-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} 
           style={{ 
+            display: isMobile ? 'none' : 'block',
             gridColumn: isMobile ? '1 / -1' : 'auto',
-            position: isMobile && !isSidebarCollapsed ? 'fixed' : 'sticky',
-            right: isMobile && !isSidebarCollapsed ? 0 : 'auto',
-            top: isMobile && !isSidebarCollapsed ? 0 : '130px',
-            left: isMobile && !isSidebarCollapsed ? 'auto' : 'auto',
-            width: isMobile && !isSidebarCollapsed ? '80vw' : '300px',
-            height: isMobile && !isSidebarCollapsed ? '100vh' : 'auto',
-            zIndex: isMobile && !isSidebarCollapsed ? 9999 : 'auto',
-            maxHeight: isMobile ? '100vh' : '82vh',
+            position: 'sticky',
+            top: '130px',
+            width: '300px',
+            maxHeight: '82vh',
             background: 'var(--glossy-bg)', 
-            border: isSidebarCollapsed && !isMobile ? 'none' : '1px solid var(--glossy-border)', 
-            borderRadius: isMobile && !isSidebarCollapsed ? '0' : '4px', 
-            padding: isSidebarCollapsed && !isMobile ? '0' : '1.5rem', 
-            boxShadow: isSidebarCollapsed && !isMobile ? 'none' : isMobile && !isSidebarCollapsed ? '-4px 0 20px rgba(0, 0, 0, 0.15)' : 'var(--shadow-sm)',
-            opacity: isSidebarCollapsed && !isMobile ? 0 : 1,
-            pointerEvents: isSidebarCollapsed && !isMobile ? 'none' : 'auto',
-            transform: isMobile ? (isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)') : (isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)'),
-            transition: 'opacity 0.35s ease, padding 0.45s cubic-bezier(0.16, 1, 0.3, 1), border 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), width 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: '1px solid var(--glossy-border)', 
+            borderRadius: '4px', 
+            padding: '1.5rem', 
+            boxShadow: 'var(--shadow-sm)',
             overflowY: 'auto'
           }}
         >
@@ -568,6 +567,80 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             )}
           </div>
         </aside>
+
+        {/* Render mobile overlay (backdrop + sidebar) into portal so it escapes transformed ancestors */}
+        {portalNodeRef.current && isMobile && ReactDOM.createPortal(
+          <>
+            {!isSidebarCollapsed && (
+              <>
+                <div
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.35)', zIndex: 998 }}
+                />
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    right: 0,
+                    width: '80vw',
+                    height: '100vh',
+                    background: 'var(--glossy-bg)',
+                    zIndex: 999,
+                    boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+                    overflowY: 'auto',
+                    transform: isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)',
+                    transition: 'transform 0.35s ease'
+                  }}
+                >
+                  <div style={{ padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button onClick={() => setIsSidebarCollapsed(true)} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer' }}>←</button>
+                        {activeFilters.length > 0 && (
+                          <button onClick={resetAllFilters} style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <TrashIcon /> Reset
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* replicate the same accordion groups inside portal (category, price, size, color) */}
+                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <div className="filter-group-header" onClick={() => toggleSection('category')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
+                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Category</h4>
+                        <span className={`accordion-arrow ${openSections.category ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.category ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+                      </div>
+                      {openSections.category && (
+                        <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                            <input type="radio" name="category_filter_mobile" checked={filter === 'all'} onChange={() => setFilter('all')} style={{ accentColor: 'var(--brand-purple)' }} />
+                            All Collections
+                          </label>
+                          {categories.map(cat => {
+                            const catKey = getCategoryKey(cat.name);
+                            return (
+                              <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                                <input type="radio" name="category_filter_mobile" checked={filter === catKey} onChange={() => setFilter(catKey)} style={{ accentColor: 'var(--brand-purple)' }} />
+                                {cat.name}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                      <button onClick={() => setIsSidebarCollapsed(true)} style={{ padding: '0.6rem 1rem', fontWeight: '700', width: '100%', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>Apply Filters</button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </>, portalNodeRef.current
+        )}
 
         {/* Right Content Area: Results toolbar and Products Grid */}
         <main className="shop-products-column">
