@@ -23,6 +23,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [isMuted, setIsMuted] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -64,6 +65,15 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
     }, 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  useEffect(() => {
+    // Handle responsive animation change
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -155,7 +165,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             </button>
           </div>
         </div>
-        <div className="hero-right" style={{ animation: 'fadeUp 0.5s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
+        <div className="hero-right" style={{ animation: isMobile ? 'dropDown 0.6s ease-out 0.2s backwards' : 'slideInFromLeft 0.8s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
           <div className="hero-bg-shape" />
           <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '700px', height: 'clamp(360px, 60vw, 600px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
         </div>

@@ -123,6 +123,30 @@ img { display: block; }
   to { transform: rotate(360deg); }
 }
 
+/* Desktop: Slide from left to right */
+@keyframes slideInFromLeft {
+  from { 
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile: Dropdown effect */
+@keyframes dropDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ─── App Layout ─── */
 .app-container {
   display: flex;
@@ -2942,20 +2966,48 @@ img { display: block; }
    ========================================== */
 .shop-layout-grid {
   margin-top: 1rem;
+  position: relative;
 }
 
 .shop-filter-sidebar {
-  transition: transform var(--transition);
+  transition: transform var(--transition), opacity var(--transition), padding var(--transition);
+}
+
+.shop-filter-sidebar.collapsed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile overlay for filters */
+@media (max-width: 768px) {
+  .shop-layout-grid::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 400;
+  }
+  
+  .shop-layout-grid:has(.shop-filter-sidebar:not(.collapsed))::before {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .preset-price-btn:hover {
-  color: var(--brand-purple) !important;
+  color: var(--brand-teal) !important;
   text-decoration: underline;
 }
 
 .shop-main-search-input:focus {
-  border-color: var(--brand-purple) !important;
-  box-shadow: 0 0 20px var(--brand-glow) !important;
+  border-color: var(--brand-teal) !important;
+  box-shadow: 0 0 20px rgba(44, 44, 44, 0.15) !important;
 }
 
 /* ==========================================
@@ -3000,7 +3052,9 @@ img { display: block; }
     position: relative !important;
     top: 0 !important;
     max-height: none !important;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
+    width: 100% !important;
+    border-radius: 0 !important;
   }
 }
 
@@ -3023,15 +3077,15 @@ img { display: block; }
 }
 
 .filter-pill-tag:hover {
-  background: var(--brand-purple-lt) !important;
-  color: var(--brand-purple) !important;
-  border-color: var(--brand-purple) !important;
+  background: var(--brand-teal-lt) !important;
+  color: var(--brand-teal) !important;
+  border-color: var(--brand-teal) !important;
   transform: translateY(-1px);
 }
 
 .clear-all-pills-btn:hover {
   text-decoration: underline;
-  color: var(--brand-purple-hover) !important;
+  color: var(--brand-teal) !important;
 }
 
 .sidebar-toggle-btn {
@@ -3040,8 +3094,8 @@ img { display: block; }
 
 .sidebar-toggle-btn:hover {
   background: var(--bg-secondary) !important;
-  border-color: var(--brand-purple) !important;
-  color: var(--brand-purple) !important;
+  border-color: var(--brand-teal) !important;
+  color: var(--brand-teal) !important;
 }
 
 /* Accordion Collapsible Sections */
@@ -3055,7 +3109,7 @@ img { display: block; }
 }
 
 .filter-group-header:hover {
-  color: var(--brand-purple);
+  color: var(--brand-teal);
 }
 
 .filter-group-header .accordion-arrow {
@@ -3066,7 +3120,7 @@ img { display: block; }
 }
 
 .filter-group-header:hover .accordion-arrow {
-  color: var(--brand-purple);
+  color: var(--brand-teal);
 }
 
 .filter-group-content {
@@ -3082,6 +3136,30 @@ img { display: block; }
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Form Input Styling
+═══════════════════════════════════════════════════════════ */
+
+/* Radio buttons & Checkboxes */
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--brand-teal);
+  cursor: pointer;
+}
+
+/* Number inputs in filters */
+input[type="number"] {
+  accent-color: var(--brand-teal);
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+  border-color: var(--brand-teal) !important;
+  outline: none;
 }
 
 

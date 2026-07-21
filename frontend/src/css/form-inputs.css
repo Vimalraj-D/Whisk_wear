@@ -1,0 +1,28 @@
+/* ═══════════════════════════════════════════════════════════
+   Form Input Styling
+═══════════════════════════════════════════════════════════ */
+
+/* Radio buttons & Checkboxes */
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--brand-teal);
+  cursor: pointer;
+}
+
+/* Number inputs in filters */
+input[type="number"] {
+  accent-color: var(--brand-teal);
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+  border-color: var(--brand-teal) !important;
+  outline: none;
+}
+
+/* Color picker buttons */
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}

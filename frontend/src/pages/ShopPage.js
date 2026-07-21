@@ -50,7 +50,8 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const searchInputRef = useRef(null);
 
   // Sidebar toggles and collapsible sections
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [openSections, setOpenSections] = useState({
     category: true,
     price: true,
@@ -85,6 +86,15 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
       searchInputRef.current.focus();
     }
   }, [focusParam]);
+
+  useEffect(() => {
+    // Handle responsive filter
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setFilter(categoryParam);
@@ -216,11 +226,11 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   const activeFilters = getActiveFilters();
 
   return (
-    <div className="shop-page-wrapper" style={{ padding: '2.5rem 5%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="shop-page-wrapper" style={{ padding: '2.5rem 2%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
       
-      {/* 1. Center-Aligned Premium Search Header (Top) */}
-      <div className="shop-search-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-        <div className="search-bar-wrapper" style={{ position: 'relative', width: '100%', maxWidth: '680px', display: 'flex', alignItems: 'center' }}>
+      {/* 1. Search Header - Responsive width */}
+      <div className="shop-search-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+        <div className="search-bar-wrapper" style={{ position: 'relative', width: isSidebarCollapsed ? '100%' : isMobile ? '100%' : 'calc(100% - 320px)', maxWidth: isSidebarCollapsed ? '680px' : 'none', display: 'flex', alignItems: 'center', transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}>
           <span style={{ position: 'absolute', left: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
             <SearchIcon />
           </span>
@@ -259,7 +269,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
 
       {/* 2. Interactive Active Filters Tag Bar */}
       {activeFilters.length > 0 && (
-        <div className="active-filter-tags-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '0.75rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+        <div className="active-filter-tags-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '0.75rem 1.25rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-muted)', marginRight: '6px' }}>Active Filters:</span>
           {activeFilters.map((item, idx) => (
             <span 
@@ -297,46 +307,64 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         </div>
       )}
 
-      {/* 3. 2-Column Sidebar Grid */}
+      {/* 3. Layout Grid - Sidebar on RIGHT */}
       <div 
         className="shop-layout-grid" 
         style={{ 
           display: 'grid', 
-          gridTemplateColumns: isSidebarCollapsed ? '0px 1fr' : '280px 1fr', 
-          gap: isSidebarCollapsed ? '0' : '2.5rem', 
+          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : 'calc(100% - 320px) 300px', 
+          gap: '2rem', 
           alignItems: 'start',
+          position: 'relative',
           transition: 'grid-template-columns 0.45s cubic-bezier(0.16, 1, 0.3, 1), gap 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
       >
         
-        {/* Left Sidebar: Collapsible Accordion Filter Panels */}
+        {/* Right Sidebar: Collapsible Filter Panels - Now on RIGHT with overlay on mobile */}
         <aside 
           className={`shop-filter-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} 
           style={{ 
+            gridColumn: isMobile ? '1 / -1' : 'auto',
+            position: isMobile && !isSidebarCollapsed ? 'fixed' : 'sticky',
+            right: isMobile && !isSidebarCollapsed ? 0 : 'auto',
+            top: isMobile && !isSidebarCollapsed ? 0 : '130px',
+            width: isMobile && !isSidebarCollapsed ? '80vw' : '300px',
+            height: isMobile && !isSidebarCollapsed ? '100vh' : 'auto',
+            zIndex: isMobile && !isSidebarCollapsed ? 500 : 'auto',
+            maxHeight: isMobile ? '100vh' : '82vh',
             background: 'var(--glossy-bg)', 
-            border: isSidebarCollapsed ? 'none' : '1px solid var(--glossy-border)', 
-            borderRadius: '16px', 
-            padding: isSidebarCollapsed ? '0' : '1.5rem', 
-            boxShadow: isSidebarCollapsed ? 'none' : 'var(--shadow-sm)', 
-            position: 'sticky', 
-            top: '130px', 
-            maxHeight: '82vh', 
-            overflowY: 'auto',
-            opacity: isSidebarCollapsed ? 0 : 1,
-            pointerEvents: isSidebarCollapsed ? 'none' : 'auto',
-            transition: 'opacity 0.35s ease, padding 0.45s cubic-bezier(0.16, 1, 0.3, 1), border 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
+            border: isSidebarCollapsed && !isMobile ? 'none' : '1px solid var(--glossy-border)', 
+            borderRadius: isMobile && !isSidebarCollapsed ? '0' : '4px', 
+            padding: isSidebarCollapsed && !isMobile ? '0' : '1.5rem', 
+            boxShadow: isSidebarCollapsed && !isMobile ? 'none' : isMobile && !isSidebarCollapsed ? '-4px 0 20px rgba(0, 0, 0, 0.15)' : 'var(--shadow-sm)',
+            opacity: isSidebarCollapsed && !isMobile ? 0 : 1,
+            pointerEvents: isSidebarCollapsed && !isMobile ? 'none' : 'auto',
+            transform: isMobile && !isSidebarCollapsed ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'opacity 0.35s ease, padding 0.45s cubic-bezier(0.16, 1, 0.3, 1), border 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), width 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+            overflowY: 'auto'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', margin: 0 }}>Filter By</h3>
-            {activeFilters.length > 0 && (
-              <button 
-                onClick={resetAllFilters} 
-                style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
-                <TrashIcon /> Reset
-              </button>
-            )}
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {activeFilters.length > 0 && (
+                <button 
+                  onClick={resetAllFilters} 
+                  style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <TrashIcon /> Reset
+                </button>
+              )}
+              {isMobile && !isSidebarCollapsed && (
+                <button 
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer', padding: '0', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Close filters"
+                >
+                  ←
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Collapsible Accordion: Category */}
@@ -518,63 +546,22 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         {/* Right Content Area: Results toolbar and Products Grid */}
         <main className="shop-products-column">
           
-          {/* Header Row: Result count, Collapse Button, & Sort option */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glossy-bg)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid var(--glossy-border)', boxShadow: 'var(--shadow-sm)', flexWrap: 'wrap', gap: '12px' }}>
+          {/* Header Row: Result count, Filter Button, & Sort option */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glossy-bg)', padding: '1rem 1.5rem', borderRadius: '4px', border: '1px solid var(--glossy-border)', boxShadow: 'var(--shadow-sm)', flexWrap: 'wrap', gap: '12px' }}>
             
-            {/* Collapse toggle and counts */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <button 
-                onClick={() => setIsSidebarCollapsed(prev => !prev)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'var(--bg-card)',
-                  border: '1.5px solid var(--border-color)',
-                  padding: '0.45rem 1rem',
-                  borderRadius: '30px',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  color: 'var(--text-primary)',
-                  boxShadow: 'var(--shadow-xs)',
-                  transition: 'all 0.2s'
-                }}
-                className="sidebar-toggle-btn desktop-only-nav-item"
-              >
-                <svg 
-                  width="14" 
-                  height="14" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5" 
-                  style={{ transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
-                >
-                  <line x1="21" y1="4" x2="14" y2="4"></line>
-                  <line x1="10" y1="4" x2="3" y2="4"></line>
-                  <line x1="21" y1="12" x2="12" y2="12"></line>
-                  <line x1="8" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="20" x2="16" y2="20"></line>
-                  <line x1="12" y1="20" x2="3" y2="20"></line>
-                  <circle cx="12" cy="4" r="2"></circle>
-                  <circle cx="10" cy="12" r="2"></circle>
-                  <circle cx="14" cy="20" r="2"></circle>
-                </svg>
-                {isSidebarCollapsed ? 'Show Filters' : 'Hide Filters'}
-              </button>
-              
+            {/* Result count */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', order: isMobile ? 2 : 1 }}>
               <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
               </span>
             </div>
             
-            {/* Sort Dropdown and View Mode Toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Sort and Filter Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', order: isMobile ? 1 : 2, marginLeft: 'auto' }}>
               <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Sort by:</span>
               <select 
                 className="form-control" 
-                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem 1rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.35rem 1rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                 value={sortOption}
                 onChange={e => setSortOption(e.target.value)}
               >
@@ -583,6 +570,30 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                 <option value="price_desc">Price: High to Low</option>
                 <option value="discount">Highest Discount</option>
               </select>
+              
+              {/* Filter Toggle Button - Desktop */}
+              <button 
+                onClick={() => setIsSidebarCollapsed(prev => !prev)}
+                style={{
+                  display: isMobile ? 'flex' : 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'var(--bg-card)',
+                  border: '1.5px solid var(--border-color)',
+                  padding: '0.45rem 1rem',
+                  borderRadius: '4px',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  color: 'var(--text-primary)',
+                  boxShadow: 'var(--shadow-xs)',
+                  transition: 'all 0.2s'
+                }}
+                className="sidebar-toggle-btn"
+              >
+                {isSidebarCollapsed ? '↙ Filters' : '→ Hide'}
+              </button>
+
             {/* View Mode Toggle */}
             <button
               onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
@@ -592,7 +603,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                 gap: '4px',
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border-color)',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 padding: '0.35rem 0.75rem',
                 cursor: 'pointer',
                 fontSize: '0.85rem',
@@ -624,8 +635,8 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '6rem 2rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, marginBottom: '1rem', color: 'var(--brand-purple)' }}>
+            <div style={{ textAlign: 'center', padding: '6rem 2rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, marginBottom: '1rem', color: 'var(--brand-teal)' }}>
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
