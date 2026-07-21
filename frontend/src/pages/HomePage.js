@@ -10,6 +10,8 @@ const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
 ];
 
+const BACKGROUND_VIDEO_URL = 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4';
+
 const HeartIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: '16px', height: '16px', display: 'block' }}>
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"></path>
@@ -76,6 +78,10 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   }, []);
 
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     Promise.all([
       apiService.getProducts(),
@@ -107,6 +113,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef([]);
+  const [hasMounted, setHasMounted] = useState(false);
 
   const handleVideoEnded = () => {
     setCurrentVideoIdx((prev) => (prev + 1) % VIDEO_URLS.length);
@@ -136,6 +143,16 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
       }
     });
   }, [currentVideoIdx, isMuted]);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+    const videoEl = document.getElementById('background-video-player');
+    if (!videoEl) return;
+
+    videoEl.muted = true;
+    videoEl.loop = true;
+    videoEl.play().catch(e => console.error('Background video play failed:', e));
+  }, [hasMounted]);
 
   useEffect(() => {
     // If active video is currently playing, let it play to the end and trigger handleVideoEnded
@@ -307,6 +324,24 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
           </div>
         )}
       </section>
+
+      {/* Fixed bottom background video independent of scroll */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1, pointerEvents: 'none' }}>
+        <video
+          id="background-video-player"
+          src={BACKGROUND_VIDEO_URL}
+          muted
+          loop
+          playsInline
+          style={{
+            width: '100%',
+            maxHeight: '260px',
+            objectFit: 'cover',
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+      <div style={{ height: '260px' }} />
 
       {/* Watch Our Collections Video Slider Section */}
       <ScrollReveal direction="up" threshold={0.05}>
