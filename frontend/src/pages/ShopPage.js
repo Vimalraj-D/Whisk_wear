@@ -632,6 +632,64 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                       )}
                     </div>
 
+                    {/* Price */}
+                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <div className="filter-group-header" onClick={() => toggleSection('price')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
+                        <h4 style={{ fontSize: '0.8rem', fontWeight: '855', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Price (₹)</h4>
+                        <span className={`accordion-arrow ${openSections.price ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.price ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+                      </div>
+                      {openSections.price && (
+                        <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
+                            <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                            <button onClick={() => { setMinPrice(0); setMaxPrice(1000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>Under ₹1,000</button>
+                            <button onClick={() => { setMinPrice(1000); setMaxPrice(2000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>₹1,000 to ₹2,000</button>
+                            <button onClick={() => { setMinPrice(2000); setMaxPrice(5000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>Over ₹2,000</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sizes */}
+                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <div className="filter-group-header" onClick={() => toggleSection('size')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
+                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Sizes</h4>
+                        <span className={`accordion-arrow ${openSections.size ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.size ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+                      </div>
+                      {openSections.size && (
+                        <div className="filter-group-content" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
+                          {availableSizes.map(size => {
+                            const isSelected = selectedSizes.includes(size);
+                            return (
+                              <button key={size} onClick={() => toggleSizeFilter(size)} style={{ border: '1.5px solid', borderColor: isSelected ? 'var(--brand-purple)' : 'var(--border-color)', background: isSelected ? 'var(--brand-teal-lt)' : 'var(--bg-card)', color: isSelected ? 'var(--brand-purple)' : 'var(--text-secondary)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>{size}</button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Colors */}
+                    <div className="filter-group-accordion" style={{ marginBottom: '0.5rem' }}>
+                      <div className="filter-group-header" onClick={() => toggleSection('color')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
+                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Colors</h4>
+                        <span className={`accordion-arrow ${openSections.color ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.color ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+                      </div>
+                      {openSections.color && (
+                        <div className="filter-group-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '10px' }}>
+                          {availableColors.map(color => {
+                            const isSelected = selectedColors.includes(color.hex);
+                            return (
+                              <button key={color.hex} onClick={() => toggleColorFilter(color.hex)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: color.hex, border: '2px solid #fff', cursor: 'pointer', outline: 'none', boxShadow: isSelected ? '0 0 0 2px var(--brand-purple)' : '0 0 0 1px var(--border-color)', transition: 'all 0.2s' }} title={color.name} />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
                     <div style={{ marginTop: '1rem' }}>
                       <button onClick={() => setIsSidebarCollapsed(true)} style={{ padding: '0.6rem 1rem', fontWeight: '700', width: '100%', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>Apply Filters</button>
                     </div>
