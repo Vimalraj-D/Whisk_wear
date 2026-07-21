@@ -230,7 +230,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
       
       {/* 1. Search Header - Responsive width */}
       <div className="shop-search-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
-        <div className="search-bar-wrapper" style={{ position: 'relative', width: isSidebarCollapsed ? '100%' : isMobile ? '100%' : 'calc(100% - 320px)', maxWidth: isSidebarCollapsed ? '680px' : 'none', display: 'flex', alignItems: 'center', transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+        <div className="search-bar-wrapper" style={{ position: 'relative', width: '100%', maxWidth: isSidebarCollapsed ? '680px' : 'none', display: 'flex', alignItems: 'center', transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}>
           <span style={{ position: 'absolute', left: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
             <SearchIcon />
           </span>
@@ -312,7 +312,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         className="shop-layout-grid" 
         style={{ 
           display: 'grid', 
-          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : 'calc(100% - 320px) 300px', 
+          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : '1fr 300px', 
           gap: '2rem', 
           alignItems: 'start',
           position: 'relative',
@@ -347,6 +347,15 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {isMobile && !isSidebarCollapsed && (
+                <button 
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer', padding: '0', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Close filters"
+                >
+                  ←
+                </button>
+              )}
               {activeFilters.length > 0 && (
                 <button 
                   onClick={resetAllFilters} 
