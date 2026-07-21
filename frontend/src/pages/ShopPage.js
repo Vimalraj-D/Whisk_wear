@@ -343,23 +343,23 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         {/* create portal node once */}
         
         {/**/}
-        <aside 
-          className={`shop-filter-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} 
-          style={{ 
-            display: isMobile ? 'none' : 'block',
-            gridColumn: isMobile ? '1 / -1' : 'auto',
-            position: 'sticky',
-            top: '130px',
-            width: '300px',
-            maxHeight: '82vh',
-            background: 'var(--glossy-bg)', 
-            border: '1px solid var(--glossy-border)', 
-            borderRadius: '4px', 
-            padding: '1.5rem', 
-            boxShadow: 'var(--shadow-sm)',
-            overflowY: 'auto'
-          }}
-        >
+        {!isSidebarCollapsed && !isMobile && (
+          <aside 
+            className="shop-filter-sidebar"
+            style={{ 
+              gridColumn: 'auto',
+              position: 'sticky',
+              top: '130px',
+              width: '300px',
+              maxHeight: '82vh',
+              background: 'var(--glossy-bg)', 
+              border: '1px solid var(--glossy-border)', 
+              borderRadius: '4px', 
+              padding: '1.5rem', 
+              boxShadow: 'var(--shadow-sm)',
+              overflowY: 'auto'
+            }}
+          >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -566,7 +566,8 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               </div>
             )}
           </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Render mobile overlay (backdrop + sidebar) into portal so it escapes transformed ancestors */}
         {portalNodeRef.current && isMobile && ReactDOM.createPortal(

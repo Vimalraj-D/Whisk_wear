@@ -91,7 +91,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         const cats = catRes.data || catRes;
         const defaultImg = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&auto=format&fit=crop&q=80';
         const dynamicCats = [
-          { key: 'all', label: 'All Collection', img: 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%207,%202026,%2012_39_37%20AM.png' },
+          { key: 'all', label: 'All Collection', img: 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%2021,%202026,%2011_14_53%20PM.png' },
           ...cats.map(c => ({
             key: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
             label: c.name,
