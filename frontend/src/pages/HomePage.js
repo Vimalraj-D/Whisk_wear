@@ -12,8 +12,8 @@ const VIDEO_URLS = [
 
 const BACKGROUND_VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/like_this_for_chef_appearl_for.mp4',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4',
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4'
 ];
 
 const HeartIcon = () => (
@@ -344,7 +344,8 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
-        padding: '0 12px'
+        padding: '0 12px',
+        background: 'transparent'
       }}>
         <video
           ref={backgroundVideoRef}
@@ -361,7 +362,9 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             height: 'auto',
             aspectRatio: '16/9',
             objectFit: 'contain',
+            background: 'transparent',
             backgroundColor: 'transparent',
+            border: 'none',
             borderRadius: '16px',
             boxShadow: '0 24px 80px rgba(0, 0, 0, 0.20)',
             pointerEvents: 'none'
