@@ -164,7 +164,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
     videoEl.crossOrigin = 'anonymous';
     const ctx = canvasEl.getContext('2d');
     let rafId = null;
-    const threshold = 90;
+    const threshold = 100;
 
     const drawChromaKey = () => {
       const width = videoEl.videoWidth || 640;
@@ -414,7 +414,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             backgroundColor: 'transparent',
             border: 'none',
             borderRadius: '16px',
-            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 24px 80px rgba(0, 0, 0, 0)',
             pointerEvents: 'none'
           }}
         />
