@@ -161,9 +161,10 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
     const canvasEl = backgroundCanvasRef.current;
     if (!videoEl || !canvasEl) return;
 
+    videoEl.crossOrigin = 'anonymous';
     const ctx = canvasEl.getContext('2d');
     let rafId = null;
-    const threshold = 48;
+    const threshold = 90;
 
     const drawChromaKey = () => {
       const width = videoEl.videoWidth || 640;
@@ -183,7 +184,10 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
           const r = data[i];
           const g = data[i + 1];
           const b = data[i + 2];
-          if (r < threshold && g < threshold && b < threshold) {
+          const maxChannel = Math.max(r, g, b);
+          const minChannel = Math.min(r, g, b);
+          const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+          if (maxChannel < threshold && (maxChannel - minChannel) < 50 && luminance < 80) {
             data[i + 3] = 0;
           }
         }
@@ -410,7 +414,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             backgroundColor: 'transparent',
             border: 'none',
             borderRadius: '16px',
-            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.20)',
+            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.05)',
             pointerEvents: 'none'
           }}
         />
