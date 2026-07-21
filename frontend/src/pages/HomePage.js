@@ -119,6 +119,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const videoRefs = useRef([]);
   const [backgroundVideoIdx, setBackgroundVideoIdx] = useState(0);
   const backgroundVideoRef = useRef(null);
+  const backgroundCanvasRef = useRef(null);
   const [hasMounted, setHasMounted] = useState(false);
 
   const handleVideoEnded = () => {
@@ -157,11 +158,60 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   useEffect(() => {
     if (!hasMounted) return;
     const videoEl = backgroundVideoRef.current;
-    if (!videoEl) return;
+    const canvasEl = backgroundCanvasRef.current;
+    if (!videoEl || !canvasEl) return;
 
-    videoEl.muted = true;
-    videoEl.currentTime = 0;
-    videoEl.play().catch(e => console.error('Background video play failed:', e));
+    const ctx = canvasEl.getContext('2d');
+    let rafId = null;
+    const threshold = 48;
+
+    const drawChromaKey = () => {
+      const width = videoEl.videoWidth || 640;
+      const height = videoEl.videoHeight || 360;
+      if (canvasEl.width !== width || canvasEl.height !== height) {
+        canvasEl.width = width;
+        canvasEl.height = height;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(videoEl, 0, 0, width, height);
+
+      try {
+        const frame = ctx.getImageData(0, 0, width, height);
+        const { data } = frame;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          if (r < threshold && g < threshold && b < threshold) {
+            data[i + 3] = 0;
+          }
+        }
+        ctx.putImageData(frame, 0, 0);
+      } catch (err) {
+        console.error('Chroma key processing failed:', err);
+      }
+
+      rafId = requestAnimationFrame(drawChromaKey);
+    };
+
+    const startProcessing = () => {
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+      videoEl.currentTime = 0;
+      videoEl.play().catch(() => {});
+      if (rafId === null) {
+        drawChromaKey();
+      }
+    };
+
+    videoEl.addEventListener('loadeddata', startProcessing);
+    startProcessing();
+
+    return () => {
+      videoEl.removeEventListener('loadeddata', startProcessing);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [backgroundVideoIdx, hasMounted]);
 
   useEffect(() => {
@@ -347,15 +397,9 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         padding: '0 12px',
         background: 'transparent'
       }}>
-        <video
-          ref={backgroundVideoRef}
-          id="background-video-player"
-          src={BACKGROUND_VIDEO_URLS[backgroundVideoIdx]}
-          muted
-          autoPlay
-          playsInline
-          preload="auto"
-          onEnded={handleBackgroundVideoEnded}
+        <canvas
+          ref={backgroundCanvasRef}
+          id="background-video-canvas"
           style={{
             width: isMobile ? 'min(340px, calc(100vw - 32px))' : 'min(440px, 480px)',
             maxWidth: '100%',
@@ -369,6 +413,17 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             boxShadow: '0 24px 80px rgba(0, 0, 0, 0.20)',
             pointerEvents: 'none'
           }}
+        />
+        <video
+          ref={backgroundVideoRef}
+          id="background-video-player"
+          src={BACKGROUND_VIDEO_URLS[backgroundVideoIdx]}
+          muted
+          autoPlay
+          playsInline
+          preload="auto"
+          onEnded={handleBackgroundVideoEnded}
+          style={{ display: 'none' }}
         />
       </div>
 
