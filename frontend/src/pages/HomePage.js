@@ -11,9 +11,9 @@ const VIDEO_URLS = [
 ];
 
 const BACKGROUND_VIDEO_URLS = [
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4'
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm',
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm',
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm'
 ];
 
 const HeartIcon = () => (
