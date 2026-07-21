@@ -320,6 +320,22 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         }}
       >
         
+        {/* Backdrop for mobile overlay */}
+        {isMobile && !isSidebarCollapsed && (
+          <div
+            onClick={() => setIsSidebarCollapsed(true)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(0,0,0,0.35)',
+              zIndex: 490
+            }}
+          />
+        )}
+
         {/* Right Sidebar: Collapsible Filter Panels - Now on RIGHT with overlay on mobile */}
         <aside 
           className={`shop-filter-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} 
@@ -328,9 +344,10 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             position: isMobile && !isSidebarCollapsed ? 'fixed' : 'sticky',
             right: isMobile && !isSidebarCollapsed ? 0 : 'auto',
             top: isMobile && !isSidebarCollapsed ? 0 : '130px',
+            left: isMobile && !isSidebarCollapsed ? 'auto' : 'auto',
             width: isMobile && !isSidebarCollapsed ? '80vw' : '300px',
             height: isMobile && !isSidebarCollapsed ? '100vh' : 'auto',
-            zIndex: isMobile && !isSidebarCollapsed ? 500 : 'auto',
+            zIndex: isMobile && !isSidebarCollapsed ? 9999 : 'auto',
             maxHeight: isMobile ? '100vh' : '82vh',
             background: 'var(--glossy-bg)', 
             border: isSidebarCollapsed && !isMobile ? 'none' : '1px solid var(--glossy-border)', 
@@ -339,7 +356,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             boxShadow: isSidebarCollapsed && !isMobile ? 'none' : isMobile && !isSidebarCollapsed ? '-4px 0 20px rgba(0, 0, 0, 0.15)' : 'var(--shadow-sm)',
             opacity: isSidebarCollapsed && !isMobile ? 0 : 1,
             pointerEvents: isSidebarCollapsed && !isMobile ? 'none' : 'auto',
-            transform: isMobile && !isSidebarCollapsed ? 'translateX(0)' : 'translateX(100%)',
+            transform: isMobile ? (isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)') : (isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)'),
             transition: 'opacity 0.35s ease, padding 0.45s cubic-bezier(0.16, 1, 0.3, 1), border 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), width 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             overflowY: 'auto'
           }}
