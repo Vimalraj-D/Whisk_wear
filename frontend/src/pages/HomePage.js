@@ -10,7 +10,11 @@ const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
 ];
 
-const BACKGROUND_VIDEO_URL = 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4';
+const BACKGROUND_VIDEO_URLS = [
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/Untitled%20design.mp4',
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/like_this_for_chef_appearl_for.mp4',
+  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'
+];
 
 const HeartIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: '16px', height: '16px', display: 'block' }}>
@@ -113,10 +117,16 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef([]);
+  const [backgroundVideoIdx, setBackgroundVideoIdx] = useState(0);
+  const backgroundVideoRef = useRef(null);
   const [hasMounted, setHasMounted] = useState(false);
 
   const handleVideoEnded = () => {
     setCurrentVideoIdx((prev) => (prev + 1) % VIDEO_URLS.length);
+  };
+
+  const handleBackgroundVideoEnded = () => {
+    setBackgroundVideoIdx((prev) => (prev + 1) % BACKGROUND_VIDEO_URLS.length);
   };
   const prevVideo = () => {
     setCurrentVideoIdx((prev) => (prev === 0 ? VIDEO_URLS.length - 1 : prev - 1));
@@ -146,13 +156,13 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
 
   useEffect(() => {
     if (!hasMounted) return;
-    const videoEl = document.getElementById('background-video-player');
+    const videoEl = backgroundVideoRef.current;
     if (!videoEl) return;
 
     videoEl.muted = true;
-    videoEl.loop = true;
+    videoEl.currentTime = 0;
     videoEl.play().catch(e => console.error('Background video play failed:', e));
-  }, [hasMounted]);
+  }, [backgroundVideoIdx, hasMounted]);
 
   useEffect(() => {
     // If active video is currently playing, let it play to the end and trigger handleVideoEnded
@@ -326,22 +336,38 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
       </section>
 
       {/* Fixed bottom background video independent of scroll */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1, pointerEvents: 'none' }}>
+      <div style={{
+        position: 'fixed',
+        inset: 'auto 0 18px',
+        zIndex: 9999,
+        pointerEvents: 'none',
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100%',
+        padding: '0 12px'
+      }}>
         <video
+          ref={backgroundVideoRef}
           id="background-video-player"
-          src={BACKGROUND_VIDEO_URL}
+          src={BACKGROUND_VIDEO_URLS[backgroundVideoIdx]}
           muted
-          loop
+          autoPlay
           playsInline
+          preload="auto"
+          onEnded={handleBackgroundVideoEnded}
           style={{
-            width: '100%',
-            maxHeight: '260px',
-            objectFit: 'cover',
+            width: isMobile ? 'min(340px, calc(100vw - 32px))' : 'min(440px, 480px)',
+            maxWidth: '100%',
+            height: 'auto',
+            aspectRatio: '16/9',
+            objectFit: 'contain',
+            backgroundColor: 'transparent',
+            borderRadius: '16px',
+            boxShadow: '0 24px 80px rgba(0, 0, 0, 0.20)',
             pointerEvents: 'none'
           }}
         />
       </div>
-      <div style={{ height: '260px' }} />
 
       {/* Watch Our Collections Video Slider Section */}
       <ScrollReveal direction="up" threshold={0.05}>
