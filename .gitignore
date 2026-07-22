@@ -2,4 +2,10 @@ node_modules/
 .env
 dist/
 build/
+uploads/
 .DS_Store
+
+# Dev scratch files (may contain secrets)
+backend/scratch/
+backend/test_*.js
+backend/scratch_*.js

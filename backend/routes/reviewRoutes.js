@@ -1,124 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/supabase');
 const adminAuth = require('../middleware/adminAuth');
-const userAuth = require('../middleware/userAuth'); // user authentication middleware
+const userAuth = require('../middleware/userAuth');
+const reviewController = require('../controllers/reviewController');
+const { reviewValidation } = require('../middleware/validation');
 
-// Note: Because we use JWT from our own auth routes for users, we might need to 
-// verify user tokens before they can post a review. Wait, I should check if there's a 
-// standard `auth` middleware for users. I'll define a quick inline auth check if it's missing.
-
-// Get reviews for a specific product
-router.get('/:product_id', async (req, res) => {
-  try {
-    const { product_id } = req.params;
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('product_id', product_id)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Post a review (User action) – requires authenticated user
-router.post('/', userAuth, async (req, res) => {
-  try {
-    const { product_id, rating, comment } = req.body;
-    
-    if (!product_id || !rating) {
-      return res.status(400).json({ error: 'product_id and rating are required' });
-    }
-
-    if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-    }
-
-    // The displayed reviewer name is looked up from the authenticated
-    // user's own record — a logged-in user can't post a review under
-    // someone else's name by supplying an arbitrary user_name.
-    const { data: userRecord, error: userErr } = await supabase
-      .from('users')
-      .select('name')
-      .eq('id', req.user.id)
-      .single();
-    if (userErr || !userRecord) {
-      return res.status(400).json({ error: 'Unable to verify reviewer identity' });
-    }
-
-    const { data, error } = await supabase
-      .from('reviews')
-      .insert([{ product_id, user_name: userRecord.name, rating, comment }])
-      .select();
-
-    if (error) throw error;
-    res.status(201).json(data[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// --- ADMIN ROUTES ---
-
-// Get all reviews for admin management
-router.get('/admin/all', adminAuth, async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select(`
-        *,
-        products ( name )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Admin edit a review rating
-router.put('/:id', adminAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { rating } = req.body;
-
-    if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-    }
-
-    const { data, error } = await supabase
-      .from('reviews')
-      .update({ rating })
-      .eq('id', id)
-      .select();
-
-    if (error) throw error;
-    res.json(data[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Admin delete a review
-router.delete('/:id', adminAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    res.json({ message: 'Review deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.get('/:product_id', reviewController.getReviews);
+router.post('/', userAuth, reviewValidation.create, reviewController.createReview);
+router.get('/admin/all', adminAuth, reviewController.getAllReviews);
+router.put('/:id', adminAuth, reviewValidation.update, reviewController.updateReview);
+router.delete('/:id', adminAuth, reviewController.deleteReview);
 
 module.exports = router;
