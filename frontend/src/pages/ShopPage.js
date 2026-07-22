@@ -324,12 +324,12 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         </div>
       )}
 
-      {/* 3. Layout Grid - Sidebar on RIGHT */}
+      {/* 3. Layout Grid - Sidebar on LEFT */}
       <div 
         className="shop-layout-grid" 
         style={{ 
           display: 'grid', 
-          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : '1fr 300px', 
+          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : '300px 1fr', 
           gap: '2rem', 
           alignItems: 'start',
           position: 'relative',
