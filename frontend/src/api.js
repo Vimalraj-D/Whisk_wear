@@ -66,8 +66,8 @@ export const apiService = {
     const r = await api.get('/categories/subcategories');
     return normalizeListResponse(r.data);
   },
-  createSubcategory: async (name, category_id, token) => api.post('/categories/subcategories', { name, category_id }, getAuthHeaders(token)),
-  updateSubcategory: async (id, name, token) => api.put(`/categories/subcategories/${id}`, { name }, getAuthHeaders(token)),
+  createSubcategory: async (name, category_id, image_url, token) => api.post('/categories/subcategories', { name, category_id, image_url }, getAuthHeaders(token)),
+  updateSubcategory: async (id, name, image_url, token) => api.put(`/categories/subcategories/${id}`, { name, image_url }, getAuthHeaders(token)),
   deleteSubcategory: async (id, token) => api.delete(`/categories/subcategories/${id}`, getAuthHeaders(token)),
 
   // ─── Products ───

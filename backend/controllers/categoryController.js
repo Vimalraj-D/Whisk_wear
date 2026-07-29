@@ -79,10 +79,12 @@ exports.deleteCategory = async (req, res) => {
 };
 
 exports.createSubcategory = async (req, res) => {
-  const { name, category_id } = req.body;
+  const { name, category_id, image_url } = req.body;
   if (!name || !category_id) return res.status(400).json({ error: 'Name and category_id required' });
   try {
-    const { data, error } = await supabase.from('subcategories').insert([{ name, category_id: parseInt(category_id) }]).select();
+    const insertData = { name, category_id: parseInt(category_id) };
+    if (image_url) insertData.image_url = image_url;
+    const { data, error } = await supabase.from('subcategories').insert([insertData]).select();
     if (error) throw error;
     res.status(201).json(data[0]);
   } catch (err) {
@@ -93,10 +95,12 @@ exports.createSubcategory = async (req, res) => {
 
 exports.updateSubcategory = async (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, image_url } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   try {
-    const { data, error } = await supabase.from('subcategories').update({ name }).eq('id', id).select();
+    const updateData = { name };
+    if (image_url !== undefined) updateData.image_url = image_url;
+    const { data, error } = await supabase.from('subcategories').update(updateData).eq('id', id).select();
     if (error) throw error;
     res.json(data[0]);
   } catch (err) {

@@ -10,6 +10,13 @@ const CategoriesPage = () => {
   const [editing, setEditing] = useState(null);
   const [editName, setEditName] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  
+  // Subcategory modal state
+  const [isSubModalOpen, setIsSubModalOpen] = useState(false);
+  const [editingSubId, setEditingSubId] = useState(null);
+  const [editingCatId, setEditingCatId] = useState(null);
+  const [subName, setSubName] = useState('');
+  const [subImageUrl, setSubImageUrl] = useState('');
 
   const token = localStorage.getItem('whiskwear_admin_token');
 
@@ -30,25 +37,33 @@ const CategoriesPage = () => {
     fetchCategories();
   }, []);
 
-  const handleAddSub = async (catId) => {
-    const name = prompt('Enter new subcategory name:');
-    if (!name || !name.trim()) return;
-    try {
-      await apiService.createSubcategory(name.trim(), catId, token);
-      fetchCategories();
-    } catch (err) {
-      console.error('Add subcategory error', err);
+  const openSubModal = (catId, sub = null) => {
+    setEditingCatId(catId);
+    if (sub) {
+      setEditingSubId(sub.id);
+      setSubName(sub.name);
+      setSubImageUrl(sub.image_url || '');
+    } else {
+      setEditingSubId(null);
+      setSubName('');
+      setSubImageUrl('');
     }
+    setIsSubModalOpen(true);
   };
 
-  const handleEditSub = async (sub) => {
-    const newName = prompt('Enter new subcategory name:', sub.name);
-    if (!newName || !newName.trim() || newName.trim() === sub.name) return;
+  const handleSaveSubcategory = async (e) => {
+    e.preventDefault();
+    if (!subName.trim()) return;
     try {
-      await apiService.updateSubcategory(sub.id, newName.trim(), token);
+      if (editingSubId) {
+        await apiService.updateSubcategory(editingSubId, subName.trim(), subImageUrl, token);
+      } else {
+        await apiService.createSubcategory(subName.trim(), editingCatId, subImageUrl, token);
+      }
+      setIsSubModalOpen(false);
       fetchCategories();
     } catch (err) {
-      console.error('Edit subcategory error', err);
+      console.error('Save subcategory error', err);
     }
   };
 
@@ -188,13 +203,27 @@ const CategoriesPage = () => {
                           gap: '0.25rem'
                         }}
                       >
+                        {s.image_url && (
+                          <img
+                            src={s.image_url}
+                            alt={s.name}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '3px',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        )}
                         {s.name}
                         <button 
-                          onClick={() => handleEditSub(s)} 
+                          type="button"
+                          onClick={() => openSubModal(cat.id, s)} 
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '0.7rem', color: 'var(--color-primary, #e67e22)' }}
                           title="Edit Subcategory"
                         >✏️</button>
                         <button 
+                          type="button"
                           onClick={() => handleDeleteSub(s.id)} 
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '0.7rem', color: 'var(--color-cancelled, #ef4444)' }}
                           title="Delete Subcategory"
@@ -202,8 +231,9 @@ const CategoriesPage = () => {
                       </span>
                     ))}
                     <button 
+                      type="button"
                       className="btn btn-outline-teal btn-sm" 
-                      onClick={() => handleAddSub(cat.id)}
+                      onClick={() => openSubModal(cat.id)}
                       style={{ padding: '0.1rem 0.4rem', fontSize: '0.75rem', borderRadius: '4px' }}
                     >
                       + Add Sub
@@ -213,10 +243,10 @@ const CategoriesPage = () => {
                 <td>
                   {editing !== cat.id && (
                     <>
-                      <button className="btn btn-outline-primary btn-sm" onClick={() => startEdit(cat)}>
+                      <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => startEdit(cat)}>
                         Edit
                       </button>
-                      <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(cat.id)}>
+                      <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(cat.id)}>
                         Delete
                       </button>
                     </>
@@ -227,6 +257,59 @@ const CategoriesPage = () => {
           })}
         </tbody>
       </table>
+
+      {/* Subcategory Modal */}
+      {isSubModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsSubModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingSubId ? 'Edit Subcategory' : 'Add Subcategory'}</h3>
+              <button type="button" className="close-btn" onClick={() => setIsSubModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveSubcategory} className="checkout-form">
+              <div className="form-group">
+                <label className="form-label">Subcategory Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={subName}
+                  onChange={(e) => setSubName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Image URL (Optional)</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Image URL"
+                  value={subImageUrl}
+                  onChange={(e) => setSubImageUrl(e.target.value)}
+                />
+              </div>
+              {subImageUrl && (
+                <div className="form-group">
+                  <label className="form-label">Preview</label>
+                  <img
+                    src={subImageUrl}
+                    alt="preview"
+                    style={{
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '8px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              )}
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsSubModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Subcategory</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
