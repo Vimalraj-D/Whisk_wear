@@ -14,5 +14,6 @@ router.post('/subcategories', adminAuth, categoryValidation.create, categoryCont
 router.put('/subcategories/:id', adminAuth, categoryValidation.update, categoryController.updateSubcategory);
 router.delete('/subcategories/:id', adminAuth, categoryController.deleteSubcategory);
 router.post('/upload-subcategory-image', adminAuth, upload.single('image'), categoryController.uploadSubcategoryImage);
+router.post('/upload-category-image', adminAuth, upload.single('image'), categoryController.uploadCategoryImage);
 
 module.exports = router;

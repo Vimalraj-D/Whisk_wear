@@ -125,9 +125,9 @@ exports.uploadSubcategoryImage = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
-    // The file is automatically uploaded to S3 by multer middleware
-    // req.file.location contains the public URL from S3
-    const imageUrl = req.file.location;
+    const projectId = process.env.SUPABASE_PROJECT_ID || 'aoppjuuqdgajcidduqld';
+    const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
+    const imageUrl = `https://${projectId}.supabase.co/storage/v1/object/public/${bucket}/${req.file.key}`;
     
     res.json({ 
       success: true, 
@@ -136,6 +136,25 @@ exports.uploadSubcategoryImage = async (req, res) => {
     });
   } catch (err) {
     console.error('Subcategory image upload error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.uploadCategoryImage = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    
+    const projectId = process.env.SUPABASE_PROJECT_ID || 'aoppjuuqdgajcidduqld';
+    const bucket = process.env.SUPABASE_S3_BUCKET || 'Images';
+    const imageUrl = `https://${projectId}.supabase.co/storage/v1/object/public/${bucket}/${req.file.key}`;
+    
+    res.json({ 
+      success: true, 
+      url: imageUrl,
+      image_url: imageUrl
+    });
+  } catch (err) {
+    console.error('Category image upload error:', err);
     res.status(500).json({ error: err.message });
   }
 };

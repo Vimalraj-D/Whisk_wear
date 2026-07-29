@@ -82,6 +82,18 @@ export const apiService = {
     return r.data;
   },
 
+  // ─── Category image upload ───
+  uploadCategoryImage: async (image, token) => {
+    const form = new FormData();
+    form.append('image', image);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    };
+    const r = await api.post('/categories/upload-category-image', form, { headers });
+    return r.data;
+  },
+
   // ─── Products ───
   getProducts: async (category) => {
     const r = await api.get('/products', {

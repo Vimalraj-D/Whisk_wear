@@ -20,6 +20,8 @@ const CategoriesPage = () => {
   const [subImageFile, setSubImageFile] = useState(null);
   const [subImagePreview, setSubImagePreview] = useState(null);
   const [uploadingSubImage, setUploadingSubImage] = useState(false);
+  const [uploadingNewImage, setUploadingNewImage] = useState(false);
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
 
   const token = localStorage.getItem('whiskwear_admin_token');
 
@@ -87,6 +89,44 @@ const CategoriesPage = () => {
       alert('Failed to upload image. Please try again.');
     } finally {
       setUploadingSubImage(false);
+    }
+  };
+
+  const handleNewImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingNewImage(true);
+      try {
+        const result = await apiService.uploadCategoryImage(file, token);
+        const imageUrl = result.url || result.image_url || result.data?.url;
+        if (imageUrl) {
+          setNewImageUrl(imageUrl);
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        setUploadingNewImage(false);
+      }
+    }
+  };
+
+  const handleEditImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingEditImage(true);
+      try {
+        const result = await apiService.uploadCategoryImage(file, token);
+        const imageUrl = result.url || result.image_url || result.data?.url;
+        if (imageUrl) {
+          setEditImageUrl(imageUrl);
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        setUploadingEditImage(false);
+      }
     }
   };
 
@@ -167,13 +207,37 @@ const CategoriesPage = () => {
           onChange={(e) => setNewName(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="Image URL (optional)"
-          value={newImageUrl}
-          onChange={(e) => setNewImageUrl(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary">
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+          <input
+            type="text"
+            placeholder="Image URL (optional)"
+            value={newImageUrl}
+            onChange={(e) => setNewImageUrl(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or</span>
+          <label style={{
+            padding: '0.5rem 1rem',
+            background: 'var(--brand-teal, #16a085)',
+            color: '#fff',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            whiteSpace: 'nowrap',
+            display: 'inline-block'
+          }}>
+            {uploadingNewImage ? 'Uploading...' : '📁 Upload Image'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleNewImageFileChange}
+              style={{ display: 'none' }}
+              disabled={uploadingNewImage}
+            />
+          </label>
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={uploadingNewImage}>
           Add Category
         </button>
       </form>
@@ -192,20 +256,42 @@ const CategoriesPage = () => {
             return (
               <tr key={cat.id}>
                 <td>{editing === cat.id ? (
-                  <form onSubmit={handleEdit} className="edit-form">
+                  <form onSubmit={handleEdit} className="edit-form" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       required
                     />
-                    <input
-                      type="text"
-                      placeholder="Image URL"
-                      value={editImageUrl}
-                      onChange={(e) => setEditImageUrl(e.target.value)}
-                    />
-                    <button type="submit" className="btn btn-success btn-sm">Save</button>
+                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Image URL"
+                        value={editImageUrl}
+                        onChange={(e) => setEditImageUrl(e.target.value)}
+                        style={{ width: '150px' }}
+                      />
+                      <label style={{
+                        padding: '0.25rem 0.5rem',
+                        background: 'var(--brand-teal, #16a085)',
+                        color: '#fff',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {uploadingEditImage ? 'Uploading...' : '📁 Upload'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditImageFileChange}
+                          style={{ display: 'none' }}
+                          disabled={uploadingEditImage}
+                        />
+                      </label>
+                    </div>
+                    <button type="submit" className="btn btn-success btn-sm" disabled={uploadingEditImage}>Save</button>
                     <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditing(null)}>
                       Cancel
                     </button>
