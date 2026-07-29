@@ -80,14 +80,9 @@ export default function CollectionsPage() {
             return (
               <ScrollReveal key={cat.id} direction="up" threshold={0.05} delay={idx * 100}>
                 <div className="collection-editorial-card" style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '0',
                   background: '#fff',
                   borderRadius: '16px',
-                  overflow: 'hidden',
                   boxShadow: 'var(--shadow-lg)',
-                  transition: 'none',
                   minHeight: 'auto'
                 }}>
                   
@@ -95,11 +90,7 @@ export default function CollectionsPage() {
                   <div className="collection-cover-part" style={{
                     position: 'relative',
                     overflow: 'hidden',
-                    background: '#f5f5f5',
-                    transition: 'none',
-                    gridColumn: '1',
-                    gridRow: '1',
-                    minHeight: '500px'
+                    background: '#f5f5f5'
                   }}>
                     <div className="collection-part-bg-wrapper" style={{
                       width: '100%',
@@ -199,14 +190,8 @@ export default function CollectionsPage() {
                   {/* Right side - Shows subcategories with images */}
                   <div className="collection-highlights-drawer" style={{
                     background: '#fff',
-                    padding: '2.5rem',
-                    gridColumn: '2',
-                    gridRow: '1',
                     display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'none',
-                    borderLeft: '1px solid var(--border-color, #e0e0e0)',
-                    minHeight: '500px'
+                    flexDirection: 'column'
                   }}>
                     <div className="drawer-inner-content" style={{ flex: 1 }}>
                       <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Subcategories</h4>
@@ -216,8 +201,8 @@ export default function CollectionsPage() {
                       ) : (
                         <div className="drawer-subcategories-grid" style={{
                           display: 'grid',
-                          gridTemplateColumns: 'repeat(3, 1fr)',
-                          gap: '1.5rem'
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                          gap: '1.25rem'
                         }}>
                           {catSubs.map(sub => (
                             <div
