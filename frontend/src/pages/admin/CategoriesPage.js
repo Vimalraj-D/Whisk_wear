@@ -261,50 +261,168 @@ const CategoriesPage = () => {
       {/* Subcategory Modal */}
       {isSubModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSubModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div className="modal-header">
               <h3>{editingSubId ? 'Edit Subcategory' : 'Add Subcategory'}</h3>
               <button type="button" className="close-btn" onClick={() => setIsSubModalOpen(false)}>×</button>
             </div>
             <form onSubmit={handleSaveSubcategory} className="checkout-form">
+              
+              {/* Subcategory Name */}
               <div className="form-group">
-                <label className="form-label">Subcategory Name</label>
+                <label className="form-label" style={{ fontWeight: '600', marginBottom: '0.5rem', display: 'block' }}>Subcategory Name *</label>
                 <input
                   type="text"
                   className="form-control"
+                  placeholder="e.g., Coat, Hat, Shoe"
                   value={subName}
                   onChange={(e) => setSubName(e.target.value)}
                   required
+                  style={{ padding: '0.75rem', borderRadius: '6px' }}
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Image URL (Optional)</label>
+
+              {/* Image Section with Prominent Styling */}
+              <div className="form-group" style={{ 
+                background: 'linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%)',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                border: '2px dashed var(--brand-teal, #16a085)',
+                marginBottom: '1.5rem'
+              }}>
+                <label className="form-label" style={{ 
+                  fontWeight: '700', 
+                  marginBottom: '0.75rem', 
+                  display: 'block',
+                  color: 'var(--brand-teal, #16a085)',
+                  fontSize: '1rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  📸 Subcategory Image
+                </label>
+                <p style={{ 
+                  fontSize: '0.85rem', 
+                  color: 'var(--text-secondary)', 
+                  marginBottom: '1rem',
+                  fontStyle: 'italic'
+                }}>
+                  Paste image URL to display in collections. This image will show with the subcategory name.
+                </p>
+                
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Image URL"
+                  placeholder="e.g., https://example.com/image.jpg"
                   value={subImageUrl}
                   onChange={(e) => setSubImageUrl(e.target.value)}
+                  style={{ 
+                    padding: '0.75rem', 
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color, #e0e0e0)',
+                    marginBottom: '1rem'
+                  }}
                 />
+
+                {/* Image Preview */}
+                {subImageUrl ? (
+                  <div style={{
+                    background: '#fff',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    border: '1px solid var(--border-color, #e0e0e0)'
+                  }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>Preview:</p>
+                    <img
+                      src={subImageUrl}
+                      alt="preview"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '180px',
+                        borderRadius: '8px',
+                        objectFit: 'cover',
+                        margin: '0 auto',
+                        display: 'block',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }}
+                      onError={(e) => {
+                        console.log('Image load error:', e);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSubImageUrl('')}
+                      style={{
+                        marginTop: '0.75rem',
+                        background: 'none',
+                        border: '1px solid var(--color-cancelled, #ef4444)',
+                        color: 'var(--color-cancelled, #ef4444)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-cancelled, #ef4444)';
+                        e.currentTarget.style.color = '#fff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'none';
+                        e.currentTarget.style.color = 'var(--color-cancelled, #ef4444)';
+                      }}
+                    >
+                      Clear Image
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{
+                    background: '#fff',
+                    padding: '2rem 1rem',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    border: '1px dashed var(--border-color, #e0e0e0)',
+                    color: 'var(--text-muted)'
+                  }}>
+                    <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🖼️</p>
+                    <p style={{ fontSize: '0.9rem' }}>No image selected</p>
+                  </div>
+                )}
               </div>
-              {subImageUrl && (
-                <div className="form-group">
-                  <label className="form-label">Preview</label>
-                  <img
-                    src={subImageUrl}
-                    alt="preview"
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      borderRadius: '8px',
-                      objectFit: 'cover'
-                    }}
-                  />
-                </div>
-              )}
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsSubModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Subcategory</button>
+
+              {/* Action Buttons */}
+              <div className="modal-actions" style={{ 
+                display: 'flex', 
+                gap: '1rem', 
+                justifyContent: 'flex-end',
+                marginTop: '2rem',
+                paddingTop: '1.5rem',
+                borderTop: '1px solid var(--border-color, #e0e0e0)'
+              }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setIsSubModalOpen(false)}
+                  style={{ padding: '0.75rem 1.5rem', borderRadius: '6px' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  style={{ 
+                    padding: '0.75rem 1.5rem', 
+                    borderRadius: '6px',
+                    background: 'var(--brand-teal, #16a085)',
+                    color: '#fff',
+                    fontWeight: '600',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {editingSubId ? '✓ Update Subcategory' : '✓ Add Subcategory'}
+                </button>
               </div>
             </form>
           </div>
