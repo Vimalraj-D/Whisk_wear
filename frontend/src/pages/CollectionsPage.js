@@ -127,7 +127,6 @@ export default function CollectionsPage() {
                     }}>
                       <div className="collection-cover-header-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>
                         <span className="collection-serial-no">0{idx + 1} //</span>
-                        <span className="collection-count">{catSubs.length} SUBCATEGORIES</span>
                       </div>
                       
                       <h3 className="collection-cover-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cat.name}</h3>
