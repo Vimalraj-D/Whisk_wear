@@ -87,9 +87,8 @@ export default function CollectionsPage() {
                   borderRadius: '16px',
                   overflow: 'hidden',
                   boxShadow: 'var(--shadow-lg)',
-                  transition: 'all 0.4s',
-                  minHeight: '500px',
-                  position: 'relative'
+                  transition: 'none',
+                  minHeight: 'auto'
                 }}>
                   
                   {/* Left showcase panel - Category Image (expands on hover) */}
@@ -97,7 +96,7 @@ export default function CollectionsPage() {
                     position: 'relative',
                     overflow: 'hidden',
                     background: '#f5f5f5',
-                    transition: 'all 0.4s',
+                    transition: 'none',
                     gridColumn: '1',
                     gridRow: '1'
                   }}>
@@ -114,7 +113,7 @@ export default function CollectionsPage() {
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          transition: 'transform 0.4s'
+                          transition: 'none'
                         }}
                         onError={(e) => {
                           e.target.onerror = null;
@@ -136,7 +135,7 @@ export default function CollectionsPage() {
                     }}>
                       <div className="collection-cover-header-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>
                         <span className="collection-serial-no">0{idx + 1} //</span>
-                        <span className="collection-count">{categoryProducts.length}+ ITEMS</span>
+                        <span className="collection-count">{catSubs.length} SUBCATEGORIES</span>
                       </div>
                       
                       <h3 className="collection-cover-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cat.name}</h3>
@@ -223,7 +222,8 @@ export default function CollectionsPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     transition: 'none',
-                    borderLeft: '1px solid var(--border-color, #e0e0e0)'
+                    borderLeft: '1px solid var(--border-color, #e0e0e0)',
+                    minHeight: '400px'
                   }}>
                     <div className="drawer-inner-content" style={{ flex: 1 }}>
                       <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Subcategories</h4>
@@ -233,7 +233,7 @@ export default function CollectionsPage() {
                       ) : (
                         <div className="drawer-subcategories-grid" style={{
                           display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
                           gap: '1.5rem'
                         }}>
                           {catSubs.map(sub => (
@@ -262,7 +262,7 @@ export default function CollectionsPage() {
                               {/* Subcategory Image */}
                               <div style={{
                                 width: '100%',
-                                height: '140px',
+                                height: '120px',
                                 background: '#f5f5f5',
                                 position: 'relative',
                                 overflow: 'hidden'
@@ -301,9 +301,9 @@ export default function CollectionsPage() {
                               </div>
 
                               {/* Subcategory Info */}
-                              <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                              <div style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                 <h5 style={{
-                                  fontSize: '0.95rem',
+                                  fontSize: '0.85rem',
                                   fontWeight: '600',
                                   color: 'var(--text-primary)',
                                   lineHeight: '1.3',
