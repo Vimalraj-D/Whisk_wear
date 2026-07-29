@@ -17,6 +17,9 @@ const CategoriesPage = () => {
   const [editingCatId, setEditingCatId] = useState(null);
   const [subName, setSubName] = useState('');
   const [subImageUrl, setSubImageUrl] = useState('');
+  const [subImageFile, setSubImageFile] = useState(null);
+  const [subImagePreview, setSubImagePreview] = useState(null);
+  const [uploadingSubImage, setUploadingSubImage] = useState(false);
 
   const token = localStorage.getItem('whiskwear_admin_token');
 
@@ -43,12 +46,48 @@ const CategoriesPage = () => {
       setEditingSubId(sub.id);
       setSubName(sub.name);
       setSubImageUrl(sub.image_url || '');
+      setSubImagePreview(sub.image_url || null);
     } else {
       setEditingSubId(null);
       setSubName('');
       setSubImageUrl('');
+      setSubImagePreview(null);
     }
+    setSubImageFile(null);
+    setUploadingSubImage(false);
     setIsSubModalOpen(true);
+  };
+
+  const handleSubImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSubImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSubImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadSubImage = async () => {
+    if (!subImageFile) return;
+    setUploadingSubImage(true);
+    try {
+      const result = await apiService.uploadSubcategoryImage(subImageFile, token);
+      // The result should contain the image URL
+      const imageUrl = result.url || result.image_url || result.data?.url;
+      if (imageUrl) {
+        setSubImageUrl(imageUrl);
+      }
+      setSubImageFile(null);
+    } catch (err) {
+      console.error('Image upload error:', err);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingSubImage(false);
+    }
   };
 
   const handleSaveSubcategory = async (e) => {
@@ -307,25 +346,65 @@ const CategoriesPage = () => {
                   marginBottom: '1rem',
                   fontStyle: 'italic'
                 }}>
-                  Paste image URL to display in collections. This image will show with the subcategory name.
+                  Upload from your computer or paste image URL.
                 </p>
                 
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="e.g., https://example.com/image.jpg"
-                  value={subImageUrl}
-                  onChange={(e) => setSubImageUrl(e.target.value)}
-                  style={{ 
-                    padding: '0.75rem', 
-                    borderRadius: '6px',
-                    border: '1px solid var(--border-color, #e0e0e0)',
-                    marginBottom: '1rem'
-                  }}
-                />
+                {/* File Upload or URL Input Tabs */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSubImageFileChange}
+                    style={{
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-color, #e0e0e0)',
+                      flex: 1,
+                      fontSize: '0.9rem'
+                    }}
+                    disabled={uploadingSubImage}
+                  />
+                  {subImageFile && (
+                    <button
+                      type="button"
+                      onClick={handleUploadSubImage}
+                      disabled={uploadingSubImage}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: uploadingSubImage ? '#ccc' : 'var(--brand-teal, #16a085)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: uploadingSubImage ? 'not-allowed' : 'pointer',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {uploadingSubImage ? 'Uploading...' : 'Upload'}
+                    </button>
+                  )}
+                </div>
+
+                {/* URL Input */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>Or paste image URL:</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g., https://example.com/image.jpg"
+                    value={subImageUrl}
+                    onChange={(e) => setSubImageUrl(e.target.value)}
+                    style={{ 
+                      padding: '0.75rem', 
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-color, #e0e0e0)',
+                      width: '100%'
+                    }}
+                  />
+                </div>
 
                 {/* Image Preview */}
-                {subImageUrl ? (
+                {subImagePreview || subImageUrl ? (
                   <div style={{
                     background: '#fff',
                     padding: '1rem',
@@ -335,7 +414,7 @@ const CategoriesPage = () => {
                   }}>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>Preview:</p>
                     <img
-                      src={subImageUrl}
+                      src={subImagePreview || subImageUrl}
                       alt="preview"
                       style={{
                         maxWidth: '100%',
@@ -352,7 +431,11 @@ const CategoriesPage = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setSubImageUrl('')}
+                      onClick={() => {
+                        setSubImageUrl('');
+                        setSubImagePreview(null);
+                        setSubImageFile(null);
+                      }}
                       style={{
                         marginTop: '0.75rem',
                         background: 'none',

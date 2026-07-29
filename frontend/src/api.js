@@ -70,6 +70,18 @@ export const apiService = {
   updateSubcategory: async (id, name, image_url, token) => api.put(`/categories/subcategories/${id}`, { name, image_url }, getAuthHeaders(token)),
   deleteSubcategory: async (id, token) => api.delete(`/categories/subcategories/${id}`, getAuthHeaders(token)),
 
+  // ─── Subcategory image upload ───
+  uploadSubcategoryImage: async (image, token) => {
+    const form = new FormData();
+    form.append('image', image);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    };
+    const r = await api.post('/categories/upload-subcategory-image', form, { headers });
+    return r.data;
+  },
+
   // ─── Products ───
   getProducts: async (category) => {
     const r = await api.get('/products', {

@@ -13,7 +13,7 @@ exports.getCategories = async (req, res) => {
 
 exports.getSubcategories = async (req, res) => {
   try {
-    const { data, error } = await supabase.from('subcategories').select('id, name, category_id').order('name');
+    const { data, error } = await supabase.from('subcategories').select('id, name, category_id, image_url').order('name');
     if (error) throw error;
     res.json(data);
   } catch (err) {
@@ -117,6 +117,25 @@ exports.deleteSubcategory = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Subcategory delete error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.uploadSubcategoryImage = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    
+    // The file is automatically uploaded to S3 by multer middleware
+    // req.file.location contains the public URL from S3
+    const imageUrl = req.file.location;
+    
+    res.json({ 
+      success: true, 
+      url: imageUrl,
+      image_url: imageUrl
+    });
+  } catch (err) {
+    console.error('Subcategory image upload error:', err);
     res.status(500).json({ error: err.message });
   }
 };

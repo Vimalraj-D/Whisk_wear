@@ -214,7 +214,7 @@ export default function CollectionsPage() {
                     </div>
                   </div>
 
-                  {/* Right side-drawer highlights panel - Shows products */}
+                  {/* Right side-drawer highlights panel - Shows subcategories with images */}
                   <div className="collection-highlights-drawer" style={{
                     background: '#fff',
                     padding: '2.5rem',
@@ -222,103 +222,98 @@ export default function CollectionsPage() {
                     gridRow: '1',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.4s',
+                    transition: 'none',
                     borderLeft: '1px solid var(--border-color, #e0e0e0)'
                   }}>
                     <div className="drawer-inner-content" style={{ flex: 1 }}>
-                      <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Collection Highlights</h4>
+                      <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Subcategories</h4>
                       
-                      {categoryProducts.length === 0 ? (
-                        <div className="drawer-empty-msg" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>No products found in this category.</div>
+                      {catSubs.length === 0 ? (
+                        <div className="drawer-empty-msg" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>No subcategories yet.</div>
                       ) : (
-                        <div className="drawer-products-grid" style={{
-                          display: 'flex',
-                          flexDirection: 'column',
+                        <div className="drawer-subcategories-grid" style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
                           gap: '1.5rem'
                         }}>
-                          {categoryProducts.map(p => {
-                            const op = parseFloat(p.price);
-                            const disc = p.discount_percent > 0;
-                            const dp = disc ? op * (1 - p.discount_percent / 100) : op;
-                            return (
-                              <div
-                                key={p.id}
-                                className="drawer-product-preview-card"
-                                onClick={() => navigate(`/product/${p.id}`)}
-                                style={{
-                                  display: 'flex',
-                                  gap: '1rem',
-                                  padding: '1rem',
-                                  background: '#f9f9f9',
-                                  borderRadius: '12px',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.3s',
-                                  border: '1px solid var(--border-color, #e0e0e0)'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = '#f0f0f0';
-                                  e.currentTarget.style.transform = 'translateX(8px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = '#f9f9f9';
-                                  e.currentTarget.style.transform = 'translateX(0)';
-                                }}
-                              >
-                                <div className="drawer-product-img-wrap" style={{
-                                  width: '100px',
-                                  height: '100px',
-                                  borderRadius: '8px',
-                                  overflow: 'hidden',
-                                  flexShrink: 0,
-                                  position: 'relative',
-                                  background: '#e0e0e0'
-                                }}>
+                          {catSubs.map(sub => (
+                            <div
+                              key={sub.id}
+                              onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
+                              style={{
+                                cursor: 'pointer',
+                                transition: 'all 0.3s',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                background: '#fff',
+                                border: '1px solid var(--border-color, #e0e0e0)',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
+                              {/* Subcategory Image */}
+                              <div style={{
+                                width: '100%',
+                                height: '140px',
+                                background: '#f5f5f5',
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}>
+                                {sub.image_url ? (
                                   <img
-                                    src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)}
-                                    alt={p.name}
-                                    className="drawer-product-img"
+                                    src={sub.image_url}
+                                    alt={sub.name}
                                     style={{
                                       width: '100%',
                                       height: '100%',
-                                      objectFit: 'cover'
+                                      objectFit: 'cover',
+                                      transition: 'transform 0.3s'
                                     }}
                                     onError={(e) => {
                                       e.target.onerror = null;
                                       e.target.src = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=200';
                                     }}
+                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.08)'}
+                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                                   />
-                                  {disc && (
-                                    <span className="drawer-product-discount-tag" style={{
-                                      position: 'absolute',
-                                      top: '6px',
-                                      right: '6px',
-                                      background: 'var(--color-cancelled)',
-                                      color: '#fff',
-                                      padding: '0.3rem 0.6rem',
-                                      borderRadius: '4px',
-                                      fontSize: '0.7rem',
-                                      fontWeight: '700'
-                                    }}>
-                                      {p.discount_percent}% OFF
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="drawer-product-info" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                  <h5 className="drawer-product-name" style={{
-                                    fontSize: '0.9rem',
-                                    fontWeight: '600',
-                                    marginBottom: '0.5rem',
-                                    color: 'var(--text-primary)',
-                                    lineHeight: 1.3
-                                  }}>{p.name}</h5>
-                                  <div className="drawer-product-prices" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: 'auto' }}>
-                                    <span className="drawer-product-active-price" style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--brand-teal)' }}>₹{dp.toFixed(2)}</span>
-                                    {disc && <span className="drawer-product-old-price" style={{ fontSize: '0.8rem', textDecoration: 'line-through', color: 'var(--text-muted)' }}>₹{op.toFixed(2)}</span>}
+                                ) : (
+                                  <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)',
+                                    color: 'var(--text-muted)',
+                                    fontSize: '2rem'
+                                  }}>
+                                    📦
                                   </div>
-                                </div>
+                                )}
                               </div>
-                            );
-                          })}
+
+                              {/* Subcategory Info */}
+                              <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <h5 style={{
+                                  fontSize: '0.95rem',
+                                  fontWeight: '600',
+                                  color: 'var(--text-primary)',
+                                  lineHeight: '1.3',
+                                  textAlign: 'center'
+                                }}>
+                                  {sub.name}
+                                </h5>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
