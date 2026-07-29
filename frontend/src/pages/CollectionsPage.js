@@ -91,14 +91,15 @@ export default function CollectionsPage() {
                   minHeight: 'auto'
                 }}>
                   
-                  {/* Left showcase panel - Category Image (expands on hover) */}
+                  {/* Left showcase panel - Category Image */}
                   <div className="collection-cover-part" style={{
                     position: 'relative',
                     overflow: 'hidden',
                     background: '#f5f5f5',
                     transition: 'none',
                     gridColumn: '1',
-                    gridRow: '1'
+                    gridRow: '1',
+                    minHeight: '500px'
                   }}>
                     <div className="collection-part-bg-wrapper" style={{
                       width: '100%',
@@ -161,16 +162,7 @@ export default function CollectionsPage() {
                                 fontSize: '0.75rem',
                                 cursor: 'pointer',
                                 border: '1px solid rgba(255,255,255,0.3)',
-                                transition: 'all 0.2s',
                                 whiteSpace: 'nowrap'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
-                                e.currentTarget.style.transform = 'scale(1.05)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                                e.currentTarget.style.transform = 'scale(1)';
                               }}
                             >
                               {sub.name}
@@ -195,17 +187,8 @@ export default function CollectionsPage() {
                           fontWeight: '600',
                           cursor: 'pointer',
                           fontSize: '0.85rem',
-                          transition: 'all 0.2s',
                           textTransform: 'uppercase',
                           letterSpacing: '1px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#ff6b35';
-                          e.currentTarget.style.transform = 'translateX(4px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'var(--brand-orange)';
-                          e.currentTarget.style.transform = 'translateX(0)';
                         }}
                       >
                         EXPLORE COLLECTION &nbsp; ➔
@@ -213,7 +196,7 @@ export default function CollectionsPage() {
                     </div>
                   </div>
 
-                  {/* Right side-drawer highlights panel - Shows subcategories with images */}
+                  {/* Right side - Shows subcategories with images */}
                   <div className="collection-highlights-drawer" style={{
                     background: '#fff',
                     padding: '2.5rem',
@@ -223,7 +206,7 @@ export default function CollectionsPage() {
                     flexDirection: 'column',
                     transition: 'none',
                     borderLeft: '1px solid var(--border-color, #e0e0e0)',
-                    minHeight: '400px'
+                    minHeight: '500px'
                   }}>
                     <div className="drawer-inner-content" style={{ flex: 1 }}>
                       <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Subcategories</h4>
@@ -242,21 +225,12 @@ export default function CollectionsPage() {
                               onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
                               style={{
                                 cursor: 'pointer',
-                                transition: 'all 0.3s',
                                 borderRadius: '12px',
                                 overflow: 'hidden',
                                 background: '#fff',
                                 border: '1px solid var(--border-color, #e0e0e0)',
                                 display: 'flex',
                                 flexDirection: 'column'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-4px)';
-                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'none';
                               }}
                             >
                               {/* Subcategory Image */}
@@ -274,15 +248,12 @@ export default function CollectionsPage() {
                                     style={{
                                       width: '100%',
                                       height: '100%',
-                                      objectFit: 'cover',
-                                      transition: 'transform 0.3s'
+                                      objectFit: 'cover'
                                     }}
                                     onError={(e) => {
                                       e.target.onerror = null;
                                       e.target.src = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=200';
                                     }}
-                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.08)'}
-                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                                   />
                                 ) : (
                                   <div style={{
