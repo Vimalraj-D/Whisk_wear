@@ -9,6 +9,13 @@ const api = axios.create({
 
 const getAuthHeaders = (token) => ({ headers: { Authorization: `Bearer ${token}` } });
 
+export const normalizeListResponse = (responseData) => {
+  if (Array.isArray(responseData)) return responseData;
+  if (responseData && Array.isArray(responseData.data)) return responseData.data;
+  if (responseData && responseData.data && Array.isArray(responseData.data.data)) return responseData.data.data;
+  return [];
+};
+
 export const getImageUrl = (url) => {
   if (!url) return 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=400';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')) return url;
@@ -48,11 +55,17 @@ export const apiService = {
   },
 
   // ─── Categories ───
-  getCategories: async () => api.get('/categories'),
+  getCategories: async () => {
+    const r = await api.get('/categories');
+    return normalizeListResponse(r.data);
+  },
   createCategory: async (data, token) => api.post('/categories', data, getAuthHeaders(token)),
   updateCategory: async (id, data, token) => api.put(`/categories/${id}`, data, getAuthHeaders(token)),
   deleteCategory: async (id, token) => api.delete(`/categories/${id}`, getAuthHeaders(token)),
-  getSubcategories: async () => api.get('/categories/subcategories'),
+  getSubcategories: async () => {
+    const r = await api.get('/categories/subcategories');
+    return normalizeListResponse(r.data);
+  },
   createSubcategory: async (name, category_id, token) => api.post('/categories/subcategories', { name, category_id }, getAuthHeaders(token)),
   updateSubcategory: async (id, name, token) => api.put(`/categories/subcategories/${id}`, { name }, getAuthHeaders(token)),
   deleteSubcategory: async (id, token) => api.delete(`/categories/subcategories/${id}`, getAuthHeaders(token)),
@@ -62,7 +75,7 @@ export const apiService = {
     const r = await api.get('/products', {
       params: category ? { category } : {},
     });
-    return r.data;
+    return normalizeListResponse(r.data);
   },
   getProduct: async (id) => {
     const r = await api.get(`/products/${id}`);
@@ -118,11 +131,11 @@ export const apiService = {
   },
   getOrders: async (token) => {
     const r = await api.get('/orders', getAuthHeaders(token));
-    return r.data;
+    return normalizeListResponse(r.data);
   },
   getMyOrders: async (token) => {
     const r = await api.get('/orders/my-orders', getAuthHeaders(token));
-    return r.data;
+    return normalizeListResponse(r.data);
   },
   updateOrderStatus: async (id, status, token) => {
     const r = await api.put(`/orders/${id}`, { status }, getAuthHeaders(token));
