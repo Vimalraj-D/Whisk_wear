@@ -125,41 +125,7 @@ export default function CollectionsPage() {
                       padding: '3rem 2rem 2rem',
                       zIndex: 2
                     }}>
-                      <div className="collection-cover-header-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        <span className="collection-serial-no">0{idx + 1} //</span>
-                      </div>
-                      
                       <h3 className="collection-cover-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cat.name}</h3>
-                      <p className="collection-cover-desc" style={{ fontSize: '0.9rem', opacity: 0.9, lineHeight: 1.4 }}>
-                        Browse carefully engineered {cat.name.toLowerCase()} crafted from select materials for exceptional utility.
-                      </p>
-                      
-                      {catSubs.length > 0 && (
-                        <div className="collection-subcategories-list" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                          {catSubs.map(sub => (
-                            <span
-                              key={sub.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/shop?category=${catKey}`);
-                              }}
-                              className="collection-tag-pill"
-                              style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                backdropFilter: 'blur(10px)',
-                                padding: '0.4rem 0.8rem',
-                                borderRadius: '20px',
-                                fontSize: '0.75rem',
-                                cursor: 'pointer',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {sub.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
 
                       <button
                         className="collection-explore-btn"
@@ -176,12 +142,11 @@ export default function CollectionsPage() {
                           borderRadius: '6px',
                           fontWeight: '600',
                           cursor: 'pointer',
-                          fontSize: '0.85rem',
-                          textTransform: 'uppercase',
+                          fontSize: '0.9rem',
                           letterSpacing: '1px'
                         }}
                       >
-                        EXPLORE COLLECTION &nbsp; ➔
+                        Explore
                       </button>
                     </div>
                   </div>
