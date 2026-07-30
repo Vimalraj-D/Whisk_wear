@@ -252,7 +252,7 @@ exports.resetPassword = async (req, res) => {
     if (fetchErr) throw fetchErr;
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    if (user.verification_code !== code) {
+    if (user.verification_code !== code.toString().trim()) {
       return res.status(400).json({ error: 'Invalid verification code.' });
     }
     if (new Date() > new Date(user.code_expires_at)) {

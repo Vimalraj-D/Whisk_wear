@@ -356,6 +356,9 @@ exports.verifyPayment = async (req, res) => {
       return res.status(502).json({ error: 'Unable to verify payment amount' });
     }
 
+    // Update order status to 'paid' upon successful verification
+    await supabase.from('orders').update({ status: 'paid' }).eq('id', order_id);
+
     // Send confirmation email in background with DB-sourced product details
     supabase
       .from('order_items')
@@ -382,6 +385,50 @@ exports.verifyPayment = async (req, res) => {
   } catch (error) {
     console.error('Razorpay Verify Payment Error:', error);
     res.status(500).json({ error: error.message || 'Payment verification failed' });
+  }
+};
+
+exports.cancelStalePendingOrders = async (req, res) => {
+  try {
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: staleOrders, error: fetchErr } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('status', 'pending')
+      .lt('created_at', thirtyMinsAgo);
+
+    if (fetchErr) throw fetchErr;
+
+    let cancelledCount = 0;
+    if (staleOrders && staleOrders.length > 0) {
+      for (const order of staleOrders) {
+        await supabase
+          .from('orders')
+          .update({ status: 'cancelled' })
+          .eq('id', order.id);
+
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('product_id, quantity')
+          .eq('order_id', order.id);
+
+        if (items) {
+          for (const item of items) {
+            try {
+              await supabase.rpc('restore_stock', { p_product_id: item.product_id, p_qty: item.quantity });
+            } catch (stockErr) {
+              console.error(`Failed to restore stock for stale order ${order.id}:`, stockErr);
+            }
+          }
+        }
+        cancelledCount++;
+      }
+    }
+
+    res.json({ success: true, cancelledCount, message: `Cleaned up ${cancelledCount} stale pending order(s).` });
+  } catch (error) {
+    console.error('Cleanup stale orders error:', error);
+    res.status(500).json({ error: error.message || 'Failed to cleanup stale orders' });
   }
 };
 

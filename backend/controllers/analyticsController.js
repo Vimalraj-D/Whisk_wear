@@ -5,7 +5,7 @@ exports.getRevenue = async (req, res) => {
     const { data, error } = await supabase
       .from('orders')
       .select('total_amount')
-      .not('status', 'eq', 'cancelled');
+      .in('status', ['paid', 'shipped', 'delivered']);
 
     if (error) throw error;
 

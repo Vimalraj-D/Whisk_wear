@@ -132,7 +132,7 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
           email: form.email,
         },
         notes: {
-          address: form.address,
+          address: `${form.building}, ${form.street}, ${form.city}, ${form.state}, ${form.zip}, ${form.country}`,
           db_order_id: dbOrder.id.toString()
         },
         theme: {
@@ -156,10 +156,16 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
 
       const rzp = new window.Razorpay(options);
       
-      rzp.on('payment.failed', function (response) {
+      rzp.on('payment.failed', async function (response) {
         console.error('Payment failed:', response.error);
-        showToast('Payment failed: ' + response.error.description);
-        setLoading(false);
+        showToast('Payment failed: ' + (response.error?.description || 'Transaction failed'));
+        try {
+          await apiService.cancelOrder(dbOrder.id);
+        } catch (cancelErr) {
+          console.error('Failed to cancel order on payment failure:', cancelErr);
+        } finally {
+          setLoading(false);
+        }
       });
 
       rzp.open();

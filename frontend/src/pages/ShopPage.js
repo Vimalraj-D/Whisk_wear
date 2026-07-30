@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
@@ -114,19 +114,27 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
 
   // Available Filter Lists
   const availableSizes = ['S', 'M', 'L', 'XL', 'XXL', 'Standard'];
-  const availableColors = [
-    { hex: '#FFFFFF', name: 'White', isLight: true },
-    { hex: '#DCDDE1', name: 'Soft Grey', isLight: true },
-    { hex: '#1B1464', name: 'Midnight Navy' },
-    { hex: '#0652DD', name: 'Royal Blue' },
-    { hex: '#FBC531', name: 'Warm Yellow', isLight: true },
-    { hex: '#4CD137', name: 'Green' },
-    { hex: '#FFC0CB', name: 'Rose Pink', isLight: true },
-    { hex: '#E8A7A1', name: 'Salmon Coral', isLight: true },
-    { hex: '#D4F0F0', name: 'Soft Mint', isLight: true },
-    { hex: '#6B5B4C', name: 'Dark Brown' },
-    { hex: '#8B6F47', name: 'Earth Brown' }
-  ];
+  // Derive available colors dynamically from the loaded products
+  // Each product stores colors as an array of hex strings (e.g. ["#ff0000", "#0000ff"])
+  const availableColors = useMemo(() => {
+    const seen = new Set();
+    const cols = [];
+    products.forEach(p => {
+      if (!Array.isArray(p.colors)) return;
+      p.colors.forEach(hex => {
+        const normalized = hex.trim().toLowerCase();
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        // Detect light colors by relative luminance so swatches get a dark border
+        const r = parseInt(normalized.slice(1, 3), 16);
+        const g = parseInt(normalized.slice(3, 5), 16);
+        const b = parseInt(normalized.slice(5, 7), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        cols.push({ hex: hex.trim(), name: hex.trim(), isLight: luminance > 0.6 });
+      });
+    });
+    return cols;
+  }, [products]);
   const discountOptions = [
     { label: 'All Offers', value: 0 },
     { label: '10% and above', value: 10 },
@@ -881,7 +889,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             </div>
           ) : (
             /* Products List / Grid */
-            <div className={viewMode === 'grid' ? '' : 'shop-products-list-layout'} style={viewMode === 'grid' ? {
+            <div className={viewMode === 'grid' ? 'shop-products-grid-layout' : 'shop-products-list-layout'} style={viewMode === 'grid' ? {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
               gap: '1.5rem'

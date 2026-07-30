@@ -21,18 +21,70 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import AdminAuthPage from './pages/admin/AdminAuthPage';
 import AdminLayout from './pages/admin/AdminLayout';
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (!payload.exp) return false;
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 function App() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const stored = localStorage.getItem('whiskwear_cart');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [toast, setToast] = useState('');
 
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('whiskwear_user')); } catch { return null; }
+    try {
+      const token = localStorage.getItem('whiskwear_user_token');
+      if (isTokenExpired(token)) {
+        localStorage.removeItem('whiskwear_user');
+        localStorage.removeItem('whiskwear_user_token');
+        return null;
+      }
+      return JSON.parse(localStorage.getItem('whiskwear_user'));
+    } catch {
+      return null;
+    }
   });
-  const [userToken, setUserToken] = useState(() => localStorage.getItem('whiskwear_user_token') || '');
-  const [adminToken, setAdminToken] = useState(() => localStorage.getItem('whiskwear_admin_token') || '');
+  const [userToken, setUserToken] = useState(() => {
+    const token = localStorage.getItem('whiskwear_user_token') || '';
+    if (isTokenExpired(token)) {
+      localStorage.removeItem('whiskwear_user_token');
+      return '';
+    }
+    return token;
+  });
+  const [adminToken, setAdminToken] = useState(() => {
+    const token = localStorage.getItem('whiskwear_admin_token') || '';
+    if (isTokenExpired(token)) {
+      localStorage.removeItem('whiskwear_admin_token');
+      return '';
+    }
+    return token;
+  });
   const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('whiskwear_cart', JSON.stringify(cart));
+    } catch (err) {
+      console.error('Failed to save cart to localStorage:', err);
+    }
+  }, [cart]);
 
   useEffect(() => {
     if (user) {

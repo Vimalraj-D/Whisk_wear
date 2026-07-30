@@ -14,5 +14,6 @@ router.post('/create-order', orderController.createRazorpayOrder);
 router.post('/verify-payment', optionalUserAuth, orderController.verifyPayment);
 router.post('/cancel-order', optionalUserAuth, orderController.cancelOrder);
 router.post('/cod-order', optionalUserAuth, orderValidation.create, orderController.createCodOrder);
+router.post('/cleanup-stale', adminAuth, orderController.cancelStalePendingOrders);
 
 module.exports = router;

@@ -56,6 +56,19 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
   const { id } = req.params;
   try {
+    const { count: subCount, error: subCountErr } = await supabase
+      .from('subcategories')
+      .select('id', { count: 'exact', head: true })
+      .eq('category_id', id);
+
+    if (subCountErr) throw subCountErr;
+
+    if (subCount && subCount > 0) {
+      return res.status(400).json({
+        error: `Cannot delete category: ${subCount} subcategory(ies) still reference it. Reassign or remove them first.`
+      });
+    }
+
     const { count, error: countErr } = await supabase
       .from('products')
       .select('id', { count: 'exact', head: true })

@@ -124,7 +124,7 @@ exports.updateProduct = async (req, res) => {
     if (colors !== undefined) {
       updateFields.colors = typeof colors === 'string' ? colors.split(',').map(c => c.trim()).filter(Boolean) : (Array.isArray(colors) ? colors : []);
     }
-    if (stock !== undefined) updateFields.stock = parseInt(stock);
+    if (stock !== undefined) updateFields.stock = parseInt(stock) || 0;
 
     const { data: existingData, error: fetchError } = await supabase
       .from('products')
@@ -188,13 +188,15 @@ exports.deleteProduct = async (req, res) => {
       .eq('id', id)
       .select();
 
-    if (existingData && existingData.image_urls && existingData.image_urls.length > 0) {
-      await deleteImagesFromS3(existingData.image_urls);
-    }
     if (error) throw error;
     if (!data || data.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
+
+    if (existingData && existingData.image_urls && existingData.image_urls.length > 0) {
+      await deleteImagesFromS3(existingData.image_urls);
+    }
+
     res.json({ message: 'Product deleted successfully', product: data[0] });
   } catch (error) {
     res.status(500).json({ error: error.message });

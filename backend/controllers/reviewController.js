@@ -42,7 +42,7 @@ exports.createReview = async (req, res) => {
       .from('reviews')
       .select('id')
       .eq('product_id', product_id)
-      .eq('user_name', userRecord.name)
+      .eq('user_id', req.user.id)
       .maybeSingle();
 
     if (!dupErr && duplicate) {
@@ -51,7 +51,7 @@ exports.createReview = async (req, res) => {
 
     const { data, error } = await supabase
       .from('reviews')
-      .insert([{ product_id, user_name: userRecord.name, rating, comment }])
+      .insert([{ product_id, user_id: req.user.id, user_name: userRecord.name, rating, comment }])
       .select();
 
     if (error) throw error;

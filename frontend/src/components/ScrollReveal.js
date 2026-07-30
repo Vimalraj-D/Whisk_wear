@@ -62,7 +62,10 @@ export default function ScrollReveal({ children, className = '', direction = 'up
         transform: getTransform(),
         transition: 'opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1)',
         transitionDelay: `${delay}ms`,
-        willChange: 'transform, opacity'
+        willChange: 'transform, opacity',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
       {children}
