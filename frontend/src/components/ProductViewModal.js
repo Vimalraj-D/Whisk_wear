@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { getImageUrl } from '../api';
 
-export default function ProductViewModal({ product, onClose }) {
+export default function ProductViewModal({ product, categoryName, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = product.image_urls || [];
 
@@ -27,7 +27,7 @@ export default function ProductViewModal({ product, onClose }) {
               )}
             </div>
           )}
-          <p><strong>Category:</strong> {product.category}</p>
+          <p><strong>Category:</strong> {categoryName || product.category}</p>
           <p><strong>Price:</strong> ₹{parseFloat(product.price).toFixed(2)}</p>
           <p><strong>Stock:</strong> {product.stock}</p>
           <p><strong>Description:</strong></p>

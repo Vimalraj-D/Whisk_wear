@@ -66,8 +66,11 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
       showToast('A product can have a maximum of 10 images');
       return;
     }
+    const selectedCat = categories.find(c => c.id === parseInt(productForm.category_id));
+    const categoryKey = selectedCat ? selectedCat.name.toLowerCase().replace(/[^a-z0-9]+/g, '_') : '';
     const payload = { 
       ...productForm, 
+      category: categoryKey,
       price: parseFloat(productForm.price), 
       stock: parseInt(productForm.stock) || 0,
       category_id: productForm.category_id ? parseInt(productForm.category_id) : null,
@@ -98,8 +101,8 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
 
   const openAdd = () => {
     setEditingProduct(null);
-    const catId = getCategoryIdFromKey('kitchen_cloths');
-    setProductForm({ name: '', description: '', price: '', category: 'kitchen_cloths', category_id: catId ? catId.toString() : '', subcategory_id: '', stock: '', is_featured: false, discount_percent: 0, sizes: '', colors: '' });
+    const firstCat = categories[0];
+    setProductForm({ name: '', description: '', price: '', category_id: firstCat ? firstCat.id.toString() : '', subcategory_id: '', stock: '', is_featured: false, discount_percent: 0, sizes: '', colors: '' });
     setSelectedFiles([]);
     setExistingImages([]);
     setIsModalOpen(true);
@@ -110,7 +113,6 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
       name: p.name, 
       description: p.description || '', 
       price: p.price.toString(), 
-      category: p.category, 
       category_id: p.category_id ? p.category_id.toString() : '',
       subcategory_id: p.subcategory_id ? p.subcategory_id.toString() : '',
       stock: p.stock.toString(),
@@ -332,23 +334,20 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                 <div className="form-group"><label className="form-label">Category</label>
                   <select 
                     className="form-control" 
-                    value={productForm.category} 
+                    value={productForm.category_id} 
                     onChange={e => {
-                      const key = e.target.value;
-                      const catId = getCategoryIdFromKey(key);
                       setProductForm(p => ({ 
                         ...p, 
-                        category: key, 
-                        category_id: catId ? catId.toString() : '', 
+                        category_id: e.target.value, 
                         subcategory_id: '' 
                       }));
                     }} 
                     required
                   >
-                    {categories.map(c => {
-                      const key = c.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-                      return <option key={c.id} value={key}>{c.name}</option>;
-                    })}
+                    <option value="">Select Category</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id.toString()}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group"><label className="form-label">Subcategory</label>
@@ -359,10 +358,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                   >
                     <option value="">Select Subcategory (Optional)</option>
                     {subcategories
-                      .filter(sub => {
-                        const catId = getCategoryIdFromKey(productForm.category);
-                        return sub.category_id === catId;
-                      })
+                      .filter(sub => sub.category_id === parseInt(productForm.category_id))
                       .map(sub => (
                         <option key={sub.id} value={sub.id}>{sub.name}</option>
                       ))
@@ -468,7 +464,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
           </div>
         )}
 
-        {viewProduct && <ProductViewModal product={viewProduct} onClose={() => setViewProduct(null)} />}
+        {viewProduct && <ProductViewModal product={viewProduct} categoryName={categories.find(c => c.id === viewProduct.category_id)?.name || viewProduct.category || '—'} onClose={() => setViewProduct(null)} />}
 
       </main>
     </div>
