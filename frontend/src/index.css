@@ -3842,19 +3842,20 @@ select:focus {
 .shop-products-list-layout {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 .premium-product-card.list-mode {
   flex-direction: row;
-  min-height: 180px;
-  height: auto;
+  height: 170px;
+  min-height: unset;
   align-items: stretch;
+  overflow: hidden;
 }
 .premium-product-card.list-mode .premium-product-img-wrapper {
-  width: 180px;
-  height: auto;
-  min-height: 180px;
-  aspect-ratio: 1 / 1;
+  width: 160px;
+  min-width: 160px;
+  height: 170px;
+  aspect-ratio: unset;
   padding-top: 0;
   flex-shrink: 0;
   border-top-left-radius: 7px;
@@ -3862,35 +3863,48 @@ select:focus {
   border-top-right-radius: 0;
   overflow: hidden;
 }
+.premium-product-card.list-mode .premium-product-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .premium-product-card.list-mode .premium-product-details {
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   flex: 1;
-  gap: 1.5rem;
+  gap: 1rem;
+  overflow: hidden;
 }
 .list-details-left-side {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
   flex: 1;
   text-align: left;
+  overflow: hidden;
+  min-width: 0;
 }
 .list-details-right-side {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.5rem;
   flex-shrink: 0;
-  min-width: 140px;
+  width: 120px;
+  align-items: stretch;
+}
+.list-details-right-side .premium-list-action-btn {
+  width: 100%;
+  text-align: center;
 }
 .premium-product-card.list-mode .premium-card-name-title {
-  font-size: 1.15rem;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
 }
 .premium-product-card.list-mode .premium-card-hover-panel {
   display: none;
@@ -3986,11 +4000,21 @@ select:focus {
   .shop-products-list-layout {
     grid-template-columns: 1fr !important;
   }
+  .premium-product-card.list-mode {
+    height: auto !important;
+    min-height: 140px !important;
+  }
+  .premium-product-card.list-mode .premium-product-img-wrapper {
+    height: 140px !important;
+    min-height: 140px !important;
+    width: 130px !important;
+    min-width: 130px !important;
+  }
   .premium-product-card.list-mode .premium-product-details {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 1rem !important;
-    padding: 1.25rem !important;
+    gap: 0.75rem !important;
+    padding: 1rem !important;
   }
   .list-details-right-side {
     flex-direction: row !important;

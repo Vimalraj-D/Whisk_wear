@@ -881,11 +881,11 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
             </div>
           ) : (
             /* Products List / Grid */
-            <div className={viewMode === 'grid' ? '' : 'shop-products-list-layout'} style={{
-              display: viewMode === 'grid' ? 'grid' : 'flex',
-              gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(240px, 1fr))' : 'none',
+            <div className={viewMode === 'grid' ? '' : 'shop-products-list-layout'} style={viewMode === 'grid' ? {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
               gap: '1.5rem'
-            }}>
+            } : { gap: '1.5rem' }}>
               {sortedProducts.map((p, idx) => {
                 const originalPrice = parseFloat(p.price);
                 const hasDiscount = p.discount_percent > 0;

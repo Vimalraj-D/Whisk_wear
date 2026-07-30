@@ -293,7 +293,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                         <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
                       </td>
-                      <td><span className={`status-badge ${p.category === 'kitchen_cloths' ? 'status-delivered' : 'status-shipped'}`}>{p.category === 'kitchen_cloths' ? 'Kitchen' : 'Kids'}</span></td>
+                      <td><span className={`status-badge status-shipped`}>{categories.find(c => c.id === p.category_id)?.name || p.category || '—'}</span></td>
                       <td><strong>₹{parseFloat(p.price).toFixed(2)}</strong></td>
                       <td><span style={{ fontWeight: 700, color: p.stock <= 5 ? 'var(--color-cancelled)' : 'var(--color-delivered)' }}>{p.stock}</span></td>
                       <td style={{ textAlign: 'right' }}>

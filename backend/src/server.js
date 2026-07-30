@@ -18,6 +18,12 @@ const reviewRoutes = require('../routes/reviewRoutes');
 const subscriberRoutes = require('../routes/subscriberRoutes');
 
 const app = express();
+
+// Trust exactly one proxy hop (Render's reverse proxy).
+// Using `1` (not `true`) so only the first X-Forwarded-For entry is trusted,
+// preventing clients from spoofing their IP to bypass rate limits.
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 5000;
 
 // CORS is restricted to explicitly allowed origins (set FRONTEND_URL in .env,
@@ -42,10 +48,13 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
 
-// General API rate limit
+// General API rate limit.
+// Set higher than the old 100 because a single page load can fire several
+// parallel requests (products, categories, subcategories, etc.).
+// Auth-specific limiters below remain tight for brute-force protection.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 400,
   standardHeaders: true,
   legacyHeaders: false,
 });
