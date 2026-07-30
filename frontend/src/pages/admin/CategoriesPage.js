@@ -242,12 +242,18 @@ const CategoriesPage = () => {
         </button>
       </form>
 
+      <div className="category-table-wrap">
       <table className="category-table">
+        <colgroup>
+          <col className="category-name-col" />
+          <col className="subcategory-col" />
+          <col className="category-actions-col" />
+        </colgroup>
         <thead>
           <tr>
             <th>Name</th>
             <th>Subcategories</th>
-            <th style={{ width: '150px' }}>Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -255,7 +261,7 @@ const CategoriesPage = () => {
             const subs = subcategories.filter(s => s.category_id === cat.id);
             return (
               <tr key={cat.id}>
-                <td>{editing === cat.id ? (
+                <td className="category-name-cell">{editing === cat.id ? (
                   <form onSubmit={handleEdit} className="edit-form" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     <input
                       type="text"
@@ -313,59 +319,45 @@ const CategoriesPage = () => {
                     {cat.name}
                   </div>
                 )}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <td className="subcategory-cell">
+                  <div className="subcategory-scrollbox">
                     {subs.map(s => (
                       <span 
                         key={s.id} 
-                        style={{ 
-                          background: 'var(--bg-secondary, #eee)', 
-                          padding: '0.2rem 0.5rem', 
-                          borderRadius: '4px', 
-                          fontSize: '0.78rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem'
-                        }}
+                        className="subcategory-pill"
                       >
                         {s.image_url && (
                           <img
                             src={s.image_url}
                             alt={s.name}
-                            style={{
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '3px',
-                              objectFit: 'cover'
-                            }}
+                            className="subcategory-pill-img"
                           />
                         )}
-                        {s.name}
+                        <span className="subcategory-pill-name">{s.name}</span>
                         <button 
                           type="button"
                           onClick={() => openSubModal(cat.id, s)} 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '0.7rem', color: 'var(--color-primary, #e67e22)' }}
+                          className="subcategory-icon-btn subcategory-edit-btn"
                           title="Edit Subcategory"
                         >✏️</button>
                         <button 
                           type="button"
                           onClick={() => handleDeleteSub(s.id)} 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '0.7rem', color: 'var(--color-cancelled, #ef4444)' }}
+                          className="subcategory-icon-btn subcategory-delete-btn"
                           title="Delete Subcategory"
                         >✕</button>
                       </span>
                     ))}
                     <button 
                       type="button"
-                      className="btn btn-outline-teal btn-sm" 
+                      className="btn btn-outline-teal btn-sm subcategory-add-btn"
                       onClick={() => openSubModal(cat.id)}
-                      style={{ padding: '0.1rem 0.4rem', fontSize: '0.75rem', borderRadius: '4px' }}
                     >
                       + Add Sub
                     </button>
                   </div>
                 </td>
-                <td>
+                <td className="category-actions-cell">
                   {editing !== cat.id && (
                     <>
                       <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => startEdit(cat)}>
@@ -382,16 +374,17 @@ const CategoriesPage = () => {
           })}
         </tbody>
       </table>
+      </div>
 
       {/* Subcategory Modal */}
       {isSubModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSubModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="modal-content subcategory-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingSubId ? 'Edit Subcategory' : 'Add Subcategory'}</h3>
               <button type="button" className="close-btn" onClick={() => setIsSubModalOpen(false)}>×</button>
             </div>
-            <form onSubmit={handleSaveSubcategory} className="checkout-form">
+            <form onSubmit={handleSaveSubcategory} className="checkout-form subcategory-modal-form">
               
               {/* Subcategory Name */}
               <div className="form-group">
@@ -436,11 +429,12 @@ const CategoriesPage = () => {
                 </p>
                 
                 {/* File Upload or URL Input Tabs */}
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div className="subcategory-upload-row" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleSubImageFileChange}
+                    className="subcategory-file-input"
                     style={{
                       padding: '0.75rem',
                       borderRadius: '6px',
@@ -455,6 +449,7 @@ const CategoriesPage = () => {
                       type="button"
                       onClick={handleUploadSubImage}
                       disabled={uploadingSubImage}
+                      className="subcategory-upload-btn"
                       style={{
                         padding: '0.75rem 1.5rem',
                         background: uploadingSubImage ? '#ccc' : 'var(--brand-teal, #16a085)',

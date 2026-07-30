@@ -2861,6 +2861,55 @@ img { display: block; }
   font-style: italic;
 }
 
+.drawer-subcategories-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  max-height: 407px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-content: flex-start;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+.drawer-subcategories-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.drawer-subcategories-grid::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 999px;
+}
+
+.drawer-subcategory-card {
+  height: 186px;
+  min-width: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.drawer-subcategory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.drawer-subcategory-image {
+  height: 134px;
+  flex: 0 0 134px;
+}
+
+.drawer-subcategory-info {
+  min-height: 52px;
+  padding: 0.75rem;
+}
+
+.drawer-subcategory-name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .drawer-products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -3028,6 +3077,23 @@ img { display: block; }
     min-width: auto !important;
     padding: 1.5rem !important;
   }
+  .drawer-subcategories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    max-height: 362px;
+    padding-right: 0.25rem;
+  }
+  .drawer-subcategory-card {
+    height: 166px;
+  }
+  .drawer-subcategory-image {
+    height: 118px;
+    flex-basis: 118px;
+  }
+  .drawer-subcategory-info {
+    min-height: 48px;
+    padding: 0.65rem 0.5rem;
+  }
   .collection-editorial-card:hover .collection-highlights-drawer {
     width: 100% !important;
   }
@@ -3051,6 +3117,21 @@ img { display: block; }
   .drawer-products-grid {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
+  }
+  .drawer-subcategories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    max-height: 344px;
+  }
+  .drawer-subcategory-card {
+    height: 158px;
+  }
+  .drawer-subcategory-image {
+    height: 112px;
+    flex-basis: 112px;
+  }
+  .drawer-subcategory-info {
+    min-height: 46px;
   }
 }
 
@@ -3150,7 +3231,5 @@ select:focus {
   border-color: var(--brand-teal) !important;
   outline: none;
 }
-
-
 
 

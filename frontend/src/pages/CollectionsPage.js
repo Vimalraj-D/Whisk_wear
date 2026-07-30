@@ -193,19 +193,14 @@ export default function CollectionsPage() {
                     flexDirection: 'column'
                   }}>
                     <div className="drawer-inner-content" style={{ flex: 1 }}>
-                      <h4 className="drawer-title" style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Subcategories</h4>
-                      
                       {catSubs.length === 0 ? (
                         <div className="drawer-empty-msg" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>No subcategories yet.</div>
                       ) : (
-                        <div className="drawer-subcategories-grid" style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                          gap: '1.25rem'
-                        }}>
+                        <div className="drawer-subcategories-grid">
                           {catSubs.map(sub => (
                             <div
                               key={sub.id}
+                              className="drawer-subcategory-card"
                               onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
                               style={{
                                 cursor: 'pointer',
@@ -218,9 +213,8 @@ export default function CollectionsPage() {
                               }}
                             >
                               {/* Subcategory Image */}
-                              <div style={{
+                              <div className="drawer-subcategory-image" style={{
                                 width: '100%',
-                                height: '120px',
                                 background: '#f5f5f5',
                                 position: 'relative',
                                 overflow: 'hidden'
@@ -256,8 +250,8 @@ export default function CollectionsPage() {
                               </div>
 
                               {/* Subcategory Info */}
-                              <div style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <h5 style={{
+                              <div className="drawer-subcategory-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <h5 className="drawer-subcategory-name" style={{
                                   fontSize: '0.85rem',
                                   fontWeight: '600',
                                   color: 'var(--text-primary)',
