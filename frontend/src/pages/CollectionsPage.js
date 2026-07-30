@@ -169,7 +169,7 @@ export default function CollectionsPage() {
                               onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
                               style={{
                                 cursor: 'pointer',
-                                borderRadius: '12px',
+                                borderRadius: '6px',
                                 overflow: 'hidden',
                                 background: '#fff',
                                 border: '1px solid var(--border-color, #e0e0e0)',

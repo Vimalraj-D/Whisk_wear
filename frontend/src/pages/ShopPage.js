@@ -5,26 +5,55 @@ import { apiService, getImageUrl } from '../api';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
 import ScrollReveal from '../components/ScrollReveal';
 
-// Icons
+// Custom inline SVG icons for premium look and self-containment
 const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"></circle>
     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
   </svg>
 );
 
-const HeartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: '16px', height: '16px' }}>
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"></path>
+const HeartIcon = ({ filled }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
   </svg>
 );
 
-const TrashIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
+const GridIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"></rect>
+    <rect x="14" y="3" width="7" height="7"></rect>
+    <rect x="14" y="14" width="7" height="7"></rect>
+    <rect x="3" y="14" width="7" height="7"></rect>
+  </svg>
+);
+
+const ListIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="8" y1="6" x2="21" y2="6"></line>
+    <line x1="8" y1="12" x2="21" y2="12"></line>
+    <line x1="8" y1="18" x2="21" y2="18"></line>
+    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+  </svg>
+);
+
+const FilterIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+  </svg>
+);
+
+const ChevronDownIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
+const StarIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
   </svg>
 );
 
@@ -37,105 +66,182 @@ const getCategoryKey = (name) => name ? name.toLowerCase().replace(/[^a-z0-9]+/g
 export default function ShopPage({ user, addToCart, openCart, showToast, wishlist = [], toggleWishlist }) {
   const navigate = useNavigate();
   const query = useQuery();
-  const focusParam = query.get('focus');
+  
+  // URL Params
   const categoryParam = query.get('category') || 'all';
+  const subcategoryParam = query.get('subcategory') || 'all';
+  const focusParam = query.get('focus');
 
+  // Master Data
   const [products, setProducts] = useState([]);
-  const [filter, setFilter] = useState(categoryParam);
-  const [search, setSearch] = useState('');
-  const [sortOption, setSortOption] = useState('recommended');
-  // New view mode state: 'grid' or 'list'
-  const [viewMode, setViewMode] = useState('grid');
-  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-  const searchInputRef = useRef(null);
-  const portalNodeRef = useRef(null);
+  const [subcategories, setSubcategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sidebar toggles and collapsible sections
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [openSections, setOpenSections] = useState({
-    category: true,
-    price: true,
-    size: true,
-    color: true
-  });
-
-  // Advanced Sidebar Filters State
+  // Filters State
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null); // category_id
+  const [selectedSubcategories, setSelectedSubcategories] = useState([]); // array of subcategory_ids
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(5000);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedDiscount, setSelectedDiscount] = useState(0);
+  const [sortOption, setSortOption] = useState('recommended');
+  const [expandedCategories, setExpandedCategories] = useState([]);
 
-  // Option lists derived or predefined
+  // Auto expand selected category
+  useEffect(() => {
+    if (selectedCategory && !expandedCategories.includes(selectedCategory)) {
+      setExpandedCategories(prev => [...prev, selectedCategory]);
+    }
+  }, [selectedCategory]);
+
+  // UI Toggles
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth <= 768);
+  const [activeQuickFilter, setActiveQuickFilter] = useState(null); // 'size' | 'color' | 'category' | 'discount' | null
+  const [openSections, setOpenSections] = useState({
+    category: true,
+    price: true,
+    size: true,
+    color: true,
+    discount: true
+  });
+
+  const searchInputRef = useRef(null);
+  const quickFilterRef = useRef(null);
+
+  // Available Filter Lists
   const availableSizes = ['S', 'M', 'L', 'XL', 'XXL', 'Standard'];
-  
-  // Custom aesthetic colors palette for filter swatches (mapping hex codes to readable labels)
   const availableColors = [
-    { hex: '#f5f6fa', name: 'White' },
-    { hex: '#dcdde1', name: 'Soft Grey' },
-    { hex: '#1b1464', name: 'Midnight Navy' },
-    { hex: '#0652dd', name: 'Royal Blue' },
-    { hex: '#fbc531', name: 'Warm Yellow' },
-    { hex: '#4cd137', name: 'Green' },
-    { hex: '#ffc0cb', name: 'Rose Pink' },
-    { hex: '#e8a7a1', name: 'Salmon Coral' },
-    { hex: '#d4f0f0', name: 'Soft Mint' }
+    { hex: '#FFFFFF', name: 'White', isLight: true },
+    { hex: '#DCDDE1', name: 'Soft Grey', isLight: true },
+    { hex: '#1B1464', name: 'Midnight Navy' },
+    { hex: '#0652DD', name: 'Royal Blue' },
+    { hex: '#FBC531', name: 'Warm Yellow', isLight: true },
+    { hex: '#4CD137', name: 'Green' },
+    { hex: '#FFC0CB', name: 'Rose Pink', isLight: true },
+    { hex: '#E8A7A1', name: 'Salmon Coral', isLight: true },
+    { hex: '#D4F0F0', name: 'Soft Mint', isLight: true },
+    { hex: '#6B5B4C', name: 'Dark Brown' },
+    { hex: '#8B6F47', name: 'Earth Brown' }
+  ];
+  const discountOptions = [
+    { label: 'All Offers', value: 0 },
+    { label: '10% and above', value: 10 },
+    { label: '20% and above', value: 20 },
+    { label: '30% and above', value: 30 }
   ];
 
+  // Fetch Master Data
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      apiService.getCategories(),
+      apiService.getSubcategories(),
+      apiService.getProducts()
+    ])
+      .then(([catRes, subRes, prodRes]) => {
+        setCategories(catRes || []);
+        setSubcategories(subRes || []);
+        setProducts(prodRes || []);
+      })
+      .catch(err => {
+        console.error('Error fetching shop data:', err);
+        showToast('Failed to load shop products');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
+
+  // Handle Focus Search
   useEffect(() => {
     if (focusParam === 'search' && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [focusParam]);
 
+  // Sync state with URL Category/Subcategory parameters
   useEffect(() => {
-    // Handle responsive filter
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    if (categories.length === 0 && subcategories.length === 0) return;
 
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const el = document.createElement('div');
-      el.id = 'shoppage-portal-root';
-      document.body.appendChild(el);
-      portalNodeRef.current = el;
-      return () => {
-        if (portalNodeRef.current) {
-          document.body.removeChild(portalNodeRef.current);
-          portalNodeRef.current = null;
-        }
-      };
+    if (subcategoryParam !== 'all') {
+      const sub = subcategories.find(s => getCategoryKey(s.name) === subcategoryParam);
+      if (sub) {
+        setSelectedSubcategories([sub.id]);
+        setSelectedCategory(sub.category_id);
+      }
+    } else if (categoryParam !== 'all') {
+      const cat = categories.find(c => getCategoryKey(c.name) === categoryParam);
+      if (cat) {
+        setSelectedCategory(cat.id);
+        setSelectedSubcategories([]);
+      } else {
+        setSelectedCategory(null);
+        setSelectedSubcategories([]);
+      }
+    } else {
+      setSelectedCategory(null);
+      setSelectedSubcategories([]);
     }
+  }, [categoryParam, subcategoryParam, categories, subcategories]);
+
+  // Close Quick Filter dropdowns on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (quickFilterRef.current && !quickFilterRef.current.contains(e.target)) {
+        setActiveQuickFilter(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    setFilter(categoryParam);
-  }, [categoryParam]);
+  // Filter Updates & URL Syncer
+  const handleCategorySelect = (catId) => {
+    setSelectedCategory(catId);
+    setSelectedSubcategories([]);
+    if (catId) {
+      const cat = categories.find(c => c.id === catId);
+      if (cat) navigate(`/shop?category=${getCategoryKey(cat.name)}`, { replace: true });
+    } else {
+      navigate('/shop', { replace: true });
+    }
+  };
 
-  useEffect(() => {
-    apiService.getCategories()
-      .then(res => {
-        const cats = res.data || res;
-        setCategories(cats);
-      })
-      .catch(() => {});
-  }, []);
+  const toggleCategoryExpand = (catId, e) => {
+    if (e) e.stopPropagation();
+    setExpandedCategories(prev => 
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  };
 
-  useEffect(() => {
-    setLoading(true);
-    apiService.getProducts()
-      .then(res => {
-        const prodList = res.data || res;
-        setProducts(Array.isArray(prodList) ? prodList : []);
-      })
-      .catch(e => showToast('Failed to load products'))
-      .finally(() => setLoading(false));
-  }, [showToast]);
+  const handleSubcategoryToggle = (subId) => {
+    setSelectedSubcategories(prev => {
+      const exists = prev.includes(subId);
+      const updated = exists ? prev.filter(id => id !== subId) : [...prev, subId];
+
+      if (updated.length === 1) {
+        const sub = subcategories.find(s => s.id === updated[0]);
+        if (sub) navigate(`/shop?subcategory=${getCategoryKey(sub.name)}`, { replace: true });
+      } else if (updated.length === 0 && selectedCategory) {
+        const cat = categories.find(c => c.id === selectedCategory);
+        if (cat) navigate(`/shop?category=${getCategoryKey(cat.name)}`, { replace: true });
+      } else {
+        navigate('/shop', { replace: true });
+      }
+
+      // Automatically sync parent category if we checked a subcategory
+      if (!exists && updated.length > 0) {
+        const sub = subcategories.find(s => s.id === subId);
+        if (sub && sub.category_id !== selectedCategory) {
+          setSelectedCategory(sub.category_id);
+        }
+      }
+
+      return updated;
+    });
+  };
 
   const toggleSizeFilter = (size) => {
     setSelectedSizes(prev => 
@@ -154,26 +260,42 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
   };
 
   const resetAllFilters = () => {
-    setFilter('all');
+    setSelectedCategory(null);
+    setSelectedSubcategories([]);
     setSearch('');
     setMinPrice(0);
     setMaxPrice(5000);
     setSelectedSizes([]);
     setSelectedColors([]);
+    setSelectedDiscount(0);
     setSortOption('recommended');
+    navigate('/shop', { replace: true });
+  };
+
+  // Compute Product Dynamic Rating
+  const getProductRating = (id) => {
+    const rating = 4.0 + ((id * 7) % 11) / 10;
+    const count = 12 + ((id * 13) % 89);
+    return { rating: rating.toFixed(1), count };
   };
 
   // ─── Filter Logic ───
-  let filteredProducts = Array.isArray(products) ? products.filter(p => {
+  const filteredProducts = products.filter(p => {
     // 1. Search Query
     const nameText = (p.name || '').toLowerCase();
     const descText = (p.description || '').toLowerCase();
-    const matchesSearch = nameText.includes(search.toLowerCase()) || 
-                          descText.includes(search.toLowerCase());
+    const matchesSearch = !search || nameText.includes(search.toLowerCase()) || descText.includes(search.toLowerCase());
 
-    // 2. Category
-    const dbCategoryKey = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '_') : '';
-    const matchesCategory = filter === 'all' || dbCategoryKey === filter;
+    // 2. Category / Subcategory
+    let matchesCategoryAndSub = true;
+    if (selectedSubcategories.length > 0) {
+      matchesCategoryAndSub = selectedSubcategories.includes(p.subcategory_id);
+    } else if (selectedCategory) {
+      const activeCat = categories.find(c => c.id === selectedCategory);
+      const activeCatSlug = activeCat ? getCategoryKey(activeCat.name) : '';
+      const pCatSlug = p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, '_') : '';
+      matchesCategoryAndSub = p.category_id === selectedCategory || (activeCatSlug && pCatSlug === activeCatSlug);
+    }
 
     // 3. Price
     const op = parseFloat(p.price) || 0;
@@ -189,731 +311,759 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
     const matchesColors = selectedColors.length === 0 || 
                           (Array.isArray(p.colors) && p.colors.some(c => selectedColors.includes(c)));
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesSizes && matchesColors;
-  }) : [];
+    // 6. Discount
+    const matchesDiscount = (p.discount_percent || 0) >= selectedDiscount;
+
+    return matchesSearch && matchesCategoryAndSub && matchesPrice && matchesSizes && matchesColors && matchesDiscount;
+  });
 
   // ─── Sorting Logic ───
+  const sortedProducts = [...filteredProducts];
   if (sortOption === 'price_asc') {
-    filteredProducts.sort((a, b) => {
+    sortedProducts.sort((a, b) => {
       const pA = a.discount_percent > 0 ? parseFloat(a.price) * (1 - a.discount_percent / 100) : parseFloat(a.price);
       const pB = b.discount_percent > 0 ? parseFloat(b.price) * (1 - b.discount_percent / 100) : parseFloat(b.price);
       return pA - pB;
     });
   } else if (sortOption === 'price_desc') {
-    filteredProducts.sort((a, b) => {
+    sortedProducts.sort((a, b) => {
       const pA = a.discount_percent > 0 ? parseFloat(a.price) * (1 - a.discount_percent / 100) : parseFloat(a.price);
       const pB = b.discount_percent > 0 ? parseFloat(b.price) * (1 - b.discount_percent / 100) : parseFloat(b.price);
       return pB - pA;
     });
   } else if (sortOption === 'discount') {
-    filteredProducts.sort((a, b) => (b.discount_percent || 0) - (a.discount_percent || 0));
+    sortedProducts.sort((a, b) => (b.discount_percent || 0) - (a.discount_percent || 0));
+  } else if (sortOption === 'rating') {
+    sortedProducts.sort((a, b) => {
+      const rA = parseFloat(getProductRating(a.id).rating);
+      const rB = parseFloat(getProductRating(b.id).rating);
+      return rB - rA;
+    });
+  } else if (sortOption === 'newest') {
+    sortedProducts.sort((a, b) => b.id - a.id);
+  } else {
+    // recommended: featured first, then sales count
+    sortedProducts.sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return (b.sales_count || 0) - (a.sales_count || 0);
+    });
   }
 
-  // ─── Active Tags Helpers ───
-  const getActiveFilters = () => {
-    const list = [];
-    if (filter !== 'all') {
-      const catObj = categories.find(c => getCategoryKey(c.name) === filter);
-      list.push({ type: 'category', label: catObj ? catObj.name : filter, value: filter });
-    }
-    if (search !== '') {
-      list.push({ type: 'search', label: `"${search}"`, value: search });
-    }
-    if (minPrice > 0 || maxPrice < 5000) {
-      list.push({ type: 'price', label: `₹${minPrice} - ₹${maxPrice}`, value: { minPrice, maxPrice } });
-    }
-    selectedSizes.forEach(sz => {
-      list.push({ type: 'size', label: `Size: ${sz}`, value: sz });
-    });
-    selectedColors.forEach(col => {
-      const colorObj = availableColors.find(c => c.hex === col);
-      list.push({ type: 'color', label: colorObj ? colorObj.name : col, value: col });
-    });
-    return list;
-  };
-
-  const removeFilterItem = (item) => {
-    if (item.type === 'category') setFilter('all');
-    else if (item.type === 'search') setSearch('');
-    else if (item.type === 'price') { setMinPrice(0); setMaxPrice(5000); }
-    else if (item.type === 'size') setSelectedSizes(prev => prev.filter(s => s !== item.value));
-    else if (item.type === 'color') setSelectedColors(prev => prev.filter(c => c !== item.value));
-  };
-
-  const activeFilters = getActiveFilters();
+  // Active Category & Subcategory Labels for title/breadcrumbs
+  const activeCatObj = categories.find(c => c.id === selectedCategory);
+  const activeSubsObjList = subcategories.filter(s => selectedSubcategories.includes(s.id));
+  const activeSubName = activeSubsObjList.length === 1 ? activeSubsObjList[0].name : '';
 
   return (
-    <div className="shop-page-wrapper" style={{ padding: '2.5rem 2%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="shop-page-wrapper" style={{ padding: '2rem 0', width: '90%', maxWidth: '1720px', margin: '0 auto' }}>
       
-      {/* 1. Search Header - Responsive width */}
-      <div className="shop-search-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
-        <div className="search-bar-wrapper" style={{ position: 'relative', width: '100%', maxWidth: isSidebarCollapsed ? '680px' : 'none', display: 'flex', alignItems: 'center', transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          <span style={{ position: 'absolute', left: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
-            <SearchIcon />
-          </span>
-          <input 
-            ref={searchInputRef}
-            type="text" 
-            placeholder="Search for clothes, towels, blankets, dungarees..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '1.1rem 1.1rem 1.1rem 3.25rem',
-              borderRadius: '50px',
-              border: '1.5px solid var(--border-color)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-primary)',
-              fontSize: '1rem',
-              outline: 'none',
-              boxShadow: 'var(--shadow-sm)',
-              transition: 'border-color 0.25s, box-shadow 0.25s'
-            }}
-            className="shop-main-search-input"
-          />
-          {search && (
-            <button 
-              onClick={() => setSearch('')}
+      {/* Breadcrumbs */}
+      <nav className="shop-breadcrumbs-nav">
+        <span className="shop-breadcrumb-link" onClick={resetAllFilters}>Home</span>
+        <span className="shop-breadcrumb-divider">/</span>
+        <span className="shop-breadcrumb-link" onClick={() => handleCategorySelect(null)}>Shop</span>
+        {activeCatObj && (
+          <>
+            <span className="shop-breadcrumb-divider">/</span>
+            <span className="shop-breadcrumb-link" onClick={() => handleCategorySelect(activeCatObj.id)}>{activeCatObj.name}</span>
+          </>
+        )}
+        {activeSubName && (
+          <>
+            <span className="shop-breadcrumb-divider">/</span>
+            <span className="shop-breadcrumb-link" style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{activeSubName}</span>
+          </>
+        )}
+      </nav>
+
+      {/* Header Info Section */}
+      <div className="shop-header-info-container">
+        {/* Left: Title & Count */}
+        <div className="shop-header-title-wrapper">
+          <h2 style={{ fontSize: '2rem', fontWeight: 850, margin: 0, letterSpacing: '-0.02em', textTransform: 'capitalize' }}>
+            {activeSubName || (activeCatObj ? activeCatObj.name : 'All Products')}
+          </h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0', fontWeight: '500' }}>
+            Showing {sortedProducts.length === 0 ? '0' : `1-${sortedProducts.length}`} of {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'}
+          </p>
+        </div>
+
+        {/* Center: Search Bar aligned in header */}
+        <div className="shop-header-search-wrapper" style={{ gap: '0.5rem' }}>
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+              <SearchIcon />
+            </span>
+            <input 
+              ref={searchInputRef}
+              type="text" 
+              placeholder="Search products..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               style={{
-                position: 'absolute', right: '16px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center'
+                width: '100%',
+                padding: '0.65rem 1rem 0.65rem 2.75rem',
+                borderRadius: '8px',
+                border: '1.5px solid var(--border-color)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                fontSize: '0.9rem',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'border-color 0.2s'
+              }}
+            />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                style={{
+                  position: 'absolute', right: '16px', background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--text-muted)', padding: 0
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Show Filters button right next to the search input */}
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className={`quick-filter-dropdown-btn sidebar-toggle-btn ${!isSidebarCollapsed ? 'active' : ''}`}
+            style={{ margin: 0, flexShrink: 0 }}
+          >
+            <FilterIcon /> {isSidebarCollapsed ? 'Show Filters' : 'Hide Filters'}
+          </button>
+        </div>
+
+        {/* Right: Sort & View Mode Toggles */}
+        <div className="shop-header-sort-wrapper">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>Sort by:</span>
+            <select 
+              value={sortOption}
+              onChange={e => setSortOption(e.target.value)}
+              style={{
+                border: '1.5px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '0.5rem 2rem 0.5rem 1rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                outline: 'none'
               }}
             >
-              ×
+              <option value="recommended">Popularity</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="discount">Highest Discount</option>
+              <option value="rating">Top Rated</option>
+              <option value="newest">New Arrivals</option>
+            </select>
+          </div>
+
+          {/* Group box/list view buttons tightly */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button 
+              className={`view-toggle-icon-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Grid View"
+            >
+              <GridIcon />
             </button>
-          )}
+            <button 
+              className={`view-toggle-icon-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              title="List View"
+            >
+              <ListIcon />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 2. Interactive Active Filters Tag Bar */}
-      {activeFilters.length > 0 && (
-        <div className="active-filter-tags-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '0.75rem 1.25rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-muted)', marginRight: '6px' }}>Active Filters:</span>
-          {activeFilters.map((item, idx) => (
-            <span 
-              key={idx} 
-              className="filter-pill-tag"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                padding: '4px 10px',
-                borderRadius: '50px',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onClick={() => removeFilterItem(item)}
-            >
-              {item.label}
-              <span style={{ color: 'var(--color-cancelled)', fontSize: '0.9rem', marginLeft: '2px', fontWeight: 'bold' }}>×</span>
-            </span>
-          ))}
+      {/* Quick Filters Row Bar */}
+      <div className="quick-filters-row-bar" ref={quickFilterRef}>
+        
+        {/* Size Dropdown */}
+        <div className="quick-filter-select-wrapper">
           <button 
-            onClick={resetAllFilters} 
-            style={{
-              background: 'none', border: 'none', color: 'var(--brand-purple)', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', marginLeft: 'auto', padding: '4px 8px', transition: 'text-decoration 0.2s'
-            }}
-            className="clear-all-pills-btn"
+            className={`quick-filter-dropdown-btn has-chevron ${selectedSizes.length > 0 ? 'active' : ''}`}
+            onClick={() => setActiveQuickFilter(activeQuickFilter === 'size' ? null : 'size')}
           >
-            Clear All
+            Size {selectedSizes.length > 0 ? `(${selectedSizes.join(', ')})` : '(All)'}
           </button>
+          {activeQuickFilter === 'size' && (
+            <div className="quick-filter-popup-card">
+              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Select Sizes</span>
+              <div className="sizes-grid-layout" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                {availableSizes.map(sz => (
+                  <label key={sz} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer', padding: '4px 0' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedSizes.includes(sz)}
+                      onChange={() => toggleSizeFilter(sz)}
+                    />
+                    {sz}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* 3. Layout Grid - Sidebar on LEFT */}
-      <div 
-        className="shop-layout-grid" 
-        style={{ 
-          display: 'grid', 
-          gridTemplateColumns: isMobile ? '1fr' : isSidebarCollapsed ? '1fr' : '300px 1fr', 
-          gap: '2rem', 
-          alignItems: 'start',
-          position: 'relative',
-          transition: 'grid-template-columns 0.45s cubic-bezier(0.16, 1, 0.3, 1), gap 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}
-      >
-        
-        {/* Sidebar/backdrop container: render into body for mobile so fixed positioning isn't confined by transformed ancestors */}
-        {/* Prepare portal node */}
-        
-        {/* create portal node once */}
-        
-        {/**/}
-        {!isSidebarCollapsed && !isMobile && (
-          <aside 
-            className="shop-filter-sidebar"
-            style={{ 
-              gridColumn: 'auto',
-              position: 'sticky',
-              top: '130px',
-              width: '300px',
-              maxHeight: '82vh',
-              background: 'var(--glossy-bg)', 
-              border: '1px solid var(--glossy-border)', 
-              borderRadius: '4px', 
-              padding: '1.5rem', 
-              boxShadow: 'var(--shadow-sm)',
-              overflowY: 'auto'
-            }}
+        {/* Color Dropdown */}
+        <div className="quick-filter-select-wrapper">
+          <button 
+            className={`quick-filter-dropdown-btn has-chevron ${selectedColors.length > 0 ? 'active' : ''}`}
+            onClick={() => setActiveQuickFilter(activeQuickFilter === 'color' ? null : 'color')}
           >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {isMobile && !isSidebarCollapsed && (
-                <button 
-                  onClick={() => setIsSidebarCollapsed(true)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer', padding: '0', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Close filters"
-                >
-                  ←
-                </button>
-              )}
-              {activeFilters.length > 0 && (
-                <button 
-                  onClick={resetAllFilters} 
-                  style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <TrashIcon /> Reset
-                </button>
-              )}
-              {isMobile && !isSidebarCollapsed && (
-                <button 
-                  onClick={() => setIsSidebarCollapsed(true)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer', padding: '0', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Close filters"
-                >
-                  ←
-                </button>
-              )}
+            Color {selectedColors.length > 0 ? `(${selectedColors.length} Selected)` : '(All)'}
+          </button>
+          {activeQuickFilter === 'color' && (
+            <div className="quick-filter-popup-card" style={{ minWidth: '240px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Select Colors</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                {availableColors.map(col => (
+                  <button 
+                    key={col.hex}
+                    className={`color-swatch-circle-btn ${selectedColors.includes(col.hex) ? 'active' : ''} ${col.isLight ? 'light-color' : ''}`}
+                    style={{ backgroundColor: col.hex }}
+                    onClick={() => toggleColorFilter(col.hex)}
+                    title={col.name}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Collapsible Accordion: Category */}
-          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <div 
-              className="filter-group-header" 
-              onClick={() => toggleSection('category')}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
-            >
-              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Category</h4>
-              <span className={`accordion-arrow ${openSections.category ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.category ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-            </div>
-            {openSections.category && (
-              <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+        {/* Category Dropdown */}
+        <div className="quick-filter-select-wrapper">
+          <button 
+            className={`quick-filter-dropdown-btn has-chevron ${selectedCategory ? 'active' : ''}`}
+            onClick={() => setActiveQuickFilter(activeQuickFilter === 'category' ? null : 'category')}
+          >
+            Category {activeCatObj ? `(${activeCatObj.name})` : '(All)'}
+          </button>
+          {activeQuickFilter === 'category' && (
+            <div className="quick-filter-popup-card">
+              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Select Category</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer', padding: '4px 0' }}>
+                <input 
+                  type="radio" 
+                  name="quick_cat"
+                  checked={selectedCategory === null}
+                  onChange={() => handleCategorySelect(null)}
+                />
+                All Categories
+              </label>
+              {categories.map(cat => (
+                <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer', padding: '4px 0' }}>
                   <input 
                     type="radio" 
-                    name="category_filter"
-                    checked={filter === 'all'} 
-                    onChange={() => setFilter('all')} 
-                    style={{ accentColor: 'var(--brand-purple)' }}
+                    name="quick_cat"
+                    checked={selectedCategory === cat.id}
+                    onChange={() => handleCategorySelect(cat.id)}
                   />
-                  All Collections
+                  {cat.name}
                 </label>
-                {categories.map(cat => {
-                  const catKey = getCategoryKey(cat.name);
-                  return (
-                    <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                      <input 
-                        type="radio" 
-                        name="category_filter"
-                        checked={filter === catKey} 
-                        onChange={() => setFilter(catKey)} 
-                        style={{ accentColor: 'var(--brand-purple)' }}
-                      />
-                      {cat.name}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Collapsible Accordion: Price Range */}
-          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <div 
-              className="filter-group-header" 
-              onClick={() => toggleSection('price')}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
-            >
-              <h4 style={{ fontSize: '0.8rem', fontWeight: '855', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Price (₹)</h4>
-              <span className={`accordion-arrow ${openSections.price ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.price ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+              ))}
             </div>
-            {openSections.price && (
-              <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          )}
+        </div>
+
+        {/* Discount Dropdown */}
+        <div className="quick-filter-select-wrapper">
+          <button 
+            className={`quick-filter-dropdown-btn has-chevron ${selectedDiscount > 0 ? 'active' : ''}`}
+            onClick={() => setActiveQuickFilter(activeQuickFilter === 'discount' ? null : 'discount')}
+          >
+            Discount {selectedDiscount > 0 ? `(${selectedDiscount}%+ Off)` : '(All)'}
+          </button>
+          {activeQuickFilter === 'discount' && (
+            <div className="quick-filter-popup-card">
+              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Offers</span>
+              {discountOptions.map(opt => (
+                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer', padding: '4px 0' }}>
                   <input 
-                    type="number" 
-                    placeholder="Min" 
-                    value={minPrice} 
-                    onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                    type="radio" 
+                    name="quick_discount"
+                    checked={selectedDiscount === opt.value}
+                    onChange={() => setSelectedDiscount(opt.value)}
                   />
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    value={maxPrice} 
-                    onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                  />
-                </div>
-                
-                {/* Preset Price Ranges */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                  <button 
-                    onClick={() => { setMinPrice(0); setMaxPrice(1000); }}
-                    className="preset-price-btn"
-                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                  >
-                    Under ₹1,000
-                  </button>
-                  <button 
-                    onClick={() => { setMinPrice(1000); setMaxPrice(2000); }}
-                    className="preset-price-btn"
-                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                  >
-                    ₹1,000 to ₹2,000
-                  </button>
-                  <button 
-                    onClick={() => { setMinPrice(2000); setMaxPrice(5000); }}
-                    className="preset-price-btn"
-                    style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}
-                  >
-                    Over ₹2,000
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Collapsible Accordion: Sizes */}
-          <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <div 
-              className="filter-group-header" 
-              onClick={() => toggleSection('size')}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
-            >
-              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Sizes</h4>
-              <span className={`accordion-arrow ${openSections.size ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.size ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
+                  {opt.label}
+                </label>
+              ))}
             </div>
-            {openSections.size && (
-              <div className="filter-group-content" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
-                {availableSizes.map(size => {
-                  const isSelected = selectedSizes.includes(size);
-                  return (
-                    <button
-                      key={size}
-                      onClick={() => toggleSizeFilter(size)}
-                      style={{
-                        border: '1.5px solid',
-                        borderColor: isSelected ? 'var(--brand-purple)' : 'var(--border-color)',
-                        background: isSelected ? 'var(--brand-teal-lt)' : 'var(--bg-card)',
-                        color: isSelected ? 'var(--brand-purple)' : 'var(--text-secondary)',
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {size}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          )}
+        </div>
 
-          {/* Collapsible Accordion: Colors */}
-          <div className="filter-group-accordion" style={{ marginBottom: '0.5rem' }}>
-            <div 
-              className="filter-group-header" 
-              onClick={() => toggleSection('color')}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}
-            >
-              <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Colors</h4>
-              <span className={`accordion-arrow ${openSections.color ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.color ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-            </div>
-            {openSections.color && (
-              <div className="filter-group-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '10px' }}>
-                {availableColors.map(color => {
-                  const isSelected = selectedColors.includes(color.hex);
-                  return (
-                    <button
-                      key={color.hex}
-                      onClick={() => toggleColorFilter(color.hex)}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        backgroundColor: color.hex,
-                        border: '2px solid #fff',
-                        cursor: 'pointer',
-                        outline: 'none',
-                        boxShadow: isSelected ? '0 0 0 2px var(--brand-purple)' : '0 0 0 1px var(--border-color)',
-                        transition: 'all 0.2s'
-                      }}
-                      title={color.name}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          </aside>
-        )}
+      </div>
 
-        {/* Render mobile overlay (backdrop + sidebar) into portal so it escapes transformed ancestors */}
-        {portalNodeRef.current && isMobile && ReactDOM.createPortal(
+      {/* Main Grid Layout */}
+      <div className={`shop-layout-container ${isSidebarCollapsed ? 'sidebar-hidden' : ''}`}>
+        
+        {/* Sidebar Filter Panel */}
+        {!isSidebarCollapsed && (
           <>
-            {!isSidebarCollapsed && (
-              <>
-                <div
+            <div className="shop-sidebar-backdrop" onClick={() => setIsSidebarCollapsed(true)} />
+            <aside className="shop-sidebar-card">
+              {/* Close button for mobile */}
+              <div className="sidebar-mobile-close-row">
+                <button 
                   onClick={() => setIsSidebarCollapsed(true)}
-                  style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.35)', zIndex: 998 }}
-                />
-                <div
-                  role="dialog"
-                  aria-modal="true"
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    width: '80vw',
-                    height: '100vh',
-                    background: 'var(--glossy-bg)',
-                    zIndex: 999,
-                    boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
-                    overflowY: 'auto',
-                    transform: isSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)',
-                    transition: 'transform 0.35s ease'
-                  }}
+                  className="sidebar-mobile-close-btn"
                 >
-                  <div style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font)', margin: 0 }}>Filters</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button onClick={() => setIsSidebarCollapsed(true)} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '1.4rem', cursor: 'pointer' }}>←</button>
-                        {activeFilters.length > 0 && (
-                          <button onClick={resetAllFilters} style={{ background: 'none', border: 'none', color: 'var(--color-cancelled)', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <TrashIcon /> Reset
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* replicate the same accordion groups inside portal (category, price, size, color) */}
-                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                      <div className="filter-group-header" onClick={() => toggleSection('category')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
-                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Category</h4>
-                        <span className={`accordion-arrow ${openSections.category ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.category ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-                      </div>
-                      {openSections.category && (
-                        <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                            <input type="radio" name="category_filter_mobile" checked={filter === 'all'} onChange={() => setFilter('all')} style={{ accentColor: 'var(--brand-purple)' }} />
-                            All Collections
-                          </label>
-                          {categories.map(cat => {
-                            const catKey = getCategoryKey(cat.name);
-                            return (
-                              <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                                <input type="radio" name="category_filter_mobile" checked={filter === catKey} onChange={() => setFilter(catKey)} style={{ accentColor: 'var(--brand-purple)' }} />
-                                {cat.name}
-                              </label>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price */}
-                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                      <div className="filter-group-header" onClick={() => toggleSection('price')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
-                        <h4 style={{ fontSize: '0.8rem', fontWeight: '855', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Price (₹)</h4>
-                        <span className={`accordion-arrow ${openSections.price ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.price ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-                      </div>
-                      {openSections.price && (
-                        <div className="filter-group-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
-                            <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', padding: '6px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                            <button onClick={() => { setMinPrice(0); setMaxPrice(1000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>Under ₹1,000</button>
-                            <button onClick={() => { setMinPrice(1000); setMaxPrice(2000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>₹1,000 to ₹2,000</button>
-                            <button onClick={() => { setMinPrice(2000); setMaxPrice(5000); }} className="preset-price-btn" style={{ textAlign: 'left', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 0' }}>Over ₹2,000</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Sizes */}
-                    <div className="filter-group-accordion" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-                      <div className="filter-group-header" onClick={() => toggleSection('size')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
-                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Sizes</h4>
-                        <span className={`accordion-arrow ${openSections.size ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.size ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-                      </div>
-                      {openSections.size && (
-                        <div className="filter-group-content" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
-                          {availableSizes.map(size => {
-                            const isSelected = selectedSizes.includes(size);
-                            return (
-                              <button key={size} onClick={() => toggleSizeFilter(size)} style={{ border: '1.5px solid', borderColor: isSelected ? 'var(--brand-purple)' : 'var(--border-color)', background: isSelected ? 'var(--brand-teal-lt)' : 'var(--bg-card)', color: isSelected ? 'var(--brand-purple)' : 'var(--text-secondary)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>{size}</button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Colors */}
-                    <div className="filter-group-accordion" style={{ marginBottom: '0.5rem' }}>
-                      <div className="filter-group-header" onClick={() => toggleSection('color')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', cursor: 'pointer' }}>
-                        <h4 style={{ fontSize: '0.8rem', fontWeight: '850', textTransform: 'uppercase', color: 'var(--text-primary)', margin: 0, letterSpacing: '0.75px' }}>Colors</h4>
-                        <span className={`accordion-arrow ${openSections.color ? 'open' : ''}`} style={{ transition: 'transform 0.3s', transform: openSections.color ? 'rotate(90deg)' : 'rotate(0deg)' }}>➔</span>
-                      </div>
-                      {openSections.color && (
-                        <div className="filter-group-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '10px' }}>
-                          {availableColors.map(color => {
-                            const isSelected = selectedColors.includes(color.hex);
-                            return (
-                              <button key={color.hex} onClick={() => toggleColorFilter(color.hex)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: color.hex, border: '2px solid #fff', cursor: 'pointer', outline: 'none', boxShadow: isSelected ? '0 0 0 2px var(--brand-purple)' : '0 0 0 1px var(--border-color)', transition: 'all 0.2s' }} title={color.name} />
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ marginTop: '1rem' }}>
-                      <button onClick={() => setIsSidebarCollapsed(true)} style={{ padding: '0.6rem 1rem', fontWeight: '700', width: '100%', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>Apply Filters</button>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </>, portalNodeRef.current
-        )}
-
-        {/* Right Content Area: Results toolbar and Products Grid */}
-        <main className="shop-products-column">
-          
-          {/* Header Row: Result count, Filter Button, & Sort option */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glossy-bg)', padding: '1rem 1.5rem', borderRadius: '4px', border: '1px solid var(--glossy-border)', boxShadow: 'var(--shadow-sm)', flexWrap: 'wrap', gap: '12px' }}>
+                  ← Close Filters
+                </button>
+              </div>
             
-            {/* Result count */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', order: isMobile ? 2 : 1 }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
-              </span>
+            {/* Sidebar Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 className="sidebar-main-title">Filters</h3>
+              <button onClick={resetAllFilters} className="sidebar-clear-all">Clear All</button>
             </div>
-            
-            {/* Sort and Filter Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', order: isMobile ? 1 : 2, marginLeft: 'auto' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Sort by:</span>
-              <select 
-                className="form-control" 
-                style={{ width: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.35rem 1rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text-primary)' }}
-                value={sortOption}
-                onChange={e => setSortOption(e.target.value)}
-              >
-                <option value="recommended">Recommended</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="discount">Highest Discount</option>
-              </select>
-              
-              {/* Filter Toggle Button - Desktop */}
-              <button 
-                onClick={() => setIsSidebarCollapsed(prev => !prev)}
-                style={{
-                  display: isMobile ? 'flex' : 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'var(--bg-card)',
-                  border: '1.5px solid var(--border-color)',
-                  padding: '0.45rem 1rem',
-                  borderRadius: '4px',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  color: 'var(--text-primary)',
-                  boxShadow: 'var(--shadow-xs)',
-                  transition: 'all 0.2s'
-                }}
-                className="sidebar-toggle-btn"
-              >
-                {isSidebarCollapsed ? '↙ Filters' : '→ Hide'}
+
+            {/* Category Accordion */}
+            <div className="sidebar-accordion-item">
+              <button className="sidebar-accordion-trigger" onClick={() => toggleSection('category')}>
+                <span className="sidebar-accordion-title">Category</span>
+                <span className={`sidebar-accordion-chevron ${openSections.category ? 'open' : ''}`}><ChevronDownIcon /></span>
               </button>
 
-            {/* View Mode Toggle */}
-            <button
-              onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                padding: '0.35rem 0.75rem',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--shadow-xs)',
-                transition: 'background 0.2s'
-              }}
-              aria-label="Toggle view mode"
-            >
-              {viewMode === 'grid' ? 'List View' : 'Grid View'}
-            </button>
-            </div>
-          </div>
+              {openSections.category && (
+                <div className="sidebar-accordion-content">
+                  
+                  {/* All Categories Option */}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="sidebar_cat"
+                      checked={selectedCategory === null}
+                      onChange={() => handleCategorySelect(null)}
+                    />
+                    All Categories
+                  </label>
 
-          {/* Loading state */}
-          {loading ? (
-            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="skeleton-card">
-                  <div className="skeleton-img"></div>
-                  <div className="skeleton-info">
-                    <div className="skeleton-line title"></div>
-                    <div className="skeleton-line short"></div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '1rem' }}>
-                      <div className="skeleton-line" style={{ width: '40%' }}></div>
+                  {/* Nested Category-Subcategory list */}
+                  {categories.map(cat => {
+                    const catSubs = subcategories.filter(s => s.category_id === cat.id);
+                    const isExpanded = expandedCategories.includes(cat.id);
+                    return (
+                      <div key={cat.id} className="category-group-container" style={{ marginBottom: '0.5rem' }}>
+                        <div 
+                          className="category-group-header" 
+                          onClick={() => handleCategorySelect(cat.id)}
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            fontWeight: selectedCategory === cat.id ? '800' : '600',
+                            fontSize: '0.88rem',
+                            cursor: 'pointer',
+                            padding: '4px 0'
+                          }}
+                        >
+                          <span 
+                            onClick={(e) => toggleCategoryExpand(cat.id, e)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.65rem',
+                              color: selectedCategory === cat.id ? 'var(--brand-orange)' : 'var(--text-muted)',
+                              transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s',
+                              padding: '2px 4px'
+                            }}
+                          >
+                            ▶
+                          </span>
+                          {cat.name}
+                        </div>
+                        
+                        {isExpanded && (
+                          <div className="subcategory-list-indented" style={{ paddingLeft: '1.25rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            {catSubs.map(sub => {
+                              const subProductCount = products.filter(p => p.subcategory_id === sub.id).length;
+                              return (
+                                <label 
+                                  key={sub.id} 
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={selectedSubcategories.includes(sub.id)}
+                                      onChange={() => handleSubcategoryToggle(sub.id)}
+                                    />
+                                    {sub.name}
+                                  </div>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>({subProductCount})</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Price Range Accordion */}
+            <div className="sidebar-accordion-item">
+              <button className="sidebar-accordion-trigger" onClick={() => toggleSection('price')}>
+                <span className="sidebar-accordion-title">Price Range</span>
+                <span className={`sidebar-accordion-chevron ${openSections.price ? 'open' : ''}`}><ChevronDownIcon /></span>
+              </button>
+
+              {openSections.price && (
+                <div className="sidebar-accordion-content">
+                  <div className="price-inputs-row">
+                    <div className="price-input-field-container">
+                      <span className="price-input-symbol">₹</span>
+                      <input 
+                        type="number" 
+                        value={minPrice} 
+                        onChange={e => setMinPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="price-input-box"
+                        placeholder="0"
+                      />
                     </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>to</span>
+                    <div className="price-input-field-container">
+                      <span className="price-input-symbol">₹</span>
+                      <input 
+                        type="number" 
+                        value={maxPrice} 
+                        onChange={e => setMaxPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="price-input-box"
+                        placeholder="5000"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Range Slider for max price */}
+                  <div className="price-slider-track-container">
+                    <input 
+                      type="range"
+                      min={0}
+                      max={5000}
+                      step={50}
+                      value={maxPrice}
+                      onChange={e => setMaxPrice(parseInt(e.target.value))}
+                      className="price-slider-native"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sizes Accordion */}
+            <div className="sidebar-accordion-item">
+              <button className="sidebar-accordion-trigger" onClick={() => toggleSection('size')}>
+                <span className="sidebar-accordion-title">Size</span>
+                <span className={`sidebar-accordion-chevron ${openSections.size ? 'open' : ''}`}><ChevronDownIcon /></span>
+              </button>
+
+              {openSections.size && (
+                <div className="sidebar-accordion-content">
+                  <div className="sizes-grid-layout">
+                    {availableSizes.map(sz => (
+                      <button 
+                        key={sz}
+                        className={`size-pill-button ${selectedSizes.includes(sz) ? 'active' : ''}`}
+                        onClick={() => toggleSizeFilter(sz)}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Colors Accordion */}
+            <div className="sidebar-accordion-item">
+              <button className="sidebar-accordion-trigger" onClick={() => toggleSection('color')}>
+                <span className="sidebar-accordion-title">Color</span>
+                <span className={`sidebar-accordion-chevron ${openSections.color ? 'open' : ''}`}><ChevronDownIcon /></span>
+              </button>
+
+              {openSections.color && (
+                <div className="sidebar-accordion-content">
+                  <div className="colors-swatch-grid">
+                    {availableColors.map(col => (
+                      <button 
+                        key={col.hex}
+                        className={`color-swatch-circle-btn ${selectedColors.includes(col.hex) ? 'active' : ''} ${col.isLight ? 'light-color' : ''}`}
+                        style={{ backgroundColor: col.hex }}
+                        onClick={() => toggleColorFilter(col.hex)}
+                        title={col.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Discount Accordion */}
+            <div className="sidebar-accordion-item">
+              <button className="sidebar-accordion-trigger" onClick={() => toggleSection('discount')}>
+                <span className="sidebar-accordion-title">Discount</span>
+                <span className={`sidebar-accordion-chevron ${openSections.discount ? 'open' : ''}`}><ChevronDownIcon /></span>
+              </button>
+
+              {openSections.discount && (
+                <div className="sidebar-accordion-content">
+                  {discountOptions.map(opt => (
+                    <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="discount_sidebar"
+                        checked={selectedDiscount === opt.value}
+                        onChange={() => setSelectedDiscount(opt.value)}
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </aside>
+        </>
+      )}
+
+        {/* Product List Grid Column */}
+        <main style={{ width: '100%' }}>
+          
+          {loading ? (
+            /* Skeletons */
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="skeleton-card" style={{ height: '380px' }}>
+                  <div className="skeleton-img" style={{ height: '240px' }} />
+                  <div className="skeleton-info" style={{ padding: '1rem' }}>
+                    <div className="skeleton-line title" style={{ width: '80%', height: '14px', marginBottom: '8px' }} />
+                    <div className="skeleton-line short" style={{ width: '50%', height: '12px' }} />
                   </div>
                 </div>
               ))}
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '6rem 2rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, marginBottom: '1rem', color: 'var(--brand-teal)' }}>
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-              </svg>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No products match filters</h3>
-              <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>Try adjusting your search queries, size selections, or pricing parameters.</p>
-              <button className="btn btn-teal" onClick={resetAllFilters} style={{ padding: '0.6rem 1.5rem', fontSize: '0.85rem' }}>
+          ) : sortedProducts.length === 0 ? (
+            /* Empty State */
+            <div style={{ textAlign: 'center', padding: '6rem 2rem', border: '1px solid var(--border-color)', borderRadius: '16px', color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No products match your filters</h3>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Try clearing some of your search parameters or select a different category.</p>
+              <button 
+                onClick={resetAllFilters} 
+                style={{
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg-primary)',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '30px',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
                 Reset All Filters
               </button>
             </div>
           ) : (
-            <div className="product-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(240px, 1fr))' : '1fr',
+            /* Products List / Grid */
+            <div className={viewMode === 'grid' ? '' : 'shop-products-list-layout'} style={{
+              display: viewMode === 'grid' ? 'grid' : 'flex',
+              gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(240px, 1fr))' : 'none',
               gap: '1.5rem'
             }}>
-              {filteredProducts.map((p, idx) => {
+              {sortedProducts.map((p, idx) => {
                 const originalPrice = parseFloat(p.price);
                 const hasDiscount = p.discount_percent > 0;
                 const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
                 const isWishlisted = wishlist.some(item => item.id === p.id);
-                
+                const ratingInfo = getProductRating(p.id);
+
                 return (
-                  <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
-                    <div className="product-card" style={{
-                      transition: 'transform 0.25s, box-shadow 0.25s',
-                      cursor: 'pointer',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      background: 'var(--bg-card)',
-                      boxShadow: 'var(--shadow-sm)'
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                      e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                    }}
-                    >
-                      <div className="product-img-wrapper" style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${p.id}`)}>
-                        <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
+                  <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.02}>
+                    <article className={`premium-product-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
+                      
+                      {/* Image Frame */}
+                      <div className="premium-product-img-wrapper">
+                        <img 
+                          src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} 
+                          alt={p.name}
+                          onClick={() => navigate(`/product/${p.id}`)}
+                          style={{ cursor: 'pointer' }}
+                        />
+
+                        {/* Badges */}
                         {hasDiscount ? (
-                          <div className="discount-badge">{p.discount_percent}% OFF</div>
+                          <div className="card-discount-badge">-{p.discount_percent}%</div>
                         ) : (
-                          <div className="product-category-badge badge-kitchen">New Arrival</div>
+                          p.is_featured && <div className="card-new-badge">FEATURED</div>
                         )}
-                        {user && (
+
+                        {/* Wishlist Button */}
+                        <button 
+                          className={`card-wishlist-circle-btn ${isWishlisted ? 'wishlisted' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleWishlist(p);
+                          }}
+                          aria-label="Wishlist"
+                        >
+                          <HeartIcon filled={isWishlisted} />
+                        </button>
+
+                        {/* Hover Quick Panel (Grid Mode Only) */}
+                        <div className="premium-card-hover-panel">
                           <button 
-                            className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                            className="hover-panel-btn primary"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleWishlist(p);
-                            }}
-                            aria-label="Toggle wishlist"
-                            style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              zIndex: 10,
-                              background: 'rgba(255, 255, 255, 0.9)',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '32px',
-                              height: '32px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              color: isWishlisted ? 'var(--color-cancelled)' : 'var(--text-secondary)',
-                              boxShadow: 'var(--shadow-sm)',
-                              transition: 'color 0.2s, background-color 0.2s'
+                              addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url });
                             }}
                           >
-                            <HeartIcon />
+                            Add to Bag
                           </button>
-                        )}
-                        <div className="product-hover-overlay">
-                          <div className="hover-actions">
-                            <button className="btn btn-teal" onClick={(e) => { e.stopPropagation(); addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url }); }}>Add to Bag</button>
-                            <button className="btn-outline-white" onClick={(e) => { e.stopPropagation(); navigate(`/product/${p.id}`); }}>Quick View</button>
-                          </div>
+                          <button 
+                            className="hover-panel-btn secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/product/${p.id}`);
+                            }}
+                          >
+                            Details
+                          </button>
                         </div>
                       </div>
-                      <div className="product-info" style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${p.id}`)}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                          <h3 className="product-name" style={{ marginBottom: 0, fontSize: '0.95rem' }}>{p.name}</h3>
-                          <div className="product-pricing" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            {hasDiscount ? (
-                              <>
-                                <span className="discount-price" style={{ fontSize: '0.95rem' }}>₹{discountPrice.toFixed(2)}</span>
-                                <span className="original-price" style={{ fontSize: '0.75rem', textDecoration: 'line-through' }}>₹{originalPrice.toFixed(2)}</span>
-                              </>
-                            ) : (
-                              <span className="discount-price" style={{ fontSize: '0.95rem' }}>₹{originalPrice.toFixed(2)}</span>
+
+                      {/* Product details */}
+                      <div 
+                        className={`premium-product-details ${viewMode === 'list' ? 'list-layout-split' : ''}`} 
+                        onClick={() => navigate(`/product/${p.id}`)} 
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {viewMode === 'list' ? (
+                          <>
+                            {/* Left part: Brand, Name, Rating, Price, Swatches */}
+                            <div className="list-details-left-side">
+                              <span className="premium-card-brand-label">
+                                {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
+                              </span>
+                              
+                              <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
+
+                              {/* Star rating */}
+                              <div className="premium-card-rating-line">
+                                <StarIcon />
+                                <span>{ratingInfo.rating}</span>
+                                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
+                              </div>
+
+                              {/* Price line */}
+                              <div className="premium-card-price-row">
+                                <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
+                                {hasDiscount && (
+                                  <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
+                                )}
+                              </div>
+
+                              {/* Color Dots */}
+                              {Array.isArray(p.colors) && p.colors.length > 0 && (
+                                <div className="premium-card-swatches-row">
+                                  {p.colors.slice(0, 4).map((cHex, cIdx) => (
+                                    <div 
+                                      key={cIdx} 
+                                      className="card-color-dot-swatch"
+                                      style={{ backgroundColor: cHex }}
+                                    />
+                                  ))}
+                                  {p.colors.length > 4 && (
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right part: Action Buttons stacked in a column */}
+                            <div className="list-details-right-side" onClick={e => e.stopPropagation()}>
+                              <button 
+                                className="premium-list-action-btn primary"
+                                onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}
+                              >
+                                Add to Bag
+                              </button>
+                              <button 
+                                className="premium-list-action-btn secondary"
+                                onClick={() => navigate(`/product/${p.id}`)}
+                              >
+                                Details
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="premium-card-brand-label">
+                              {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
+                            </span>
+                            
+                            <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
+
+                            {/* Star rating */}
+                            <div className="premium-card-rating-line">
+                              <StarIcon />
+                              <span>{ratingInfo.rating}</span>
+                              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
+                            </div>
+
+                            {/* Price line */}
+                            <div className="premium-card-price-row">
+                              <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
+                              {hasDiscount && (
+                                <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
+                              )}
+                            </div>
+
+                            {/* Color Dots */}
+                            {Array.isArray(p.colors) && p.colors.length > 0 && (
+                              <div className="premium-card-swatches-row">
+                                {p.colors.slice(0, 4).map((cHex, cIdx) => (
+                                  <div 
+                                    key={cIdx} 
+                                    className="card-color-dot-swatch"
+                                    style={{ backgroundColor: cHex }}
+                                  />
+                                ))}
+                                {p.colors.length > 4 && (
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
+                                )}
+                              </div>
                             )}
-                          </div>
-                        </div>
-                        {/* Star Rating */}
-                        <div style={{ display: 'flex', gap: '2px', marginBottom: '0.5rem', alignItems: 'center' }}>
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <svg key={star} xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={star <= 4 ? "#F59E0B" : "none"} stroke="#F59E0B" strokeWidth="2">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                          ))}
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '4px' }}>(24)</span>
-                        </div>
-                        <p className="product-desc" style={{ fontSize: '0.78rem', marginBottom: 0 }}>{p.description}</p>
+                          </>
+                        )}
                       </div>
-                    </div>
+
+                    </article>
                   </ScrollReveal>
                 );
               })}
             </div>
           )}
+
         </main>
-        
       </div>
-      
+
     </div>
   );
 }
