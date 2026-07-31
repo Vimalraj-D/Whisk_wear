@@ -2,6 +2,7 @@ const supabase = require('../config/supabase');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
+const { calculateShipping } = require('../utils/shipping');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -114,14 +115,22 @@ async function fetchProductDetailsForEmail(items) {
 
 exports.createOrder = async (req, res) => {
   try {
-    const { customer_name, customer_email, customer_address, items } = req.body;
+    const { customer_name, customer_email, customer_address, zip, items } = req.body;
 
     if (!customer_name || !customer_email || !customer_address || !items || items.length === 0) {
       return res.status(400).json({ error: 'All order details and items are required' });
     }
 
     const user_id = req.user ? req.user.id : null;
-    const { total_amount, priceById } = await priceOrderItems(items);
+    const { total_amount: items_amount, priceById } = await priceOrderItems(items);
+
+    let shipping_charge = 0;
+    if (zip) {
+      const shippingInfo = await calculateShipping(zip);
+      shipping_charge = shippingInfo.shipping_charge;
+    }
+
+    const grand_total = items_amount + shipping_charge;
 
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
@@ -130,7 +139,8 @@ exports.createOrder = async (req, res) => {
         customer_name,
         customer_email,
         customer_address,
-        total_amount: parseFloat(total_amount),
+        total_amount: parseFloat(grand_total),
+        shipping_charge: parseFloat(shipping_charge),
         status: 'pending'
       }])
       .select();
@@ -167,6 +177,19 @@ exports.createOrder = async (req, res) => {
     });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
+  }
+};
+
+exports.getShippingCharge = async (req, res) => {
+  try {
+    const { pincode } = req.query;
+    if (!pincode) {
+      return res.status(400).json({ error: 'Pincode is required' });
+    }
+    const result = await calculateShipping(pincode);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -490,14 +513,22 @@ exports.cancelOrder = async (req, res) => {
 
 exports.createCodOrder = async (req, res) => {
   try {
-    const { customer_name, customer_email, customer_address, items } = req.body;
+    const { customer_name, customer_email, customer_address, zip, items } = req.body;
 
     if (!customer_name || !customer_email || !customer_address || !items || items.length === 0) {
       return res.status(400).json({ error: 'All order details and items are required' });
     }
 
     const user_id = req.user ? req.user.id : null;
-    const { total_amount, priceById } = await priceOrderItems(items);
+    const { total_amount: items_amount, priceById } = await priceOrderItems(items);
+
+    let shipping_charge = 0;
+    if (zip) {
+      const shippingInfo = await calculateShipping(zip);
+      shipping_charge = shippingInfo.shipping_charge;
+    }
+
+    const grand_total = items_amount + shipping_charge;
 
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
@@ -506,7 +537,8 @@ exports.createCodOrder = async (req, res) => {
         customer_name,
         customer_email,
         customer_address,
-        total_amount: parseFloat(total_amount),
+        total_amount: parseFloat(grand_total),
+        shipping_charge: parseFloat(shipping_charge),
         status: 'pending'
       }])
       .select();

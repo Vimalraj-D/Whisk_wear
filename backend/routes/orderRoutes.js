@@ -7,6 +7,7 @@ const orderController = require('../controllers/orderController');
 const { orderValidation } = require('../middleware/validation');
 
 router.post('/', optionalUserAuth, orderValidation.create, orderController.createOrder);
+router.get('/shipping-charge', orderController.getShippingCharge);
 router.get('/my-orders', userAuth, orderController.getMyOrders);
 router.get('/', adminAuth, orderController.getAllOrders);
 router.put('/:id', adminAuth, orderValidation.updateStatus, orderController.updateOrderStatus);

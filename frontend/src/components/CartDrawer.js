@@ -33,6 +33,10 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
 
+  const [shippingCharge, setShippingCharge] = useState(0);
+  const [distance, setDistance] = useState(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+
   useEffect(() => {
     if (user) {
       setForm(p => ({
@@ -54,12 +58,45 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
     }
   }, [user]);
 
+  useEffect(() => {
+    const cleanZip = String(form.zip).trim();
+    if (/^\d{6}$/.test(cleanZip)) {
+      const fetchShipping = async () => {
+        setIsCalculatingShipping(true);
+        try {
+          const res = await apiService.getShippingCharge(cleanZip);
+          if (res && res.success) {
+            setShippingCharge(res.shipping_charge);
+            setDistance(res.distance);
+          } else {
+            setShippingCharge(80);
+            setDistance(null);
+          }
+        } catch (err) {
+          console.error('Error fetching shipping charge:', err);
+          setShippingCharge(80);
+          setDistance(null);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      };
+      fetchShipping();
+    } else {
+      setShippingCharge(0);
+      setDistance(null);
+    }
+  }, [form.zip]);
+
   const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
   const handleCheckout = async (e) => {
     e.preventDefault();
     if (cart.length === 0) {
       showToast('Your cart is empty');
+      return;
+    }
+    if (!/^\d{6}$/.test(String(form.zip).trim())) {
+      showToast('Please enter a valid 6-digit ZIP / Postal Code');
       return;
     }
     if (loading) return;
@@ -78,8 +115,8 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
       const orderResponse = await apiService.placeOrder({
         customer_name: form.name,
         customer_email: form.email,
-        // Concatenate address fields into a single string for backend compatibility
         customer_address: `${form.building}, ${form.street}, ${form.city}, ${form.state}, ${form.zip}, ${form.country}`,
+        zip: form.zip,
         items: cart
       }, userToken || null);
       
@@ -88,8 +125,8 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
         throw new Error('Order creation failed on server');
       }
 
-      // Convert total to paise (1 INR = 100 paise)
-      const amountInPaise = Math.round(total * 100);
+      // Convert total to paise (1 INR = 100 paise) including shipping charge
+      const amountInPaise = Math.round((total + shippingCharge) * 100);
       if (amountInPaise < 100) {
         showToast('Order amount must be at least ₹1.00');
         setLoading(false);
@@ -181,6 +218,10 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
       showToast('Your cart is empty');
       return;
     }
+    if (!/^\d{6}$/.test(String(form.zip).trim())) {
+      showToast('Please enter a valid 6-digit ZIP / Postal Code');
+      return;
+    }
     if (loading) return;
     setLoading(true);
 
@@ -189,6 +230,7 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
         customer_name: form.name,
         customer_email: form.email,
         customer_address: `${form.building}, ${form.street}, ${form.city}, ${form.state}, ${form.zip}, ${form.country}`,
+        zip: form.zip,
         items: cart
       }, userToken || null);
 
@@ -252,8 +294,30 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
         {cart.length > 0 && (
           <div className="cart-summary">
             <div className="summary-row"><span>Subtotal</span><span>₹{total.toFixed(2)}</span></div>
-            <div className="summary-row"><span>Delivery</span><span style={{ color: 'var(--color-delivered)', fontWeight: 700 }}>FREE</span></div>
-            <div className="summary-row total"><span>Total</span><span>₹{total.toFixed(2)}</span></div>
+            <div className="summary-row">
+              <span>Delivery</span>
+              <span style={{ fontWeight: 700 }}>
+                {isCalculatingShipping ? (
+                  <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.85rem' }}>Calculating...</span>
+                ) : !/^\d{6}$/.test(form.zip) ? (
+                  <span style={{ color: '#e17055', fontSize: '0.85rem' }}>Enter 6-digit PIN</span>
+                ) : (
+                  <span style={{ color: 'var(--brand-teal)' }}>
+                    ₹{shippingCharge.toFixed(2)}
+                    {distance !== null && <span style={{ fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.35rem', color: 'var(--text-secondary)' }}>({distance} km)</span>}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="summary-row total">
+              <span>Total</span>
+              <span>₹{(total + shippingCharge).toFixed(2)}</span>
+            </div>
+            {/^\d{6}$/.test(form.zip) && !isCalculatingShipping && (
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: '-0.35rem 0 0.5rem 0', textAlign: 'right', opacity: 0.85 }}>
+                Delivery calculated from warehouse (637211)
+              </div>
+            )}
 
             <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
             {userToken ? (
@@ -265,7 +329,18 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                 <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
                 <input type="text" placeholder="City" className="form-control" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
                 <input type="text" placeholder="State / Province" className="form-control" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
-                <input type="text" placeholder="ZIP / Postal Code" className="form-control" value={form.zip} onChange={e => setForm(p => ({ ...p, zip: e.target.value }))} required />
+                <input 
+                  type="text" 
+                  maxLength={6} 
+                  placeholder="ZIP / Postal Code (6 digits)" 
+                  className="form-control" 
+                  value={form.zip} 
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setForm(p => ({ ...p, zip: val }));
+                  }} 
+                  required 
+                />
                 <input type="text" placeholder="Country" className="form-control" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
 
                 {/* Payment Method Selector */}

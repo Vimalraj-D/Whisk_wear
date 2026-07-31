@@ -148,6 +148,10 @@ export const apiService = {
   getTopProducts: async (token) => api.get('/analytics/top-products', getAuthHeaders(token)),
 
   // ─── Orders ───
+  getShippingCharge: async (pincode) => {
+    const r = await api.get('/orders/shipping-charge', { params: { pincode } });
+    return r.data;
+  },
   placeOrder: async (orderData, userToken = null) => {
     const headers = userToken ? getAuthHeaders(userToken).headers : {};
     const r = await api.post('/orders', orderData, { headers });
