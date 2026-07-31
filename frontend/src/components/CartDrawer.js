@@ -254,169 +254,172 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
 
   return (
     <div className={`cart-overlay ${isOpen ? 'open' : ''}`} onClick={closeCart}>
-      <div className="cart-drawer" onClick={e => e.stopPropagation()}>
-        <div className="cart-header">
+      <div className="cart-drawer" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.5rem 1.5rem 1rem 1.5rem' }} onClick={e => e.stopPropagation()}>
+        <div className="cart-header" style={{ marginBottom: '1rem', flexShrink: 0 }}>
           <h3>Shopping Bag ({cart.reduce((s, i) => s + i.quantity, 0)})</h3>
           <button className="close-btn" onClick={closeCart}>×</button>
         </div>
 
-        <div className="cart-items-container">
-          {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', marginTop: '4rem', color: 'var(--text-secondary)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
-              <p>Your bag is empty</p>
-            </div>
-          ) : cart.map((item, idx) => (
-            <div key={`${item.product_id}-${item.selectedSize}-${item.selectedColor}-${idx}`} className="cart-item">
-              <img src={getImageUrl(item.image_url)} alt={item.name} className="cart-item-img" />
-              <div className="cart-item-details">
-                <div className="cart-item-name">{item.name}</div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.15rem 0' }}>
-                  {item.selectedSize && <span style={{ fontSize: '0.75rem', background: '#f1f2f6', padding: '0.1rem 0.35rem', borderRadius: '4px', color: '#2f3542' }}>Size: {item.selectedSize}</span>}
-                  {item.selectedColor && (
-                    <span style={{ fontSize: '0.75rem', background: '#f1f2f6', padding: '0.1rem 0.35rem', borderRadius: '4px', color: '#2f3542', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                      Color: <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.selectedColor }} />
+        {/* Scrollable Container for Items and Checkout Details */}
+        <div className="cart-drawer-body" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingRight: '0.25rem' }}>
+          <div className="cart-items-container" style={{ overflowY: 'visible', flexGrow: 0, marginBottom: 0 }}>
+            {cart.length === 0 ? (
+              <div style={{ textAlign: 'center', marginTop: '4rem', color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
+                <p>Your bag is empty</p>
+              </div>
+            ) : cart.map((item, idx) => (
+              <div key={`${item.product_id}-${item.selectedSize}-${item.selectedColor}-${idx}`} className="cart-item">
+                <img src={getImageUrl(item.image_url)} alt={item.name} className="cart-item-img" />
+                <div className="cart-item-details">
+                  <div className="cart-item-name">{item.name}</div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.15rem 0' }}>
+                    {item.selectedSize && <span style={{ fontSize: '0.75rem', background: '#f1f2f6', padding: '0.1rem 0.35rem', borderRadius: '4px', color: '#2f3542' }}>Size: {item.selectedSize}</span>}
+                    {item.selectedColor && (
+                      <span style={{ fontSize: '0.75rem', background: '#f1f2f6', padding: '0.1rem 0.35rem', borderRadius: '4px', color: '#2f3542', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        Color: <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.selectedColor }} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="cart-item-price">₹{parseFloat(item.price).toFixed(2)}</div>
+                  <div className="cart-item-qty">
+                    <button className="qty-btn" onClick={() => updateCartQty(item.product_id, item.selectedSize, item.selectedColor, -1, 999)}>−</button>
+                    <span className="qty-val">{item.quantity}</span>
+                    <button className="qty-btn" onClick={() => updateCartQty(item.product_id, item.selectedSize, item.selectedColor, 1, 999)}>+</button>
+                  </div>
+                  <button className="cart-item-remove" onClick={() => removeFromCart(item.product_id, item.selectedSize, item.selectedColor)}>Remove</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {cart.length > 0 && (
+            <div className="cart-summary" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+              <div className="summary-row"><span>Subtotal</span><span>₹{total.toFixed(2)}</span></div>
+              <div className="summary-row">
+                <span>Delivery</span>
+                <span style={{ fontWeight: 700 }}>
+                  {isCalculatingShipping ? (
+                    <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.85rem' }}>Calculating...</span>
+                  ) : !/^\d{6}$/.test(form.zip) ? (
+                    <span style={{ color: '#e17055', fontSize: '0.85rem' }}>Enter 6-digit PIN</span>
+                  ) : (
+                    <span style={{ color: 'var(--brand-teal)' }}>
+                      ₹{shippingCharge.toFixed(2)}
+                      {distance !== null && <span style={{ fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.35rem', color: 'var(--text-secondary)' }}>({distance} km)</span>}
                     </span>
                   )}
-                </div>
-                <div className="cart-item-price">₹{parseFloat(item.price).toFixed(2)}</div>
-                <div className="cart-item-qty">
-                  <button className="qty-btn" onClick={() => updateCartQty(item.product_id, item.selectedSize, item.selectedColor, -1, 999)}>−</button>
-                  <span className="qty-val">{item.quantity}</span>
-                  <button className="qty-btn" onClick={() => updateCartQty(item.product_id, item.selectedSize, item.selectedColor, 1, 999)}>+</button>
-                </div>
-                <button className="cart-item-remove" onClick={() => removeFromCart(item.product_id, item.selectedSize, item.selectedColor)}>Remove</button>
+                </span>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {cart.length > 0 && (
-          <div className="cart-summary">
-            <div className="summary-row"><span>Subtotal</span><span>₹{total.toFixed(2)}</span></div>
-            <div className="summary-row">
-              <span>Delivery</span>
-              <span style={{ fontWeight: 700 }}>
-                {isCalculatingShipping ? (
-                  <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.85rem' }}>Calculating...</span>
-                ) : !/^\d{6}$/.test(form.zip) ? (
-                  <span style={{ color: '#e17055', fontSize: '0.85rem' }}>Enter 6-digit PIN</span>
-                ) : (
-                  <span style={{ color: 'var(--brand-teal)' }}>
-                    ₹{shippingCharge.toFixed(2)}
-                    {distance !== null && <span style={{ fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.35rem', color: 'var(--text-secondary)' }}>({distance} km)</span>}
-                  </span>
-                )}
-              </span>
-            </div>
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>₹{(total + shippingCharge).toFixed(2)}</span>
-            </div>
-            {/^\d{6}$/.test(form.zip) && !isCalculatingShipping && (
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: '-0.35rem 0 0.5rem 0', textAlign: 'right', opacity: 0.85 }}>
-                Delivery calculated from warehouse (637211)
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>₹{(total + shippingCharge).toFixed(2)}</span>
               </div>
-            )}
+              {/^\d{6}$/.test(form.zip) && !isCalculatingShipping && (
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: '-0.35rem 0 0.5rem 0', textAlign: 'right', opacity: 0.85 }}>
+                  Delivery calculated from warehouse (637211)
+                </div>
+              )}
 
-            <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
-            {userToken ? (
-              <form onSubmit={handleSubmit} className="checkout-form">
-                <input type="text" placeholder="Your name" className="form-control" value={form.name} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
-                <input type="email" placeholder="Email address" className="form-control" value={form.email} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
-                {/* Detailed address fields */}
-                <input type="text" placeholder="Building / Apartment No." className="form-control" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
-                <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
-                <input type="text" placeholder="City" className="form-control" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
-                <input type="text" placeholder="State / Province" className="form-control" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
-                <input 
-                  type="text" 
-                  maxLength={6} 
-                  placeholder="ZIP / Postal Code (6 digits)" 
-                  className="form-control" 
-                  value={form.zip} 
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    setForm(p => ({ ...p, zip: val }));
-                  }} 
-                  required 
-                />
-                <input type="text" placeholder="Country" className="form-control" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
+              <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
+              {userToken ? (
+                <form onSubmit={handleSubmit} className="checkout-form">
+                  <input type="text" placeholder="Your name" className="form-control" value={form.name} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
+                  <input type="email" placeholder="Email address" className="form-control" value={form.email} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
+                  {/* Detailed address fields */}
+                  <input type="text" placeholder="Building / Apartment No." className="form-control" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
+                  <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
+                  <input type="text" placeholder="City" className="form-control" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
+                  <input type="text" placeholder="State / Province" className="form-control" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
+                  <input 
+                    type="text" 
+                    maxLength={6} 
+                    placeholder="ZIP / Postal Code (6 digits)" 
+                    className="form-control" 
+                    value={form.zip} 
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setForm(p => ({ ...p, zip: val }));
+                    }} 
+                    required 
+                  />
+                  <input type="text" placeholder="Country" className="form-control" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
 
-                {/* Payment Method Selector */}
-                <div style={{ margin: '0.75rem 0' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>Payment Method</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('razorpay')}
-                      style={{
-                        flex: 1,
-                        padding: '0.6rem 0.5rem',
-                        borderRadius: '10px',
-                        border: paymentMethod === 'razorpay' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
-                        background: paymentMethod === 'razorpay' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
-                        color: paymentMethod === 'razorpay' ? 'var(--brand-teal)' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                        fontSize: '0.8rem',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.25rem'
-                      }}
-                    >
-                      <span style={{ fontSize: '1.2rem' }}>💳</span>
-                      <span>Pay Online</span>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>UPI / Card / Net Banking</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('cod')}
-                      style={{
-                        flex: 1,
-                        padding: '0.6rem 0.5rem',
-                        borderRadius: '10px',
-                        border: paymentMethod === 'cod' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
-                        background: paymentMethod === 'cod' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
-                        color: paymentMethod === 'cod' ? 'var(--brand-teal)' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                        fontSize: '0.8rem',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.25rem'
-                      }}
-                    >
-                      <span style={{ fontSize: '1.2rem' }}>🏠</span>
-                      <span>Cash on Delivery</span>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>Pay when delivered</span>
-                    </button>
+                  {/* Payment Method Selector */}
+                  <div style={{ margin: '0.75rem 0' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>Payment Method</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('razorpay')}
+                        style={{
+                          flex: 1,
+                          padding: '0.6rem 0.5rem',
+                          borderRadius: '10px',
+                          border: paymentMethod === 'razorpay' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
+                          background: paymentMethod === 'razorpay' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
+                          color: paymentMethod === 'razorpay' ? 'var(--brand-teal)' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>💳</span>
+                        <span>Pay Online</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>UPI / Card / Net Banking</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cod')}
+                        style={{
+                          flex: 1,
+                          padding: '0.6rem 0.5rem',
+                          borderRadius: '10px',
+                          border: paymentMethod === 'cod' ? '2px solid var(--brand-teal)' : '1.5px solid var(--border-color)',
+                          background: paymentMethod === 'cod' ? 'rgba(13,148,136,0.08)' : 'var(--bg-secondary)',
+                          color: paymentMethod === 'cod' ? 'var(--brand-teal)' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>🏠</span>
+                        <span>Cash on Delivery</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>Pay when delivered</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
-                  {loading
-                    ? (paymentMethod === 'cod' ? 'Placing COD Order...' : 'Opening Payment Gateway...')
-                    : (paymentMethod === 'cod' ? 'Place COD Order →' : 'Pay & Complete Order →')
-                  }
-                </button>
-              </form>
-            ) : (
-              <div style={{ marginTop: '1rem', textAlign: 'center', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontWeight: 600 }}>
-                  Please sign in to place an order.
-                </p>
-                <button type="button" className="btn btn-teal w-full" onClick={() => { closeCart(); navigate('/login'); }}>
-                  Sign In to Checkout →
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
+                    {loading
+                      ? (paymentMethod === 'cod' ? 'Placing COD Order...' : 'Opening Payment Gateway...')
+                      : (paymentMethod === 'cod' ? 'Place COD Order →' : 'Pay & Complete Order →')
+                    }
+                  </button>
+                </form>
+              ) : (
+                <div style={{ marginTop: '1rem', textAlign: 'center', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontWeight: 600 }}>
+                    Please sign in to place an order.
+                  </p>
+                  <button type="button" className="btn btn-teal w-full" onClick={() => { closeCart(); navigate('/login'); }}>
+                    Sign In to Checkout →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
