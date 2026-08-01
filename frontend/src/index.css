@@ -4252,3 +4252,545 @@ select:focus {
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   WHISKWEAR ANIMATION SYSTEM
+   Based on: advanced-animation-prompts.md, animation-code-examples.md,
+             animation-timing-reference.md
+   ─────────────────────────────────────────────────────────
+   All animations use transform + opacity for GPU acceleration.
+   Respects prefers-reduced-motion.
+═══════════════════════════════════════════════════════════ */
+
+/* ─── Additional Keyframes ─── */
+
+@keyframes slideInLeft-anim {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight-anim {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp-anim {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInDown-anim {
+  from { opacity: 0; transform: translateY(-40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn-anim {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes revealHorizontal {
+  from { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+  to   { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
+@keyframes revealCircle {
+  from { clip-path: circle(0% at 50% 50%); }
+  to   { clip-path: circle(100% at 50% 50%); }
+}
+
+@keyframes letterReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rippleEffect {
+  to { transform: scale(4); opacity: 0; }
+}
+
+@keyframes checkScale {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce-dots {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50%       { transform: translateY(-18px) scale(1.1); opacity: 0.7; }
+}
+
+@keyframes iconSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes progress-indeterminate {
+  0%   { width: 0%; left: 0; }
+  50%  { width: 70%; left: 15%; }
+  100% { width: 0%; left: 100%; }
+}
+
+@keyframes shimmer-left {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes floatUpDown {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes pulseScale {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+
+/* ─── 3D Card Tilt ─── */
+.card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, box-shadow;
+}
+.card-3d:hover {
+  transform: rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)) scale(1.02);
+}
+
+/* ─── Card Lift + Shadow Hover ─── */
+.card-lift {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  will-change: transform, box-shadow;
+}
+.card-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── Ripple Button ─── */
+.ripple-button {
+  position: relative;
+  overflow: hidden;
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transform: scale(0);
+  animation: rippleEffect 400ms cubic-bezier(0, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ─── Gradient Shift Button ─── */
+.gradient-button {
+  background: linear-gradient(45deg, #000000, #8B6F47, #2C2C2C, #8B6F47);
+  background-size: 300% 300%;
+  background-position: 0% 0%;
+  transition: background-position 500ms ease-out;
+}
+.gradient-button:hover {
+  background-position: 100% 100%;
+}
+
+/* ─── Growing Underline Hover (nav links) ─── */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--brand-orange);
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.link-underline:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* ─── Icon Rotation Hover ─── */
+.icon-rotate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.icon-rotate:hover {
+  animation: iconSpin 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ─── Magnetic Button (JS handles transform) ─── */
+.magnetic-btn {
+  transition: transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* ─── Shimmer Skeleton Loader ─── */
+.skeleton-box {
+  background: #E8E8E8;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+.skeleton-box::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  animation: shimmer-left 1.8s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+.skeleton-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: var(--radius-sm);
+}
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+.skeleton-line.short  { width: 60%; }
+.skeleton-line.medium { width: 80%; }
+.skeleton-line.full   { width: 100%; }
+.skeleton-title {
+  height: 18px;
+  border-radius: 4px;
+  margin-top: 12px;
+  width: 75%;
+}
+.skeleton-price {
+  height: 22px;
+  border-radius: 4px;
+  margin-top: 8px;
+  width: 40%;
+}
+.skeleton-btn {
+  height: 40px;
+  border-radius: var(--radius-sm);
+  margin-top: 14px;
+  width: 100%;
+}
+
+/* ─── Spinner Loader ─── */
+.spinner-anim {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--brand-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  will-change: transform;
+}
+.spinner-sm {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+}
+
+/* ─── Bouncing Dots Loader ─── */
+.dots-loader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.dot-anim {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: bounce-dots 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  will-change: transform;
+}
+.dot-anim:nth-child(1) { animation-delay: 0ms;   background: #000000; }
+.dot-anim:nth-child(2) { animation-delay: 150ms; background: var(--brand-orange); }
+.dot-anim:nth-child(3) { animation-delay: 300ms; background: var(--accent-kitchen); }
+
+/* ─── Progress Bar ─── */
+.progress-bar-wrap {
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill-anim {
+  height: 100%;
+  background: linear-gradient(90deg, #000000, var(--brand-orange));
+  border-radius: 4px;
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+.progress-fill-indeterminate {
+  height: 100%;
+  background: linear-gradient(90deg, #000000, var(--brand-orange));
+  border-radius: 4px;
+  position: absolute;
+  animation: progress-indeterminate 2s ease-in-out infinite;
+  will-change: width, left;
+}
+
+/* ─── 3D Text Extrusion ─── */
+.text-3d {
+  text-shadow:
+    1px 1px 0px rgba(0, 0, 0, 0.25),
+    2px 2px 1px rgba(0, 0, 0, 0.15),
+    4px 4px 3px rgba(0, 0, 0, 0.08);
+  transition: text-shadow 300ms ease-out;
+}
+.text-3d:hover {
+  text-shadow:
+    2px 2px 0px rgba(0, 0, 0, 0.35),
+    4px 4px 2px rgba(0, 0, 0, 0.2),
+    8px 8px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Floating Label (Form Input) ─── */
+.floating-group {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+.floating-input {
+  width: 100%;
+  padding: 18px 12px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
+  outline: none;
+}
+.floating-input:focus {
+  border-color: var(--brand-orange);
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.12);
+}
+.floating-label {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  transform-origin: top left;
+}
+.floating-input:focus ~ .floating-label,
+.floating-input:not(:placeholder-shown) ~ .floating-label {
+  transform: translateY(-10px) scale(0.75);
+  color: var(--brand-orange);
+  font-weight: 600;
+}
+
+/* ─── Stagger Entrance Animation Helpers ─── */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 500ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
+}
+.stagger-item.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.stagger-item:nth-child(1)  { transition-delay: 0ms; }
+.stagger-item:nth-child(2)  { transition-delay: 75ms; }
+.stagger-item:nth-child(3)  { transition-delay: 150ms; }
+.stagger-item:nth-child(4)  { transition-delay: 225ms; }
+.stagger-item:nth-child(5)  { transition-delay: 300ms; }
+.stagger-item:nth-child(6)  { transition-delay: 375ms; }
+.stagger-item:nth-child(7)  { transition-delay: 450ms; }
+.stagger-item:nth-child(8)  { transition-delay: 525ms; }
+.stagger-item:nth-child(9)  { transition-delay: 600ms; }
+.stagger-item:nth-child(10) { transition-delay: 675ms; }
+.stagger-item:nth-child(11) { transition-delay: 750ms; }
+.stagger-item:nth-child(12) { transition-delay: 825ms; }
+
+/* ─── Letter-by-Letter Reveal ─── */
+.letter-reveal .letter {
+  display: inline-block;
+  opacity: 0;
+  animation: letterReveal 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ─── Clip-path Reveal ─── */
+.reveal-horizontal {
+  animation: revealHorizontal 1s ease-out forwards;
+}
+.reveal-circle {
+  animation: revealCircle 1.2s ease-out forwards;
+}
+
+/* ─── Smooth Scale Hover (logo, images) ─── */
+.scale-hover {
+  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+/* ─── Float animation ─── */
+.float-anim {
+  animation: floatUpDown 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ─── Pulse Scale ─── */
+.pulse-scale {
+  animation: pulseScale 2s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ─── Enhanced btn micro interaction ─── */
+.btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* ─── Category Circle Enhanced Hover ─── */
+.category-circle-card {
+  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+.category-circle-card:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* ─── Product Card Enhanced Hover ─── */
+.product-card {
+  will-change: transform, box-shadow;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.14);
+}
+
+/* ─── Header Icon Buttons micro animation ─── */
+.icon-btn {
+  transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              color 200ms ease-out !important;
+  will-change: transform;
+}
+.icon-btn:hover {
+  transform: scale(1.15) !important;
+}
+.icon-btn:active {
+  transform: scale(0.9) !important;
+}
+
+/* ─── Logo hover ─── */
+.logo-container {
+  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 200ms ease-out !important;
+}
+.logo-container:hover {
+  transform: scale(1.03) !important;
+}
+
+/* ─── Cart Item staggered entrance ─── */
+.cart-item-enter {
+  animation: slideInRight-anim 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.cart-item-exit {
+  animation: slideInRight-anim 300ms cubic-bezier(0.4, 0, 1, 1) reverse forwards;
+  pointer-events: none;
+}
+
+/* ─── Arrow circle button hover ─── */
+.arrow-circle-btn {
+  will-change: transform;
+}
+.arrow-circle-btn:hover {
+  transform: translateX(4px) scale(1.08) !important;
+}
+
+/* ─── Heart / Wishlist active pulse ─── */
+.heart-active {
+  animation: pulseScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+/* ─── Badge pop ─── */
+.badge-pop {
+  animation: scaleIn-anim 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PERFORMANCE & ACCESSIBILITY GUARDS
+═══════════════════════════════════════════════════════════ */
+
+/* Hover effects only on pointer devices */
+@media (hover: none) {
+  .card-3d:hover,
+  .card-lift:hover,
+  .category-circle-card:hover,
+  .product-card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-sm) !important;
+  }
+  .icon-btn:hover {
+    transform: none !important;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  .stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .letter-reveal .letter {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .skeleton-box::after {
+    animation: none !important;
+  }
+}
+
+/* Mobile: tighter animations */
+@media (max-width: 640px) {
+  .stagger-item {
+    transition-duration: 350ms !important;
+  }
+  .card-lift:hover {
+    transform: translateY(-4px) !important;
+  }
+}

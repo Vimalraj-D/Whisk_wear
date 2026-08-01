@@ -19,10 +19,10 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
 
       {/* Nav Links (Desktop) */}
       <nav className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-        <Link to="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMenu}>Home</Link>
-        <Link to="/shop" className={`nav-link ${pathname === '/shop' ? 'active' : ''}`} onClick={closeMenu}>Shop</Link>
-        <Link to="/collections" className={`nav-link ${pathname === '/collections' ? 'active' : ''}`} onClick={closeMenu}>Collections</Link>
-        {adminToken && <Link to="/admin" className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={closeMenu}>Dashboard</Link>}
+        <Link to="/" className={`nav-link link-underline ${pathname === '/' ? 'active' : ''}`} onClick={closeMenu}>Home</Link>
+        <Link to="/shop" className={`nav-link link-underline ${pathname === '/shop' ? 'active' : ''}`} onClick={closeMenu}>Shop</Link>
+        <Link to="/collections" className={`nav-link link-underline ${pathname === '/collections' ? 'active' : ''}`} onClick={closeMenu}>Collections</Link>
+        {adminToken && <Link to="/admin" className={`nav-link link-underline ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={closeMenu}>Dashboard</Link>}
         
         {/* Mobile-Only Items (Cart & Profile) */}
         {!adminToken && (
@@ -56,7 +56,7 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
       {/* Actions */}
       <div className="header-actions">
         {/* Search Icon */}
-        <button className="icon-btn search-btn" onClick={() => { navigate('/shop?focus=search'); closeMenu(); }} title="Search" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button className="icon-btn search-btn icon-rotate" onClick={() => { navigate('/shop?focus=search'); closeMenu(); }} title="Search" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -64,7 +64,7 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
         </button>
 
         {user && !adminToken && (
-          <button className="icon-btn wishlist-btn-header desktop-only-nav-item" onClick={() => { setIsWishlistOpen(true); closeMenu(); }} title="Wishlist" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <button className="icon-btn wishlist-btn-header desktop-only-nav-item icon-rotate" onClick={() => { setIsWishlistOpen(true); closeMenu(); }} title="Wishlist" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
@@ -73,7 +73,7 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
         )}
 
         {!adminToken && (
-          <button className="icon-btn cart-btn desktop-only-nav-item" onClick={() => { openCart(); closeMenu(); }} title="Cart" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <button className="icon-btn cart-btn desktop-only-nav-item icon-rotate" onClick={() => { openCart(); closeMenu(); }} title="Cart" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
               <circle cx="20" cy="21" r="1"></circle>

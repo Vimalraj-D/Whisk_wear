@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
+import AnimatedButton from './AnimatedButton';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -306,7 +307,6 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                   ) : (
                     <span style={{ color: 'var(--brand-teal)' }}>
                       ₹{shippingCharge.toFixed(2)}
-                      {distance !== null && <span style={{ fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.35rem', color: 'var(--text-secondary)' }}>({distance} km)</span>}
                     </span>
                   )}
                 </span>
@@ -315,11 +315,6 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                 <span>Total</span>
                 <span>₹{(total + shippingCharge).toFixed(2)}</span>
               </div>
-              {/^\d{6}$/.test(form.zip) && !isCalculatingShipping && (
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: '-0.35rem 0 0.5rem 0', textAlign: 'right', opacity: 0.85 }}>
-                  Delivery calculated from warehouse (637211)
-                </div>
-              )}
 
               <h4 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Delivery Details</h4>
               {userToken ? (
@@ -327,31 +322,51 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                   <input type="text" placeholder="Your name" className="form-control" value={form.name} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
                   <input type="email" placeholder="Email address" className="form-control" value={form.email} readOnly style={{ opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-secondary)' }} />
                   {/* Detailed address fields */}
-                  <input type="text" placeholder="Building / Apartment No." className="form-control" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
-                  <input type="text" placeholder="Street / Lane" className="form-control" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
-                  <input type="text" placeholder="City" className="form-control" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
-                  <input type="text" placeholder="State / Province" className="form-control" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
-                  <input 
-                    type="text" 
-                    maxLength={6} 
-                    placeholder="ZIP / Postal Code (6 digits)" 
-                    className="form-control" 
-                    value={form.zip} 
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setForm(p => ({ ...p, zip: val }));
-                    }} 
-                    required 
-                  />
-                  <input type="text" placeholder="Country" className="form-control" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
+                  <div className="floating-group">
+                    <input type="text" id="cart-building" placeholder=" " className="floating-input" value={form.building} onChange={e => setForm(p => ({ ...p, building: e.target.value }))} required />
+                    <label htmlFor="cart-building" className="floating-label">Building / Apartment No.</label>
+                  </div>
+                  <div className="floating-group">
+                    <input type="text" id="cart-street" placeholder=" " className="floating-input" value={form.street} onChange={e => setForm(p => ({ ...p, street: e.target.value }))} required />
+                    <label htmlFor="cart-street" className="floating-label">Street / Lane</label>
+                  </div>
+                  <div className="floating-group">
+                    <input type="text" id="cart-city" placeholder=" " className="floating-input" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} required />
+                    <label htmlFor="cart-city" className="floating-label">City</label>
+                  </div>
+                  <div className="floating-group">
+                    <input type="text" id="cart-state" placeholder=" " className="floating-input" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} required />
+                    <label htmlFor="cart-state" className="floating-label">State / Province</label>
+                  </div>
+                  <div className="floating-group">
+                    <input 
+                      type="text" 
+                      id="cart-zip"
+                      maxLength={6} 
+                      placeholder=" " 
+                      className="floating-input" 
+                      value={form.zip} 
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setForm(p => ({ ...p, zip: val }));
+                      }} 
+                      required 
+                    />
+                    <label htmlFor="cart-zip" className="floating-label">ZIP / Postal Code (6 digits)</label>
+                  </div>
+                  <div className="floating-group">
+                    <input type="text" id="cart-country" placeholder=" " className="floating-input" value={form.country} onChange={e => setForm(p => ({ ...p, country: e.target.value }))} required />
+                    <label htmlFor="cart-country" className="floating-label">Country</label>
+                  </div>
 
                   {/* Payment Method Selector */}
-                  <div style={{ margin: '0.75rem 0' }}>
+                  <div style={{ margin: '1.25rem 0' }}>
                     <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>Payment Method</label>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
+                      <AnimatedButton
                         type="button"
                         onClick={() => setPaymentMethod('razorpay')}
+                        className="ripple-button"
                         style={{
                           flex: 1,
                           padding: '0.6rem 0.5rem',
@@ -372,10 +387,11 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                         <span style={{ fontSize: '1.2rem' }}>💳</span>
                         <span>Pay Online</span>
                         <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>UPI / Card / Net Banking</span>
-                      </button>
-                      <button
+                      </AnimatedButton>
+                      <AnimatedButton
                         type="button"
                         onClick={() => setPaymentMethod('cod')}
+                        className="ripple-button"
                         style={{
                           flex: 1,
                           padding: '0.6rem 0.5rem',
@@ -396,25 +412,25 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
                         <span style={{ fontSize: '1.2rem' }}>🏠</span>
                         <span>Cash on Delivery</span>
                         <span style={{ fontSize: '0.65rem', fontWeight: 400, opacity: 0.7 }}>Pay when delivered</span>
-                      </button>
+                      </AnimatedButton>
                     </div>
                   </div>
 
-                  <button type="submit" className="btn btn-teal w-full" style={{ marginTop: '0.5rem' }} disabled={loading}>
+                  <AnimatedButton type="submit" className="btn btn-teal w-full ripple-button" style={{ marginTop: '0.5rem' }} disabled={loading}>
                     {loading
                       ? (paymentMethod === 'cod' ? 'Placing COD Order...' : 'Opening Payment Gateway...')
                       : (paymentMethod === 'cod' ? 'Place COD Order →' : 'Pay & Complete Order →')
                     }
-                  </button>
+                  </AnimatedButton>
                 </form>
               ) : (
                 <div style={{ marginTop: '1rem', textAlign: 'center', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', fontWeight: 600 }}>
                     Please sign in to place an order.
                   </p>
-                  <button type="button" className="btn btn-teal w-full" onClick={() => { closeCart(); navigate('/login'); }}>
+                  <AnimatedButton type="button" className="btn btn-teal w-full ripple-button" onClick={() => { closeCart(); navigate('/login'); }}>
                     Sign In to Checkout →
-                  </button>
+                  </AnimatedButton>
                 </div>
               )}
             </div>

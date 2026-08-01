@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
-import ScrollReveal from '../components/ScrollReveal';
+import ScrollReveal, { StaggerGroup } from '../components/ScrollReveal';
+import AnimatedButton from '../components/AnimatedButton';
+import { ProductGridSkeleton, CategorySkeleton } from '../components/SkeletonLoader';
+import { init3DCardTilt, createRipple } from '../utils/animations';
 
 const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/i_not_need_whisk_wear_text_in.mp4', // #video url 1
@@ -238,12 +241,16 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
       <section className="hero-grid" style={{ position: 'relative', overflow: 'hidden' }}>
         <div className="hero-left" style={{ animation: 'fadeUp 0.5s ease-out' }} key={`text-${currentSlide}`}>
           <div className="hero-badge">{slide.badge}</div>
-          <h1 className="hero-title" style={{ whiteSpace: 'pre-line' }}>{slide.title}</h1>
+          <h1 className="hero-title text-3d" style={{ whiteSpace: 'pre-line' }}>{slide.title}</h1>
           <p className="hero-subtitle">{slide.subtitle}</p>
           <div className="hero-cta-row">
-            <button className="btn btn-primary btn-lg" onClick={() => navigate('/shop')}>
+            <AnimatedButton
+              className="btn btn-primary btn-lg ripple-button"
+              onClick={() => navigate('/shop')}
+              magnetic
+            >
               {slide.cta} &nbsp; ➔
-            </button>
+            </AnimatedButton>
           </div>
         </div>
         <div className="hero-right" style={{ animation: isMobile ? 'dropDown 0.6s ease-out 0.2s backwards' : 'slideInFromLeft 0.8s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
@@ -275,8 +282,10 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             <button className="arrow-circle-btn" onClick={() => navigate('/collections')}>➔</button>
           </div>
 
-          <div className="categories-container">
-            {categories.map((c, idx) => (
+          <ScrollReveal stagger className="categories-container" threshold={0.05}>
+            {categories.length === 0 ? (
+              <CategorySkeleton count={5} />
+            ) : categories.map((c, idx) => (
               <div
                 key={idx}
                 className="category-circle-wrapper"
@@ -284,7 +293,10 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                   navigate(`/shop?category=${c.key}`);
                 }}
               >
-                <div className={`category-circle-card`}>
+                <div
+                  className="category-circle-card"
+                  ref={el => { if (el) init3DCardTilt(el); }}
+                >
                   <ImageWithSkeleton src={c.img} alt={c.label} className="category-circle-img" />
                   <div className="category-circle-overlay">
                     <span className="category-circle-name">{c.label}</span>
@@ -292,7 +304,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                 </div>
               </div>
             ))}
-          </div>
+          </ScrollReveal>
         </section>
       </ScrollReveal>
 
@@ -308,17 +320,16 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         </ScrollReveal>
 
         {loading ? (
-          <div className="loading-screen"><div className="spinner" /></div>
+          <div className="product-grid"><ProductGridSkeleton count={8} /></div>
         ) : (
-          <div className="product-grid">
+          <ScrollReveal stagger className="product-grid" threshold={0.05}>
             {featuredProducts.map((p, idx) => {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
               const isWishlisted = wishlist.some(item => item.id === p.id);
               return (
-                <ScrollReveal key={p.id} delay={(idx % 4) * 100} threshold={0.05}>
-                  <div className="product-card">
+                <div key={p.id} className="product-card">
                     <div className="product-img-wrapper">
                       <ImageWithSkeleton src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" style={{ position: 'absolute', inset: 0 }} />
                       {hasDiscount ? (
@@ -355,7 +366,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <AnimatedButton className="btn btn-teal ripple-button" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</AnimatedButton>
                           <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
@@ -377,7 +388,6 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       <p className="product-desc">{p.description}</p>
                     </div>
                   </div>
-                </ScrollReveal>
               );
             })}
             {featuredProducts.length === 0 && (
@@ -385,7 +395,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                 No featured products yet.
               </div>
             )}
-          </div>
+          </ScrollReveal>
         )}
       </section>
 
@@ -552,17 +562,16 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         </ScrollReveal>
 
         {loading ? (
-          <div className="loading-screen"><div className="spinner" /></div>
+          <div className="product-grid"><ProductGridSkeleton count={6} /></div>
         ) : (
-          <div className="product-grid">
+          <ScrollReveal stagger className="product-grid" threshold={0.05}>
             {bestSellers.map((p, idx) => {
               const originalPrice = parseFloat(p.price);
               const hasDiscount = p.discount_percent > 0;
               const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
               const isWishlisted = wishlist.some(item => item.id === p.id);
               return (
-                <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.05}>
-                  <div className="product-card">
+                <div key={p.id} className="product-card">
                     <div className="product-img-wrapper">
                       <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
                       {hasDiscount && (
@@ -597,7 +606,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <button className="btn btn-teal" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</button>
+                          <AnimatedButton className="btn btn-teal ripple-button" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</AnimatedButton>
                           <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
@@ -624,7 +633,6 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       )}
                     </div>
                   </div>
-                </ScrollReveal>
               );
             })}
             {bestSellers.length === 0 && (
@@ -632,7 +640,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                 No products purchased yet.
               </div>
             )}
-          </div>
+          </ScrollReveal>
         )}
       </section>
 

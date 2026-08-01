@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiService, getImageUrl } from '../api';
 import ImageWithSkeleton from '../components/ImageWithSkeleton';
-import ScrollReveal from '../components/ScrollReveal';
+import ScrollReveal, { StaggerGroup } from '../components/ScrollReveal';
+import AnimatedButton from '../components/AnimatedButton';
+import { ProductGridSkeleton } from '../components/SkeletonLoader';
 
 // Custom inline SVG icons for premium look and self-containment
 const SearchIcon = () => (
@@ -852,18 +854,10 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
         {/* Product List Grid Column */}
         <main style={{ width: '100%' }}>
           
-          {loading ? (
+           {loading ? (
             /* Skeletons */
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="skeleton-card" style={{ height: '380px' }}>
-                  <div className="skeleton-img" style={{ height: '240px' }} />
-                  <div className="skeleton-info" style={{ padding: '1rem' }}>
-                    <div className="skeleton-line title" style={{ width: '80%', height: '14px', marginBottom: '8px' }} />
-                    <div className="skeleton-line short" style={{ width: '50%', height: '12px' }} />
-                  </div>
-                </div>
-              ))}
+            <div className="shop-products-grid-layout product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+              <ProductGridSkeleton count={8} />
             </div>
           ) : sortedProducts.length === 0 ? (
             /* Empty State */
@@ -871,57 +865,59 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
               <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No products match your filters</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Try clearing some of your search parameters or select a different category.</p>
-              <button 
+              <AnimatedButton 
                 onClick={resetAllFilters} 
+                className="btn btn-primary ripple-button"
                 style={{
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg-primary)',
-                  border: 'none',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '30px',
                   fontWeight: 'bold',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer'
+                  fontSize: '0.85rem'
                 }}
               >
                 Reset All Filters
-              </button>
+              </AnimatedButton>
             </div>
           ) : (
             /* Products List / Grid */
-            <div className={viewMode === 'grid' ? 'shop-products-grid-layout' : 'shop-products-list-layout'} style={viewMode === 'grid' ? {
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: '1.5rem'
-            } : { gap: '1.5rem' }}>
+            <ScrollReveal
+              stagger
+              key={`${viewMode}-${selectedCategory}-${selectedSubcategories.join(',')}-${selectedSizes.join(',')}`}
+              className={viewMode === 'grid' ? 'shop-products-grid-layout product-grid' : 'shop-products-list-layout'}
+              threshold={0.02}
+              style={viewMode === 'grid' ? {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                gap: '1.5rem'
+              } : { gap: '1.5rem' }}
+            >
               {sortedProducts.map((p, idx) => {
                 const originalPrice = parseFloat(p.price);
                 const hasDiscount = p.discount_percent > 0;
                 const discountPrice = hasDiscount ? originalPrice * (1 - p.discount_percent / 100) : originalPrice;
                 const isWishlisted = wishlist.some(item => item.id === p.id);
                 const ratingInfo = getProductRating(p.id);
-
                 return (
-                  <ScrollReveal key={p.id} delay={(idx % 3) * 100} threshold={0.02}>
-                    <article className={`premium-product-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
-                      
-                      {/* Image Frame */}
-                      <div className="premium-product-img-wrapper">
-                        <img 
-                          src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} 
-                          alt={p.name}
-                          onClick={() => navigate(`/product/${p.id}`)}
-                          style={{ cursor: 'pointer' }}
-                        />
+                  <article key={p.id} className={`premium-product-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
+                    
+                    {/* Image Frame */}
+                    <div className="premium-product-img-wrapper">
+                      <ImageWithSkeleton 
+                        src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} 
+                        alt={p.name}
+                        onClick={() => navigate(`/product/${p.id}`)}
+                        style={{ cursor: 'pointer', position: 'absolute', inset: 0 }}
+                      />
 
-                        {/* Badges */}
-                        {hasDiscount ? (
-                          <div className="card-discount-badge">-{p.discount_percent}%</div>
-                        ) : (
-                          p.is_featured && <div className="card-new-badge">FEATURED</div>
-                        )}
+                      {/* Badges */}
+                      {hasDiscount ? (
+                        <div className="card-discount-badge">-{p.discount_percent}%</div>
+                      ) : (
+                        p.is_featured && <div className="card-new-badge">FEATURED</div>
+                      )}
 
-                        {/* Wishlist Button */}
+                      {/* Wishlist Button */}
+                      {user && (
                         <button 
                           className={`card-wishlist-circle-btn ${isWishlisted ? 'wishlisted' : ''}`}
                           onClick={(e) => {
@@ -932,141 +928,141 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                         >
                           <HeartIcon filled={isWishlisted} />
                         </button>
+                      )}
 
-                        {/* Hover Quick Panel (Grid Mode Only) */}
-                        <div className="premium-card-hover-panel">
-                          <button 
-                            className="hover-panel-btn primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url });
-                            }}
+                      {/* Hover Quick Panel */}
+                      <div className="premium-card-hover-panel">
+                        <AnimatedButton 
+                          className="hover-panel-btn primary ripple-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url });
+                          }}
+                        >
+                          Add to Bag
+                        </AnimatedButton>
+                        <button 
+                          className="hover-panel-btn secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/product/${p.id}`);
+                          }}
+                        >
+                          Details
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Product details */}
+                    {viewMode === 'list' ? (
+                      <div 
+                        className="premium-product-details list-layout-split" 
+                        onClick={() => navigate(`/product/${p.id}`)} 
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="list-details-left-side">
+                          <span className="premium-card-brand-label">
+                            {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
+                          </span>
+                          
+                          <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
+
+                          {/* Star rating */}
+                          <div className="premium-card-rating-line">
+                            <StarIcon />
+                            <span>{ratingInfo.rating}</span>
+                            <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
+                          </div>
+
+                          {/* Price line */}
+                          <div className="premium-card-price-row">
+                            <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
+                            {hasDiscount && (
+                              <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
+                            )}
+                          </div>
+
+                          {/* Color Dots */}
+                          {Array.isArray(p.colors) && p.colors.length > 0 && (
+                            <div className="premium-card-swatches-row">
+                              {p.colors.slice(0, 4).map((cHex, cIdx) => (
+                                <div 
+                                  key={cIdx} 
+                                  className="card-color-dot-swatch"
+                                  style={{ backgroundColor: cHex }}
+                                />
+                              ))}
+                              {p.colors.length > 4 && (
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right part: Action Buttons stacked in a column */}
+                        <div className="list-details-right-side" onClick={e => e.stopPropagation()}>
+                          <AnimatedButton 
+                            className="premium-list-action-btn primary ripple-button"
+                            onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}
                           >
                             Add to Bag
-                          </button>
+                          </AnimatedButton>
                           <button 
-                            className="hover-panel-btn secondary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/product/${p.id}`);
-                            }}
+                            className="premium-list-action-btn secondary"
+                            onClick={() => navigate(`/product/${p.id}`)}
                           >
                             Details
                           </button>
                         </div>
                       </div>
-
-                      {/* Product details */}
+                    ) : (
                       <div 
-                        className={`premium-product-details ${viewMode === 'list' ? 'list-layout-split' : ''}`} 
+                        className="premium-product-details" 
                         onClick={() => navigate(`/product/${p.id}`)} 
                         style={{ cursor: 'pointer' }}
                       >
-                        {viewMode === 'list' ? (
-                          <>
-                            {/* Left part: Brand, Name, Rating, Price, Swatches */}
-                            <div className="list-details-left-side">
-                              <span className="premium-card-brand-label">
-                                {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
-                              </span>
-                              
-                              <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
+                        <span className="premium-card-brand-label">
+                          {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
+                        </span>
+                        
+                        <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
 
-                              {/* Star rating */}
-                              <div className="premium-card-rating-line">
-                                <StarIcon />
-                                <span>{ratingInfo.rating}</span>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
-                              </div>
+                        {/* Star rating */}
+                        <div className="premium-card-rating-line">
+                          <StarIcon />
+                          <span>{ratingInfo.rating}</span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
+                        </div>
 
-                              {/* Price line */}
-                              <div className="premium-card-price-row">
-                                <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
-                                {hasDiscount && (
-                                  <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
-                                )}
-                              </div>
+                        {/* Price line */}
+                        <div className="premium-card-price-row">
+                          <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
+                          {hasDiscount && (
+                            <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
 
-                              {/* Color Dots */}
-                              {Array.isArray(p.colors) && p.colors.length > 0 && (
-                                <div className="premium-card-swatches-row">
-                                  {p.colors.slice(0, 4).map((cHex, cIdx) => (
-                                    <div 
-                                      key={cIdx} 
-                                      className="card-color-dot-swatch"
-                                      style={{ backgroundColor: cHex }}
-                                    />
-                                  ))}
-                                  {p.colors.length > 4 && (
-                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Right part: Action Buttons stacked in a column */}
-                            <div className="list-details-right-side" onClick={e => e.stopPropagation()}>
-                              <button 
-                                className="premium-list-action-btn primary"
-                                onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}
-                              >
-                                Add to Bag
-                              </button>
-                              <button 
-                                className="premium-list-action-btn secondary"
-                                onClick={() => navigate(`/product/${p.id}`)}
-                              >
-                                Details
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <span className="premium-card-brand-label">
-                              {categories.find(c => c.id === p.category_id)?.name || 'Apparel'}
-                            </span>
-                            
-                            <h4 className="premium-card-name-title" title={p.name}>{p.name}</h4>
-
-                            {/* Star rating */}
-                            <div className="premium-card-rating-line">
-                              <StarIcon />
-                              <span>{ratingInfo.rating}</span>
-                              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({ratingInfo.count})</span>
-                            </div>
-
-                            {/* Price line */}
-                            <div className="premium-card-price-row">
-                              <span className="premium-card-current-price">₹{discountPrice.toFixed(2)}</span>
-                              {hasDiscount && (
-                                <span className="premium-card-original-price">₹{originalPrice.toFixed(2)}</span>
-                              )}
-                            </div>
-
-                            {/* Color Dots */}
-                            {Array.isArray(p.colors) && p.colors.length > 0 && (
-                              <div className="premium-card-swatches-row">
-                                {p.colors.slice(0, 4).map((cHex, cIdx) => (
-                                  <div 
-                                    key={cIdx} 
-                                    className="card-color-dot-swatch"
-                                    style={{ backgroundColor: cHex }}
-                                  />
-                                ))}
-                                {p.colors.length > 4 && (
-                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
-                                )}
-                              </div>
+                        {/* Color Dots */}
+                        {Array.isArray(p.colors) && p.colors.length > 0 && (
+                          <div className="premium-card-swatches-row">
+                            {p.colors.slice(0, 4).map((cHex, cIdx) => (
+                              <div 
+                                key={cIdx} 
+                                className="card-color-dot-swatch"
+                                style={{ backgroundColor: cHex }}
+                              />
+                            ))}
+                            {p.colors.length > 4 && (
+                              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>+{p.colors.length - 4}</span>
                             )}
-                          </>
+                          </div>
                         )}
                       </div>
-
-                    </article>
-                  </ScrollReveal>
+                    )}
+                  </article>
                 );
               })}
-            </div>
+            </ScrollReveal>
           )}
 
         </main>
