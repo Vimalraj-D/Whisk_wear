@@ -3102,20 +3102,20 @@ img { display: block; }
     padding: 1rem !important;
   }
   .drawer-subcategories-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-    max-height: 380px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+    max-height: 440px;
     padding-right: 0.25rem;
   }
   .drawer-subcategory-card {
-    height: 166px;
+    height: 210px;
   }
   .drawer-subcategory-image {
-    height: 118px;
-    flex-basis: 118px;
+    height: 150px;
+    flex-basis: 150px;
   }
   .drawer-subcategory-info {
-    min-height: 48px;
+    min-height: 55px;
     padding: 0.65rem 0.5rem;
   }
   .collection-editorial-card:hover .collection-highlights-drawer {
@@ -3143,19 +3143,19 @@ img { display: block; }
     gap: 1rem !important;
   }
   .drawer-subcategories-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-    max-height: 386px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    max-height: 440px;
   }
   .drawer-subcategory-card {
-    height: 170px;
+    height: 190px;
   }
   .drawer-subcategory-image {
-    height: 124px;
-    flex-basis: 124px;
+    height: 135px;
+    flex-basis: 135px;
   }
   .drawer-subcategory-info {
-    min-height: 46px;
+    min-height: 50px;
   }
 }
 
