@@ -39,28 +39,30 @@ const StockAlertsPage = () => {
       {lowStockProducts.length === 0 ? (
         <p className="no-alerts">All products have sufficient stock.</p>
       ) : (
-        <table className="stock-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Current Stock</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lowStockProducts.map(p => (
-              <tr key={p.id}>
-                <td>{p.name}</td>
-                <td>{p.stock}</td>
-                <td>
-                  <button className="btn btn-warning btn-sm" onClick={() => handleRestock(p.id)}>
-                    Restock
-                  </button>
-                </td>
+        <div className="table-responsive">
+          <table className="stock-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Current Stock</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {lowStockProducts.map(p => (
+                <tr key={p.id}>
+                  <td>{p.name}</td>
+                  <td>{p.stock}</td>
+                  <td>
+                    <button className="btn btn-warning btn-sm" onClick={() => handleRestock(p.id)}>
+                      Restock
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

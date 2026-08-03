@@ -61,7 +61,7 @@ export default function NewsletterPage({ adminToken, showToast }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }} className="newsletter-admin-grid">
+    <div className="newsletter-admin-grid">
       
       {/* Compose Form */}
       <div style={{ background: 'var(--glossy-bg)', border: '1px solid var(--glossy-border)', borderRadius: '16px', padding: '2rem', boxShadow: 'var(--shadow-sm)' }}>

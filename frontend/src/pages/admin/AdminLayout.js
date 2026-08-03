@@ -11,6 +11,7 @@ import NewsletterPage from './NewsletterPage';
 export default function AdminLayout({ adminToken, showToast, onSessionExpired }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('Dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   
@@ -151,9 +152,17 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
 
   return (
     <div className="admin-page-container">
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setIsMobileSidebarOpen(false)}></div>
+      )}
+
       {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="logo-container" onClick={() => navigate('/')} style={{ padding: '2rem 1rem', display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px' }}>
+      <aside className={`admin-sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
+        <div className="admin-sidebar-close">
+          <button type="button" onClick={() => setIsMobileSidebarOpen(false)}>×</button>
+        </div>
+        <div className="logo-container" onClick={() => { navigate('/'); setIsMobileSidebarOpen(false); }} style={{ padding: '1rem', display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px' }}>
           <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" style={{ width: '40px', height: '40px' }} />
           <span className="logo-wordmark" style={{ fontSize: '1.4rem' }}>WHISK<span style={{ color: 'var(--brand-teal)' }}>WEAR</span></span>
         </div>
@@ -162,7 +171,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
             <button 
               key={m.name} 
               className={`admin-nav-item ${tab === m.name ? 'active' : ''}`}
-              onClick={() => setTab(m.name)}
+              onClick={() => { setTab(m.name); setIsMobileSidebarOpen(false); }}
             >
               <span className="admin-nav-icon">{m.icon}</span>
               {m.name}
@@ -174,7 +183,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
           Shortcuts
         </div>
         <nav className="admin-sidebar-nav">
-          <button className="admin-nav-item" onClick={() => navigate('/')}>
+          <button className="admin-nav-item" onClick={() => { navigate('/'); setIsMobileSidebarOpen(false); }}>
             <span className="admin-nav-icon">🏠</span>
             Back to Store
           </button>
@@ -185,11 +194,16 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
       <main className="admin-main-content">
         {/* Top bar */}
         <header className="admin-topbar">
-          <div className="admin-breadcrumb">
-            <span style={{ color: 'var(--brand-purple)', fontWeight: '700' }}>W&W Admin</span> <span style={{ color: 'var(--text-muted)' }}>/ {tab}</span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button className="admin-mobile-menu-btn" onClick={() => setIsMobileSidebarOpen(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <div className="admin-breadcrumb">
+              <span style={{ color: 'var(--brand-purple)', fontWeight: '700' }}>W&W Admin</span> <span style={{ color: 'var(--text-muted)' }}>/ {tab}</span>
+            </div>
           </div>
           <div className="admin-user-info">
-            <span>👤 admin@whiskwear.com</span>
+            <span className="admin-user-email">👤 admin@whiskwear.com</span>
             <button className="btn btn-sm btn-outline-teal" onClick={() => { onSessionExpired(); navigate('/'); }}>
               Sign out
             </button>
@@ -197,7 +211,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
         </header>
 
         <div className="admin-content-inner">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div className="admin-header-flex">
             <div>
               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{tab}</h2>
               <p style={{ color: 'var(--text-secondary)' }}>

@@ -40,22 +40,24 @@ const AnalyticsPage = () => {
       <div className="analytics-section">
         <h3>Orders per Day (Last 30 days)</h3>
         {Object.keys(orderStats).length > 0 ? (
-          <table className="analytics-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Orders</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(orderStats).map(([date, count]) => (
-                <tr key={date}>
-                  <td>{date}</td>
-                  <td>{count}</td>
+          <div className="table-responsive">
+            <table className="analytics-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Orders</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {Object.entries(orderStats).map(([date, count]) => (
+                  <tr key={date}>
+                    <td>{date}</td>
+                    <td>{count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p>Loading...</p>
         )}
@@ -64,22 +66,24 @@ const AnalyticsPage = () => {
       <div className="analytics-section">
         <h3>Top Selling Products</h3>
         {topProducts.length > 0 ? (
-          <table className="analytics-table">
-            <thead>
-              <tr>
-                <th>Product ID</th>
-                <th>Quantity Sold</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topProducts.map((p) => (
-                <tr key={p.product_id || p.id}>
-                  <td>{p.product_id || p.id}</td>
-                  <td>{p.quantity}</td>
+          <div className="table-responsive">
+            <table className="analytics-table">
+              <thead>
+                <tr>
+                  <th>Product ID</th>
+                  <th>Quantity Sold</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {topProducts.map((p) => (
+                  <tr key={p.product_id || p.id}>
+                    <td>{p.product_id || p.id}</td>
+                    <td>{p.quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p>Loading...</p>
         )}

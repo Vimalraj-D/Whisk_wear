@@ -207,13 +207,12 @@ const CategoriesPage = () => {
           onChange={(e) => setNewName(e.target.value)}
           required
         />
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+        <div className="upload-input-group">
           <input
             type="text"
             placeholder="Image URL (optional)"
             value={newImageUrl}
             onChange={(e) => setNewImageUrl(e.target.value)}
-            style={{ flex: 1 }}
           />
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>or</span>
           <label style={{
@@ -262,20 +261,20 @@ const CategoriesPage = () => {
             return (
               <tr key={cat.id}>
                 <td className="category-name-cell">{editing === cat.id ? (
-                  <form onSubmit={handleEdit} className="edit-form" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <form onSubmit={handleEdit} className="edit-form">
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       required
                     />
-                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                    <div className="edit-upload-group">
                       <input
                         type="text"
                         placeholder="Image URL"
                         value={editImageUrl}
                         onChange={(e) => setEditImageUrl(e.target.value)}
-                        style={{ width: '150px' }}
+                        className="edit-url-input"
                       />
                       <label style={{
                         padding: '0.25rem 0.5rem',
