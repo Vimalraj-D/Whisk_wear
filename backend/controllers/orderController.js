@@ -64,26 +64,45 @@ async function decrementStockAtomic(items) {
 
   const applied = [];
   for (const [productId, qty] of Object.entries(qtyByProduct)) {
-    const { data, error } = await supabase.rpc('decrement_stock', {
-      p_product_id: Number(productId),
-      p_qty: qty
-    });
-    if (error) {
+    // 1. Fetch current stock
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('stock, name')
+      .eq('id', Number(productId))
+      .single();
+
+    if (fetchError || !product) {
       await rollbackStock(applied);
-      throw Object.assign(new Error(`Stock update failed for product ${productId}: ${error.message}`), { status: 500 });
+      throw Object.assign(new Error(`Failed to fetch stock for product ${productId}: ${fetchError?.message || 'Product not found'}`), { status: 500 });
     }
-    if (!data || data.length === 0) {
+
+    if (product.stock < qty) {
       await rollbackStock(applied);
-      throw Object.assign(new Error(`Insufficient stock for product ${productId}`), { status: 409 });
+      throw Object.assign(new Error(`Insufficient stock for product "${product.name}" (Requested: ${qty}, Available: ${product.stock})`), { status: 409 });
     }
-    applied.push({ productId: Number(productId), qty });
+
+    // 2. Decrement stock
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({ stock: product.stock - qty })
+      .eq('id', Number(productId));
+
+    if (updateError) {
+      await rollbackStock(applied);
+      throw Object.assign(new Error(`Stock update failed for product ${productId}: ${updateError.message}`), { status: 500 });
+    }
+
+    applied.push({ productId: Number(productId), qty, prevStock: product.stock });
   }
 }
 
 async function rollbackStock(applied) {
-  for (const { productId, qty } of applied) {
+  for (const { productId, prevStock } of applied) {
     try {
-      await supabase.rpc('restore_stock', { p_product_id: productId, p_qty: qty });
+      await supabase
+        .from('products')
+        .update({ stock: prevStock })
+        .eq('id', productId);
     } catch (e) {
       console.error(`Failed to roll back stock for product ${productId}:`, e);
     }

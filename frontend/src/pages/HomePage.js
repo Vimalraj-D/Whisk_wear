@@ -13,11 +13,7 @@ const VIDEO_URLS = [
   'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/it_is_for_both_hotel_and_home.mp4'      // #video url 3
 ];
 
-const BACKGROUND_VIDEO_URLS = [
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm',
-  'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/video/b5e3674d84eb45d0b4b27f28087b7322.webm'
-];
+
 
 const HeartIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: '16px', height: '16px', display: 'block' }}>
@@ -38,31 +34,24 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = [
     {
-      badge: "✦ Premium Quality · Ethically Made",
-      title: "New Summer\nCollection.",
-      subtitle: "Thoughtfully designed kitchen cloths and organic kids' wear crafted for everyday comfort and beauty.",
-      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%207,%202026,%2001_13_12%20AM.png",
-      cta: "SHOP NOW"
-    },
-    {
       badge: "✦ 20% OFF ALL KIDS WEAR",
       title: "Playful Comfort\nFor Kids.",
       subtitle: "Discover our new range of breathable, organic cotton outfits perfect for the summer heat.",
-      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%207,%202026,%2001_15_10%20AM.png",
-      cta: "EXPLORE KIDS"
+      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Aug%2014,%202026,%2011_03_22%20PM-Photoroom.png",
+      cta: "EXPLORE KIDS WEAR"
     },
     {
       badge: "✦ BUY 2 GET 1 FREE",
       title: "Premium Kitchen\nEssentials.",
       subtitle: "Upgrade your kitchen with our highly absorbent, durable, and stylish cloths.",
-      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%207,%202026,%2001_19_21%20AM.png",
-      cta: "SHOP KITCHEN"
+      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Aug%2014,%202026,%2010_22_25%20PM-Photoroom.png",
+      cta: "SHOP KITCHEN WEAR"
     },
     {
       badge: "✦ PROFESSIONAL CHEF WEAR",
       title: "Premium Chef\nApparel.",
       subtitle: "Cook with confidence in comfortable, durable, and professional chef uniforms designed for every kitchen.",
-      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Jul%207,%202026,%2001_24_35%20AM.png",
+      img: "https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/ChatGPT%20Image%20Aug%2014,%202026,%2010_08_49%20PM-Photoroom.png",
       cta: "SHOP CHEF WEAR"
     }
   ];
@@ -120,18 +109,14 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef([]);
-  const [backgroundVideoIdx, setBackgroundVideoIdx] = useState(0);
-  const backgroundVideoRef = useRef(null);
-  const backgroundCanvasRef = useRef(null);
+
   const [hasMounted, setHasMounted] = useState(false);
 
   const handleVideoEnded = () => {
     setCurrentVideoIdx((prev) => (prev + 1) % VIDEO_URLS.length);
   };
 
-  const handleBackgroundVideoEnded = () => {
-    setBackgroundVideoIdx((prev) => (prev + 1) % BACKGROUND_VIDEO_URLS.length);
-  };
+
   const prevVideo = () => {
     setCurrentVideoIdx((prev) => (prev === 0 ? VIDEO_URLS.length - 1 : prev - 1));
   };
@@ -158,68 +143,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
     });
   }, [currentVideoIdx, isMuted]);
 
-  useEffect(() => {
-    if (!hasMounted) return;
-    const videoEl = backgroundVideoRef.current;
-    const canvasEl = backgroundCanvasRef.current;
-    if (!videoEl || !canvasEl) return;
 
-    videoEl.crossOrigin = 'anonymous';
-    const ctx = canvasEl.getContext('2d');
-    let rafId = null;
-    const threshold = 100;
-
-    const drawChromaKey = () => {
-      const width = videoEl.videoWidth || 640;
-      const height = videoEl.videoHeight || 360;
-      if (canvasEl.width !== width || canvasEl.height !== height) {
-        canvasEl.width = width;
-        canvasEl.height = height;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-      ctx.drawImage(videoEl, 0, 0, width, height);
-
-      try {
-        const frame = ctx.getImageData(0, 0, width, height);
-        const { data } = frame;
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const maxChannel = Math.max(r, g, b);
-          const minChannel = Math.min(r, g, b);
-          const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-          if (maxChannel < threshold && (maxChannel - minChannel) < 50 && luminance < 80) {
-            data[i + 3] = 0;
-          }
-        }
-        ctx.putImageData(frame, 0, 0);
-      } catch (err) {
-        console.error('Chroma key processing failed:', err);
-      }
-
-      rafId = requestAnimationFrame(drawChromaKey);
-    };
-
-    const startProcessing = () => {
-      videoEl.muted = true;
-      videoEl.playsInline = true;
-      videoEl.currentTime = 0;
-      videoEl.play().catch(() => {});
-      if (rafId === null) {
-        drawChromaKey();
-      }
-    };
-
-    videoEl.addEventListener('loadeddata', startProcessing);
-    startProcessing();
-
-    return () => {
-      videoEl.removeEventListener('loadeddata', startProcessing);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, [backgroundVideoIdx, hasMounted]);
 
   useEffect(() => {
     // If active video is currently playing, let it play to the end and trigger handleVideoEnded
@@ -234,11 +158,31 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
   }, [isPlaying, currentVideoIdx]);
 
   const slide = slides[currentSlide];
+  const isLargeSlide = slide.title.includes("Chef") || slide.title.includes("Kitchen") || slide.title.includes("Kids");
+
+  // Calculate dynamic transform to align bottom of images to bottom of grid
+  let slideTransform = 'none';
+  if (isLargeSlide && !isMobile) {
+    if (slide.title.includes("Kids")) {
+      slideTransform = 'translateY(5.2rem) scale(1.05)';
+    } else if (slide.title.includes("Kitchen")) {
+      slideTransform = 'translateY(3.5rem) scale(1.05)';
+    }
+  }
 
   return (
     <div>
       {/* Hero Carousel */}
-      <section className="hero-grid" style={{ position: 'relative', overflow: 'hidden' }}>
+      <section 
+        className="hero-grid" 
+        style={{ 
+          position: 'relative', 
+          overflow: 'hidden',
+          height: isMobile ? 'auto' : 'calc(100vh - 112px)',
+          paddingTop: isMobile ? '3rem' : '1.5rem',
+          paddingBottom: isMobile ? '3rem' : '0'
+        }}
+      >
         <div className="hero-left" style={{ animation: 'fadeUp 0.5s ease-out' }} key={`text-${currentSlide}`}>
           <div className="hero-badge">{slide.badge}</div>
           <h1 className="hero-title text-3d" style={{ whiteSpace: 'pre-line' }}>{slide.title}</h1>
@@ -253,9 +197,45 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
             </AnimatedButton>
           </div>
         </div>
-        <div className="hero-right" style={{ animation: isMobile ? 'dropDown 0.6s ease-out 0.2s backwards' : 'slideInFromLeft 0.8s ease-out 0.2s backwards' }} key={`img-${currentSlide}`}>
-          <div className="hero-bg-shape" />
-          <ImageWithSkeleton src={slide.img} alt="Featured" className="hero-product-img" style={{ zIndex: 2, borderRadius: slide.img.includes('unsplash') ? '50%' : '0', width: '100%', maxWidth: '700px', height: 'clamp(360px, 60vw, 600px)', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
+        <div 
+          className="hero-right" 
+          style={{ 
+            animation: isMobile ? 'dropDown 0.6s ease-out 0.2s backwards' : 'slideInFromLeft 0.8s ease-out 0.2s backwards',
+            alignItems: isLargeSlide ? 'flex-end' : 'center',
+            justifyContent: isLargeSlide ? 'flex-end' : 'center',
+            height: '100%',
+            alignSelf: isLargeSlide ? 'stretch' : 'center',
+            position: 'relative'
+          }} 
+          key={`img-${currentSlide}`}
+        >
+          <ImageWithSkeleton 
+            src={slide.img} 
+            alt="Featured" 
+            className={`hero-product-img ${isLargeSlide ? 'bottom-hero-img' : ''}`} 
+            style={isLargeSlide ? {
+              zIndex: 2,
+              borderRadius: '0',
+              width: '100%',
+              maxWidth: isMobile ? '450px' : '650px',
+              height: isMobile ? '400px' : '100%',
+              marginBottom: '0',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              transform: slideTransform
+            } : {
+              zIndex: 2,
+              borderRadius: slide.img.includes('unsplash') ? '50%' : '0',
+              width: '100%',
+              maxWidth: '700px',
+              height: 'clamp(360px, 60vw, 600px)',
+              margin: '0 auto',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }} 
+          />
         </div>
         
         {/* Carousel Indicators */}
@@ -399,47 +379,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
         )}
       </section>
 
-      {/* Fixed bottom background video independent of scroll */}
-      <div style={{
-        position: 'fixed',
-        inset: 'auto 0 18px',
-        zIndex: 9999,
-        pointerEvents: 'none',
-        display: 'flex',
-        justifyContent: 'center',
-        width: '100%',
-        padding: '0 12px',
-        background: 'transparent'
-      }}>
-        <canvas
-          ref={backgroundCanvasRef}
-          id="background-video-canvas"
-          style={{
-            width: isMobile ? 'min(340px, calc(100vw - 32px))' : 'min(440px, 480px)',
-            maxWidth: '100%',
-            height: 'auto',
-            aspectRatio: '16/9',
-            objectFit: 'contain',
-            background: 'transparent',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderRadius: '16px',
-            boxShadow: '0 24px 80px rgba(0, 0, 0, 0)',
-            pointerEvents: 'none'
-          }}
-        />
-        <video
-          ref={backgroundVideoRef}
-          id="background-video-player"
-          src={BACKGROUND_VIDEO_URLS[backgroundVideoIdx]}
-          muted
-          autoPlay
-          playsInline
-          preload="auto"
-          onEnded={handleBackgroundVideoEnded}
-          style={{ display: 'none' }}
-        />
-      </div>
+
 
       {/* Watch Our Collections Video Slider Section */}
       <ScrollReveal direction="up" threshold={0.05}>
