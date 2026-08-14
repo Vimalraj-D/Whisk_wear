@@ -1,26 +1,156 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService, getImageUrl } from '../api';
-import ImageWithSkeleton from '../components/ImageWithSkeleton';
+import { apiService } from '../api';
+import AnimatedButton from '../components/AnimatedButton';
 import ScrollReveal from '../components/ScrollReveal';
+
+// Custom Circulating Track Component using CSS Marquee for scrolling + JS for dynamic 3D center projection
+function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMobile }) {
+  const containerRef = useRef(null);
+
+  // Duplicate items 3 times for the standard CSS marquee loop width
+  const duplicatedSubs = [...subcategories, ...subcategories, ...subcategories];
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || subcategories.length === 0) return;
+
+    let animationFrameId;
+
+    const updateProjection = () => {
+      const containerRect = container.getBoundingClientRect();
+      const containerCenter = containerRect.left + containerRect.width / 2;
+
+      // Query cards inside the track
+      const cards = container.querySelectorAll('.subcategory-poster-card');
+      cards.forEach(card => {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const diff = cardCenter - containerCenter;
+        const distanceFromCenter = Math.abs(diff);
+
+        // Max distance is half container width
+        const maxDistance = containerRect.width / 2 || 1;
+        const ratio = diff / maxDistance;
+        const absRatio = Math.min(1, distanceFromCenter / maxDistance);
+
+        // Cosine ease squared for a steeper, more pronounced 3D drop-off (Center is full size, adjacent is small, outer is smaller)
+        const ease = Math.pow(Math.cos(absRatio * Math.PI / 2), 2);
+
+        // Compute 3D cylinder perspective factors
+        const scale = 0.65 + ease * 0.53; // Center: 1.18 | Adjacent: 0.85 | Outer: 0.65
+        const yRotation = -ratio * 32;   // Rotate around Y axis by up to 32 degrees
+        const opacity = 0.40 + ease * 0.60; // Fade at edges
+        const brightness = 0.50 + ease * 0.50; // Darken at edges
+        const zIndex = Math.round(ease * 100);
+
+        // Set true GPU-accelerated 3D Transform!
+        card.style.transform = `scale(${scale}) rotateY(${yRotation}deg)`;
+        card.style.opacity = `${opacity}`;
+        card.style.filter = `brightness(${brightness})`;
+        card.style.zIndex = zIndex;
+
+        // Solid, realistic dark shadow
+        const shadowIntensity = ease * 12;
+        card.style.boxShadow = `0 ${6 + shadowIntensity}px ${12 + shadowIntensity * 2}px rgba(0, 0, 0, 0.45)`;
+      });
+
+      animationFrameId = requestAnimationFrame(updateProjection);
+    };
+
+    animationFrameId = requestAnimationFrame(updateProjection);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [subcategories]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="subcategory-loop-container"
+      style={{
+        width: '100%',
+        height: '100%', // Fills parent height
+        display: 'flex',
+        alignItems: 'center', // Centers vertically so scaled cards don't clip at top/bottom
+        overflow: 'hidden',
+        position: 'relative',
+        perspective: '1000px', // Creates the 3D depth environment
+        perspectiveOrigin: '50% 50%'
+      }}
+    >
+      <div
+        className="subcategory-loop-track"
+        style={{
+          display: 'flex',
+          gap: isMobile ? '1.5rem' : '2.5rem',
+          width: 'max-content',
+          alignItems: 'center',
+          transformStyle: 'preserve-3d' // Passes 3D context to child cards
+        }}
+      >
+        {duplicatedSubs.map((sub, idx) => (
+          <div
+            key={`${sub.id}-${idx}`}
+            onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
+            className="subcategory-poster-card"
+          >
+            <img
+              src={sub.image_url || defaultImg}
+              alt={sub.name}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = defaultImg;
+              }}
+            />
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              padding: '1rem',
+              zIndex: 2
+            }}>
+              <h5 style={{
+                color: '#fff',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                margin: 0,
+                lineHeight: 1.2,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {sub.name}
+              </h5>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function CollectionsPage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     Promise.all([
       apiService.getCategories(),
-      apiService.getSubcategories(),
-      apiService.getProducts()
+      apiService.getSubcategories()
     ])
-      .then(([catRes, subRes, prodRes]) => {
+      .then(([catRes, subRes]) => {
         setCategories(catRes.data || catRes);
         setSubcategories(subRes.data || subRes);
-        setProducts(prodRes.data || prodRes);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -30,24 +160,32 @@ export default function CollectionsPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2.5rem 5%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
-        <div className="product-detail-loading" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="spinner" />
-        </div>
+      <div style={{ padding: '2.5rem 5%', width: '95%', maxWidth: 'none', margin: '0 auto', minHeight: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
       </div>
     );
   }
 
+  const defaultCategoryImg = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&auto=format&fit=crop&q=80';
+  const defaultSubcategoryImg = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=400';
+
   return (
-    <div className="collections-page-wrapper" style={{ padding: '3rem 5%', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
-      
+    <div className="collections-page-wrapper" style={{
+      padding: isMobile ? '1.5rem 1rem' : '3rem 2.5%',
+      width: '95%', // Covers 95% of total page width
+      maxWidth: 'none',
+      margin: '0 auto',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '3rem'
+    }}>
+
       {/* Editorial Luxury Header Banner */}
       <ScrollReveal direction="down" threshold={0.05}>
         <div className="collections-hero-banner" style={{
-          marginBottom: '4rem',
           background: 'linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%)',
-          padding: '4rem 3rem',
-          borderRadius: '24px',
+          padding: isMobile ? '2rem 1.5rem' : '3rem',
+          borderRadius: '8px', // Reduced border radius
           color: '#fff',
           textAlign: 'center',
           position: 'relative',
@@ -56,10 +194,10 @@ export default function CollectionsPage() {
         }}>
           <div style={{ position: 'absolute', top: '-40%', left: '-10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)', filter: 'blur(50px)' }}></div>
           <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(50px)' }}></div>
-          
+
           <span style={{ fontSize: '0.8rem', fontWeight: '900', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--brand-orange)', display: 'block', marginBottom: '0.75rem' }}>Curated Selections</span>
-          <h2 style={{ fontSize: '3rem', fontWeight: 800, fontFamily: 'var(--font-serif)', marginBottom: '0.75rem', lineHeight: 1.1 }}>Our Collections</h2>
-          <p style={{ fontSize: '1.15rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto', lineHeight: 1.5 }}>Explore our carefully crafted apparel and essentials. Hover on any card to view collection highlights.</p>
+          <h2 style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: 800, fontFamily: 'var(--font-serif)', marginBottom: '0.75rem', lineHeight: 1.1 }}>Our Collections</h2>
+          <p style={{ fontSize: isMobile ? '0.95rem' : '1.05rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto', lineHeight: 1.5 }}>Explore our carefully crafted apparel and essentials. Click on any category or subcategory to begin shopping.</p>
         </div>
       </ScrollReveal>
 
@@ -69,168 +207,117 @@ export default function CollectionsPage() {
           <p>We are updating our seasonal designs. Please check back soon.</p>
         </div>
       ) : (
-        <div className="collections-layout-flow" style={{ display: 'flex', flexDirection: 'column', gap: '4rem' }}>
+        <div className="collections-layout-flow" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
           {categories.map((cat, idx) => {
             const catKey = getCategoryKey(cat.name);
             const catSubs = subcategories.filter(s => s.category_id === cat.id);
-            const catKeyDb = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            const categoryProducts = products.filter(p => p.category === catKeyDb || p.category_id === cat.id).slice(0, 3);
-            const defaultImg = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop&q=80';
-            
+
             return (
               <ScrollReveal key={cat.id} direction="up" threshold={0.05} delay={idx * 100}>
+                {/* Horizontal Category Box Layout (Side-by-side design) */}
                 <div className="collection-editorial-card" style={{
-                  background: '#fff',
-                  borderRadius: '16px',
+                  width: '100%',
+                  height: isMobile ? 'auto' : '550px', // Static size for all boxes on desktop!
+                  background: 'var(--bg-secondary)',
+                  borderRadius: '8px', // Reduced border radius
+                  border: '1px solid var(--border-color)',
                   boxShadow: 'var(--shadow-lg)',
-                  minHeight: 'auto'
+                  padding: 0, // Remove internal padding to let the image touch the borders!
+                  display: 'flex',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  overflow: 'hidden'
                 }}>
-                  
-                  {/* Left showcase panel - Category Image */}
-                  <div className="collection-cover-part" style={{
+
+                  {/* Left Side: Main Category Image (Highly visible, full opacity!) */}
+                  <div className="collection-main-image-banner" style={{
+                    width: isMobile ? '100%' : '28%', // 28% width (narrower width)
+                    height: isMobile ? '300px' : '100%', // Fills vertical space on desktop (increased height)
                     position: 'relative',
                     overflow: 'hidden',
-                    background: '#f5f5f5'
+                    flexShrink: 0
                   }}>
-                    <div className="collection-part-bg-wrapper" style={{
-                      width: '100%',
-                      height: '100%',
-                      overflow: 'hidden'
-                    }}>
-                      <img
-                        src={cat.image_url || defaultImg}
-                        alt={cat.name}
-                        className="collection-part-bg-img"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transition: 'none'
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = defaultImg;
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Typographic Overlay content */}
-                    <div className="collection-cover-details" style={{
+                    <img
+                      src={cat.image_url || defaultCategoryImg}
+                      alt={cat.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        opacity: 1, // Completely visible!
+                        transition: 'transform 0.5s ease'
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = defaultCategoryImg;
+                      }}
+                    />
+
+                    {/* Dark gradient overlay for text legibility at the bottom of the image */}
+                    <div style={{
                       position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
-                      color: '#fff',
-                      padding: '3rem 2rem 2rem',
+                      inset: 0,
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      padding: isMobile ? '1.25rem' : '2rem',
                       zIndex: 2
                     }}>
-                      <h3 className="collection-cover-title" style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{cat.name}</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+                        <div>
+                          <h3 style={{
+                            color: '#fff',
+                            fontSize: isMobile ? '1.8rem' : '2.25rem',
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            margin: 0,
+                            fontFamily: 'var(--font-serif)',
+                            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                          }}>
+                            {cat.name}
+                          </h3>
+                        </div>
 
-                      <button
-                        className="collection-explore-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/shop?category=${catKey}`);
-                        }}
-                        style={{
-                          marginTop: '1.5rem',
-                          background: 'var(--brand-orange)',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '0.75rem 1.5rem',
-                          borderRadius: '6px',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          letterSpacing: '1px'
-                        }}
-                      >
-                        Explore
-                      </button>
+                        <AnimatedButton
+                          onClick={() => navigate(`/shop?category=${catKey}`)}
+                          className="btn btn-teal ripple-button"
+                          style={{
+                            borderRadius: '30px',
+                            padding: '0.65rem 1.75rem',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                            letterSpacing: '1px',
+                            width: 'fit-content',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                          }}
+                        >
+                          EXPLORE
+                        </AnimatedButton>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right side - Shows subcategories with images */}
-                  <div className="collection-highlights-drawer" style={{
-                    background: '#fff',
+                  {/* Right Side: Circulating Subcategories (Positioned completely next to the main category image) */}
+                  <div className="collection-subcategories-banner" style={{
+                    width: isMobile ? '100%' : '72%', // 72% on desktop
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    height: '100%',
+                    padding: 0, // Remove all padding to eliminate empty space!
+                    overflow: 'hidden'
                   }}>
-                    <div className="drawer-inner-content" style={{ flex: 1 }}>
-                      {catSubs.length === 0 ? (
-                        <div className="drawer-empty-msg" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>No subcategories yet.</div>
-                      ) : (
-                        <div className="drawer-subcategories-grid">
-                          {catSubs.map(sub => (
-                            <div
-                              key={sub.id}
-                              className="drawer-subcategory-card"
-                              onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
-                              style={{
-                                cursor: 'pointer',
-                                borderRadius: '6px',
-                                overflow: 'hidden',
-                                background: '#fff',
-                                border: '1px solid var(--border-color, #e0e0e0)',
-                                display: 'flex',
-                                flexDirection: 'column'
-                              }}
-                            >
-                              {/* Subcategory Image */}
-                              <div className="drawer-subcategory-image" style={{
-                                width: '100%',
-                                background: '#f5f5f5',
-                                position: 'relative',
-                                overflow: 'hidden'
-                              }}>
-                                {sub.image_url ? (
-                                  <img
-                                    src={sub.image_url}
-                                    alt={sub.name}
-                                    style={{
-                                      width: '100%',
-                                      height: '100%',
-                                      objectFit: 'cover'
-                                    }}
-                                    onError={(e) => {
-                                      e.target.onerror = null;
-                                      e.target.src = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=200';
-                                    }}
-                                  />
-                                ) : (
-                                  <div style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)',
-                                    color: 'var(--text-muted)',
-                                    fontSize: '2rem'
-                                  }}>
-                                    📦
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Subcategory Info */}
-                              <div className="drawer-subcategory-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <h5 className="drawer-subcategory-name" style={{
-                                  fontSize: '0.85rem',
-                                  fontWeight: '600',
-                                  color: 'var(--text-primary)',
-                                  lineHeight: '1.3',
-                                  textAlign: 'center'
-                                }}>
-                                  {sub.name}
-                                </h5>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {catSubs.length === 0 ? (
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic', padding: '1rem 0' }}>
+                        No subcategories yet.
+                      </div>
+                    ) : (
+                      <SubcategoryCirculatingTrack
+                        subcategories={catSubs}
+                        defaultImg={defaultSubcategoryImg}
+                        navigate={navigate}
+                        isMobile={isMobile}
+                      />
+                    )}
                   </div>
 
                 </div>

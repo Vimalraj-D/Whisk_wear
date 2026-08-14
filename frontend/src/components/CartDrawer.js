@@ -255,7 +255,61 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
 
   return (
     <div className={`cart-overlay ${isOpen ? 'open' : ''}`} onClick={closeCart}>
-      <div className="cart-drawer" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.5rem 1.5rem 1rem 1.5rem' }} onClick={e => e.stopPropagation()}>
+      <div className="cart-drawer" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.5rem 1.5rem 1rem 1.5rem', position: 'relative' }} onClick={e => e.stopPropagation()}>
+        {/* Truck and rope puller animation */}
+        <div className="cart-truck-puller">
+          <div className="truck-container">
+            <svg className="cart-truck-svg" viewBox="0 0 100 60" width="80" height="48">
+              {/* Cartoon Truck Body / Cargo container */}
+              <rect x="30" y="10" width="60" height="32" rx="6" fill="#0d9488" />
+              <rect x="30" y="22" width="60" height="4" fill="#0f766e" />
+              {/* Cute bag logo */}
+              <circle cx="60" cy="22" r="7" fill="#ffffff" />
+              <path d="M57 23 L63 23 L61 19 L59 19 Z" fill="#0d9488" />
+              <path d="M56 22 Q60 16 64 22 Z" stroke="#0d9488" strokeWidth="1.5" fill="none" />
+              
+              {/* Cabin: Orange with round nose */}
+              <path d="M32 42 L32 18 Q32 15 28 15 L15 15 Q10 15 8 20 L2 28 Q0 32 0 36 L0 42 Z" fill="#f97316" />
+              <path d="M12 18 L26 18 L26 28 L6 28 Z" fill="#e0f2fe" />
+              <path d="M18 20 L24 20 L22 26 L16 26 Z" fill="#ffffff" opacity="0.6" />
+              <rect x="0" y="40" width="8" height="4" rx="2" fill="#4b5563" />
+              
+              {/* Wheel Wells */}
+              <path d="M15 42 A10 10 0 0 1 35 42 Z" fill="#eaeaea" />
+              <path d="M63 42 A10 10 0 0 1 83 42 Z" fill="#eaeaea" />
+              
+              {/* Wheels */}
+              <g className="cart-truck-wheel wheel-front">
+                <circle cx="25" cy="42" r="10" fill="#1e293b" />
+                <circle cx="25" cy="42" r="7" fill="#cbd5e1" />
+                <circle cx="25" cy="42" r="3" fill="#ef4444" /> {/* Red center cap */}
+                {/* 4 Spokes */}
+                <line x1="25" y1="35" x2="25" y2="49" stroke="#0f172a" strokeWidth="2" />
+                <line x1="18" y1="42" x2="32" y2="42" stroke="#0f172a" strokeWidth="2" />
+                {/* Yellow Marker Dot to track spin clearly */}
+                <circle cx="25" cy="35" r="1.5" fill="#eab308" />
+              </g>
+              <g className="cart-truck-wheel wheel-back">
+                <circle cx="73" cy="42" r="10" fill="#1e293b" />
+                <circle cx="73" cy="42" r="7" fill="#cbd5e1" />
+                <circle cx="73" cy="42" r="3" fill="#ef4444" /> {/* Red center cap */}
+                {/* 4 Spokes */}
+                <line x1="73" y1="35" x2="73" y2="49" stroke="#0f172a" strokeWidth="2" />
+                <line x1="66" y1="42" x2="80" y2="42" stroke="#0f172a" strokeWidth="2" />
+                {/* Yellow Marker Dot to track spin clearly */}
+                <circle cx="73" cy="35" r="1.5" fill="#eab308" />
+              </g>
+              
+              {/* Headlight */}
+              <circle cx="3" cy="34" r="3" fill="#fef08a" />
+              <polygon points="2,34 -10,31 -10,37" fill="#fef08a" opacity="0.4" />
+            </svg>
+          </div>
+          <svg className="cart-rope-svg" width="70" height="40" viewBox="0 0 70 40">
+            <path className="cart-rope-path" d="M 0,20 Q 35,20 70,20" stroke="#8B6F47" strokeWidth="3" fill="none" strokeDasharray="4,2" />
+          </svg>
+        </div>
+
         <div className="cart-header" style={{ marginBottom: '1rem', flexShrink: 0 }}>
           <h3>Shopping Bag ({cart.reduce((s, i) => s + i.quantity, 0)})</h3>
           <button className="close-btn" onClick={closeCart}>×</button>
