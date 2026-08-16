@@ -34,6 +34,204 @@ function isTokenExpired(token) {
   }
 }
 
+const triggerFlyToCart = (product, event) => {
+  const cartIcon = document.querySelector('.cart-btn');
+  if (!cartIcon) return;
+
+  const clickEvent = event || window.event;
+  const target = clickEvent ? (clickEvent.target || clickEvent.srcElement) : null;
+  const button = target ? target.closest('button') : null;
+
+  let srcElement = null;
+
+  if (button) {
+    // Check if we're on the Product Detail page (button inside .buy-box-card)
+    const buyBox = button.closest('.buy-box-card');
+    if (buyBox) {
+      // The main product image is NOT inside the buy-box — it's in a sibling column.
+      // Look for it globally on the page.
+      srcElement = document.querySelector('.product-detail-main-image img');
+    }
+
+    // If not found yet, try standard card containers
+    if (!srcElement) {
+      const card = button.closest('.premium-product-card') ||
+                   button.closest('.product-card') || 
+                   button.closest('.wishlist-modal-item') || 
+                   button.closest('.modal-content') || 
+                   button.closest('.wishlist-item') || 
+                   button.closest('.premium-product-card-vertical') || 
+                   button.closest('.premium-list-item');
+      if (card) {
+        srcElement = card.querySelector('img');
+      }
+    }
+  }
+
+  // Fallback to button itself if no image found anywhere
+  if (!srcElement) {
+    srcElement = button;
+  }
+
+  if (!srcElement) return;
+
+  const startRect = srcElement.getBoundingClientRect();
+  const endRect = cartIcon.getBoundingClientRect();
+
+  // Create flyer element matching the exact image size and position at start
+  const flyer = document.createElement('div');
+  flyer.className = 'add-to-cart-flyer';
+  flyer.style.position = 'fixed';
+  flyer.style.top = `${startRect.top}px`;
+  flyer.style.left = `${startRect.left}px`;
+  flyer.style.width = `${startRect.width}px`;
+  flyer.style.height = `${startRect.height}px`;
+  flyer.style.zIndex = '999999';
+  flyer.style.pointerEvents = 'none';
+  flyer.style.backgroundColor = '#fff';
+  flyer.style.border = '1px solid var(--border-color, #e2e8f0)';
+  flyer.style.borderRadius = '12px';
+  flyer.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+  flyer.style.overflow = 'hidden';
+  flyer.style.display = 'flex';
+  flyer.style.alignItems = 'center';
+  flyer.style.justifyContent = 'center';
+
+  if (srcElement.tagName === 'IMG') {
+    const img = document.createElement('img');
+    img.src = srcElement.src;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+    flyer.appendChild(img);
+  } else {
+    flyer.textContent = srcElement.textContent || '✓';
+    flyer.style.color = '#fff';
+    flyer.style.fontSize = '0.75rem';
+    flyer.style.fontWeight = 'bold';
+    flyer.style.backgroundColor = 'var(--brand-teal, #0d9488)';
+    flyer.style.borderRadius = '20px';
+  }
+
+  document.body.appendChild(flyer);
+
+  // Calculate center coordinates
+  const startCenterX = startRect.left + startRect.width / 2;
+  const startCenterY = startRect.top + startRect.height / 2;
+  const endCenterX = endRect.left + endRect.width / 2;
+  const endCenterY = endRect.top + endRect.height / 2;
+
+  // Parabolic Bezier control point (arcs upward first like a basketball shot)
+  const distanceX = Math.abs(endCenterX - startCenterX);
+  const peakHeightOffset = Math.max(180, distanceX * 0.35);
+  const controlX = (startCenterX + endCenterX) / 2;
+  const controlY = Math.min(startCenterY, endCenterY) - peakHeightOffset;
+
+  const duration = 1200; // 1.2s total flight
+  const startTime = performance.now();
+
+  // Immediately start expanding the cart icon (grows in sync with flight)
+  cartIcon.style.transition = 'none';
+  cartIcon.style.zIndex = '10000';
+  cartIcon.style.position = 'relative';
+
+  const animateFrame = (now) => {
+    const elapsed = now - startTime;
+    const p = Math.min(1, elapsed / duration); // Linear progress [0, 1]
+
+    // Gravity-like timing: fast launch, hang near peak, accelerate down
+    let t = p + 0.12 * Math.sin(2 * Math.PI * p);
+
+    // Slow down vertical descent in the final 15% (basketball settling into net)
+    if (p > 0.85) {
+      const landingProgress = (p - 0.85) / 0.15; // 0 → 1 over last 15%
+      const easeOut = 1 - Math.pow(1 - landingProgress, 2); // ease-out curve
+      t = t * (1 - 0.08 * (1 - easeOut)); // slightly decelerate the final approach
+    }
+
+    // Compute quadratic Bezier path point
+    const curX = (1 - t) * (1 - t) * startCenterX + 2 * (1 - t) * t * controlX + t * t * endCenterX;
+    const curY = (1 - t) * (1 - t) * startCenterY + 2 * (1 - t) * t * controlY + t * t * endCenterY;
+
+    // Translation relative to starting position
+    const tx = curX - startCenterX;
+    const ty = curY - startCenterY;
+
+    // Shrink progressively from 1.0 to 0.2 — NO rotation
+    const curScale = 1.0 - 0.8 * p;
+
+    // Opacity: stays 1.0 until 85%, then fades in last 15%
+    let curOpacity = 1.0;
+    if (p > 0.85) {
+      curOpacity = 1.0 - ((p - 0.85) / 0.15) * 0.95;
+    }
+
+    // Cart icon expansion: grows from 1.0 to 2.0 in sync with flight progress
+    // Uses ease-in curve so it grows faster as the product approaches
+    const cartExpand = 1.0 + Math.pow(p, 1.5); // 1.0 at start → 2.0 at landing
+    cartIcon.style.transform = `scale(${cartExpand})`;
+
+    // Apply flyer transform — NO rotate()
+    flyer.style.transform = `translate(${tx}px, ${ty}px) scale(${curScale})`;
+    flyer.style.opacity = curOpacity;
+
+    if (p < 1) {
+      requestAnimationFrame(animateFrame);
+    } else {
+      // === LANDING ===
+      flyer.remove();
+
+      // Create subtle "swish" ripple at cart icon position
+      const ripple = document.createElement('div');
+      ripple.style.position = 'fixed';
+      ripple.style.top = `${endRect.top + endRect.height / 2 - 20}px`;
+      ripple.style.left = `${endRect.left + endRect.width / 2 - 20}px`;
+      ripple.style.width = '40px';
+      ripple.style.height = '40px';
+      ripple.style.borderRadius = '50%';
+      ripple.style.border = '2px solid var(--brand-teal, #0d9488)';
+      ripple.style.opacity = '0.6';
+      ripple.style.zIndex = '999998';
+      ripple.style.pointerEvents = 'none';
+      ripple.style.transition = 'all 300ms ease-out';
+      document.body.appendChild(ripple);
+      requestAnimationFrame(() => {
+        ripple.style.transform = 'scale(2.5)';
+        ripple.style.opacity = '0';
+      });
+      setTimeout(() => ripple.remove(), 300);
+
+      // Shrink cart icon from 2x back to 1x with smooth CSS transition
+      cartIcon.style.transition = 'transform 300ms ease-in-out';
+      cartIcon.style.transform = 'scale(1)';
+
+      // After shrink-back completes, trigger the confirmation bump + badge pop
+      setTimeout(() => {
+        // Clean up inline styles so CSS keyframes can take over
+        cartIcon.style.transition = '';
+        cartIcon.style.transform = '';
+        cartIcon.style.zIndex = '';
+        cartIcon.style.position = '';
+
+        cartIcon.classList.add('cart-bump');
+        const badge = cartIcon.querySelector('.cart-badge');
+        if (badge) {
+          badge.classList.add('badge-pop');
+        }
+
+        setTimeout(() => {
+          cartIcon.classList.remove('cart-bump');
+          if (badge) {
+            badge.classList.remove('badge-pop');
+          }
+        }, 400);
+      }, 300); // Wait for the 300ms shrink-back transition to finish
+    }
+  };
+
+  requestAnimationFrame(animateFrame);
+};
+
 function App() {
   const [cart, setCart] = useState(() => {
     try {
@@ -125,20 +323,27 @@ function App() {
 
   const showToast = useCallback((msg) => setToast(msg), []);
 
-  const addToCart = (product) => {
+  const addToCart = (product, event) => {
     if (product.stock <= 0) { showToast('Item is out of stock'); return; }
     const selectedSize = product.selectedSize || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Standard');
     const selectedColor = product.selectedColor || (product.colors && product.colors.length > 0 ? product.colors[0] : '');
     const quantityToAdd = product.quantity || 1;
 
+    // Check if limits exceeded before running animation or updates
+    const existing = cart.find(i => i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor);
+    const currentQty = existing ? existing.quantity : 0;
+    if (currentQty + quantityToAdd > product.stock) {
+      showToast(`Only ${product.stock} items available in stock`);
+      return;
+    }
+
+    // Trigger the fly animation
+    triggerFlyToCart(product, event);
+
     setCart(prev => {
       const ex = prev.find(i => i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor);
       if (ex) {
         const nextQty = ex.quantity + quantityToAdd;
-        if (nextQty > product.stock) {
-          showToast(`Only ${product.stock} items available in stock`);
-          return prev.map(i => (i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor) ? { ...i, quantity: product.stock } : i);
-        }
         showToast(`Added ${quantityToAdd} more ${product.name} to cart`);
         return prev.map(i => (i.product_id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor) ? { ...i, quantity: nextQty } : i);
       }

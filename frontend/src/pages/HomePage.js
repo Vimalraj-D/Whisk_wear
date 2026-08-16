@@ -346,7 +346,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <AnimatedButton className="btn btn-teal ripple-button" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</AnimatedButton>
+                          <AnimatedButton className="btn btn-teal ripple-button" onClick={(e) => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url }, e)}>Add to Bag</AnimatedButton>
                           <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>
@@ -546,7 +546,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
                       )}
                       <div className="product-hover-overlay">
                         <div className="hover-actions">
-                          <AnimatedButton className="btn btn-teal ripple-button" onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}>Add to Bag</AnimatedButton>
+                          <AnimatedButton className="btn btn-teal ripple-button" onClick={(e) => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url }, e)}>Add to Bag</AnimatedButton>
                           <button className="btn-outline-white" onClick={() => navigate(`/product/${p.id}`)}>Quick View</button>
                         </div>
                       </div>

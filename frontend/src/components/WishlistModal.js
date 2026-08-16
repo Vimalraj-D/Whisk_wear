@@ -38,11 +38,11 @@ export default function WishlistModal({ isOpen, onClose, wishlist = [], toggleWi
                   <div className="wishlist-modal-item-actions">
                     <button
                       className="wishlist-modal-add-btn"
-                      onClick={() => {
+                      onClick={(e) => {
                         addToCart({
                           ...item,
                           price: item.discount_percent > 0 ? parseFloat(item.price) * (1 - item.discount_percent / 100) : parseFloat(item.price)
-                        });
+                        }, e);
                         onClose();
                       }}
                     >

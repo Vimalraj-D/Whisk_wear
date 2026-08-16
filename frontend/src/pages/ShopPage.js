@@ -935,9 +935,9 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                         <AnimatedButton 
                           className="hover-panel-btn primary ripple-button"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url });
-                          }}
+                             e.stopPropagation();
+                             addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url }, e);
+                           }}
                         >
                           Add to Bag
                         </AnimatedButton>
@@ -1003,7 +1003,7 @@ export default function ShopPage({ user, addToCart, openCart, showToast, wishlis
                         <div className="list-details-right-side" onClick={e => e.stopPropagation()}>
                           <AnimatedButton 
                             className="premium-list-action-btn primary ripple-button"
-                            onClick={() => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url })}
+                             onClick={(e) => addToCart({ ...p, price: discountPrice, image_url: p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url }, e)}
                           >
                             Add to Bag
                           </AnimatedButton>

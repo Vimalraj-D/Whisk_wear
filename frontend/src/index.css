@@ -5066,13 +5066,15 @@ select:focus {
   position: relative;
   cursor: pointer;
   border: 1px solid var(--border-color);
-  transition: border-color 0.3s ease, filter 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease !important;
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
 
 .subcategory-poster-card:hover {
   border-color: var(--brand-teal, #0d9488) !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
 }
 
 .subcategory-poster-card img {
@@ -5089,8 +5091,50 @@ select:focus {
 /* Mobile Subcategory Size Reduction Override */
 @media (max-width: 768px) {
   .subcategory-poster-card {
-    width: 130px !important;
-    height: 195px !important; /* Reduced size on mobile screens */
+    width: 100px !important;
+    height: 150px !important; /* Reduced size on mobile screens */
     border-radius: 3px !important;
+  }
+}
+
+/* Cart Button Confirmation Bounce after catch-and-release */
+.cart-btn.cart-bump {
+  animation: cartConfirmBounce 400ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+@keyframes cartConfirmBounce {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  30% {
+    transform: scale(1.2, 0.85) translateY(2px); /* Squash down */
+  }
+  60% {
+    transform: scale(0.92, 1.15) translateY(-3px); /* Stretch up */
+  }
+  80% {
+    transform: scale(1.04, 0.96) translateY(1px); /* Soft overshoot */
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Cart Badge Pop Animation */
+.cart-badge.badge-pop {
+  animation: badgePop 300ms cubic-bezier(0.25, 0.8, 0.25, 1.4) !important;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
   }
 }

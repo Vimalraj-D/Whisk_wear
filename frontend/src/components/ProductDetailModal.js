@@ -37,7 +37,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
     return () => clearInterval(interval);
   }, [is360Active, images.length]);
 
-  const handleAddClick = () => {
+  const handleAddClick = (e) => {
     const cartPayload = {
       ...product,
       id: product.id,
@@ -48,7 +48,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
       embroidery: wantsEmbroidery,
       image_url: images[0]
     };
-    addToCart(cartPayload);
+    addToCart(cartPayload, e);
     onClose();
   };
 

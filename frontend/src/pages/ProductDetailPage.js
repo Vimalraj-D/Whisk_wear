@@ -96,7 +96,7 @@ export default function ProductDetailPage({ user, addToCart, openCart, showToast
   const itemSku = `ABN0${product.id || 7}BLK${selectedColor ? selectedColor.slice(1, 3).toUpperCase() : '0'}`;
   const isWishlisted = wishlist.some(item => item.id === product.id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
     if (product.stock <= 0) {
       showToast('Item is out of stock');
       return;
@@ -111,7 +111,7 @@ export default function ProductDetailPage({ user, addToCart, openCart, showToast
       embroidery: wantsEmbroidery,
       image_url: images[0]
     };
-    addToCart(cartPayload);
+    addToCart(cartPayload, e);
   };
 
   const handleBuyNow = () => {

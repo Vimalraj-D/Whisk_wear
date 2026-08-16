@@ -4,64 +4,70 @@ import { apiService } from '../api';
 import AnimatedButton from '../components/AnimatedButton';
 import ScrollReveal from '../components/ScrollReveal';
 
-// Custom Circulating Track Component using CSS Marquee for scrolling + JS for dynamic 3D center projection
+// Custom Circulating Track Component using CSS Marquee for scrolling
 function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMobile }) {
   const containerRef = useRef(null);
-
+  const trackRef = useRef(null);
+  
   // Duplicate items 3 times for the standard CSS marquee loop width
   const duplicatedSubs = [...subcategories, ...subcategories, ...subcategories];
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || subcategories.length === 0) return;
+    let active = true;
 
-    let animationFrameId;
+    const updateScales = () => {
+      if (!active) return;
 
-    const updateProjection = () => {
+      const container = containerRef.current;
+      const track = trackRef.current;
+      if (!container || !track) {
+        requestAnimationFrame(updateScales);
+        return;
+      }
+
       const containerRect = container.getBoundingClientRect();
       const containerCenter = containerRect.left + containerRect.width / 2;
+      
+      // Scaling radius is half the container width
+      const maxDistance = containerRect.width / 2 || 400;
 
-      // Query cards inside the track
-      const cards = container.querySelectorAll('.subcategory-poster-card');
-      cards.forEach(card => {
+      const cards = track.children;
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
         const cardRect = card.getBoundingClientRect();
         const cardCenter = cardRect.left + cardRect.width / 2;
-        const diff = cardCenter - containerCenter;
-        const distanceFromCenter = Math.abs(diff);
 
-        // Max distance is half container width
-        const maxDistance = containerRect.width / 2 || 1;
-        const ratio = diff / maxDistance;
-        const absRatio = Math.min(1, distanceFromCenter / maxDistance);
+        // Distance of card center from container center
+        const distance = Math.abs(cardCenter - containerCenter);
 
-        // Cosine ease squared for a steeper, more pronounced 3D drop-off (Center is full size, adjacent is small, outer is smaller)
-        const ease = Math.pow(Math.cos(absRatio * Math.PI / 2), 2);
+        // Normalize distance between 0 (center) and 1 (edges/beyond)
+        const normDist = Math.min(1, distance / maxDistance);
 
-        // Compute 3D cylinder perspective factors
-        const scale = 0.65 + ease * 0.53; // Center: 1.18 | Adjacent: 0.85 | Outer: 0.65
-        const yRotation = -ratio * 32;   // Rotate around Y axis by up to 32 degrees
-        const opacity = 0.40 + ease * 0.60; // Fade at edges
-        const brightness = 0.50 + ease * 0.50; // Darken at edges
-        const zIndex = Math.round(ease * 100);
+        // Cosine curve to make the center peak stand out nicely and drop off smoothly
+        const scaleFactor = (Math.cos(normDist * Math.PI) + 1) / 2; // 1.0 (center) to 0.0 (edges)
 
-        // Set true GPU-accelerated 3D Transform!
-        card.style.transform = `scale(${scale}) rotateY(${yRotation}deg)`;
-        card.style.opacity = `${opacity}`;
-        card.style.filter = `brightness(${brightness})`;
-        card.style.zIndex = zIndex;
+        // Center card scales to maxScale, adjacent cards scale down, edges scale to minScale
+        const minScale = isMobile ? 0.75 : 0.82;
+        const maxScale = isMobile ? 1.05 : 1.18;
+        const scale = minScale + (maxScale - minScale) * scaleFactor;
 
-        // Solid, realistic dark shadow
-        const shadowIntensity = ease * 12;
-        card.style.boxShadow = `0 ${6 + shadowIntensity}px ${12 + shadowIntensity * 2}px rgba(0, 0, 0, 0.45)`;
-      });
+        // Apply scale transform and adjust opacity slightly for depth
+        card.style.transform = `scale(${scale})`;
+        
+        // Edge cards are more transparent (0.55 opacity), center is fully opaque (1.0)
+        const opacity = 0.55 + 0.45 * scaleFactor;
+        card.style.opacity = opacity;
+      }
 
-      animationFrameId = requestAnimationFrame(updateProjection);
+      requestAnimationFrame(updateScales);
     };
 
-    animationFrameId = requestAnimationFrame(updateProjection);
+    requestAnimationFrame(updateScales);
 
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [subcategories]);
+    return () => {
+      active = false;
+    };
+  }, [isMobile]);
 
   return (
     <div
@@ -69,23 +75,22 @@ function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMo
       className="subcategory-loop-container"
       style={{
         width: '100%',
-        height: '100%', // Fills parent height
+        height: '100%',
         display: 'flex',
-        alignItems: 'center', // Centers vertically so scaled cards don't clip at top/bottom
+        alignItems: 'center',
         overflow: 'hidden',
         position: 'relative',
-        perspective: '1000px', // Creates the 3D depth environment
-        perspectiveOrigin: '50% 50%'
+        padding: '1.5rem 0' // Space for hover scale lift
       }}
     >
       <div
+        ref={trackRef}
         className="subcategory-loop-track"
         style={{
           display: 'flex',
-          gap: isMobile ? '1.5rem' : '2.5rem',
+          gap: isMobile ? '1.5rem' : '2.5rem', // Added slightly larger gap to allow space for scaled center card
           width: 'max-content',
-          alignItems: 'center',
-          transformStyle: 'preserve-3d' // Passes 3D context to child cards
+          alignItems: 'center'
         }}
       >
         {duplicatedSubs.map((sub, idx) => (
@@ -93,6 +98,9 @@ function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMo
             key={`${sub.id}-${idx}`}
             onClick={() => navigate(`/shop?subcategory=${sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)}
             className="subcategory-poster-card"
+            style={{
+              transformOrigin: 'center center' // Ensure cards scale from their center
+            }}
           >
             <img
               src={sub.image_url || defaultImg}
@@ -108,12 +116,12 @@ function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMo
               background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
               display: 'flex',
               alignItems: 'flex-end',
-              padding: '1rem',
+              padding: isMobile ? '0.5rem' : '1rem',
               zIndex: 2
             }}>
               <h5 style={{
                 color: '#fff',
-                fontSize: '0.8rem',
+                fontSize: isMobile ? '0.7rem' : '0.8rem',
                 fontWeight: 700,
                 margin: 0,
                 lineHeight: 1.2,
