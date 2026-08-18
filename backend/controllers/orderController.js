@@ -398,8 +398,8 @@ exports.verifyPayment = async (req, res) => {
       return res.status(502).json({ error: 'Unable to verify payment amount' });
     }
 
-    // Update order status to 'paid' upon successful verification
-    await supabase.from('orders').update({ status: 'paid' }).eq('id', order_id);
+    // Update order status to 'order placed' upon successful verification
+    await supabase.from('orders').update({ status: 'order placed' }).eq('id', order_id);
 
     // Send confirmation email in background with DB-sourced product details
     supabase
@@ -558,7 +558,7 @@ exports.createCodOrder = async (req, res) => {
         customer_address,
         total_amount: parseFloat(grand_total),
         shipping_charge: parseFloat(shipping_charge),
-        status: 'pending'
+        status: 'order placed'
       }])
       .select();
 
@@ -588,7 +588,6 @@ exports.createCodOrder = async (req, res) => {
       throw stockErr;
     }
 
-    // Send confirmation email with DB-sourced product details (not client-supplied)
     supabase
       .from('order_items')
       .select('product_id, quantity, price')
@@ -601,7 +600,7 @@ exports.createCodOrder = async (req, res) => {
             customer_email,
             customer_name,
             newOrder.id,
-            total_amount,
+            newOrder.total_amount,
             emailItems
           );
         }
@@ -616,5 +615,71 @@ exports.createCodOrder = async (req, res) => {
     });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
+  }
+};
+
+exports.getOrderDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.query;
+
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id,
+          quantity,
+          price,
+          products (
+            id,
+            name,
+            image_urls,
+            category
+          )
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error || !order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check if requester is admin
+    let isAdmin = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const jwt = require('jsonwebtoken');
+        const payload = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+        if (payload && payload.role === 'administrator') {
+          isAdmin = true;
+        }
+      } catch (err) {
+        // Ignore token error
+      }
+    }
+
+    if (isAdmin) {
+      return res.json(order);
+    }
+
+    if (order.user_id) {
+      // Must match logged-in user
+      if (!req.user || String(req.user.id) !== String(order.user_id)) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to view this order.' });
+      }
+    } else {
+      // Guest order validation
+      if (!email || email.toLowerCase() !== order.customer_email.toLowerCase()) {
+        return res.status(403).json({ error: 'Forbidden: Email verification required to track guest orders.' });
+      }
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

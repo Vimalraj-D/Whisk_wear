@@ -31,10 +31,6 @@ export default function NewsletterPage({ adminToken, showToast }) {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to send this email campaign to all subscribers?')) {
-      return;
-    }
-
     setSending(true);
     try {
       const payload = {
@@ -121,7 +117,7 @@ export default function NewsletterPage({ adminToken, showToast }) {
             {photos.map((url, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                 <input 
-                  type="url" 
+                  type="text" 
                   className="form-control" 
                   placeholder="https://images.unsplash.com/photo-..." 
                   value={url} 

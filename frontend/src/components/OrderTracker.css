@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════
+   OrderTracker Stylesheet
+   Premium Minimal design tailored for WhiskWear
+   ═══════════════════════════════════════════════════════════ */
+
+.order-tracker-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-top: 1rem;
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp 0.4s ease-out;
+  overflow: hidden;
+}
+
+.order-tracker-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.order-tracker-title-row h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-tracker-title-row h4 span {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Map SVG Layout */
+.tracker-map-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto 2.5rem auto;
+  aspect-ratio: 600 / 220;
+}
+
+.tracker-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Active Path Dash Offset transition */
+.tracker-path-active {
+  transition: stroke-dashoffset 2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Scooter Group styling */
+.scooter-group {
+  transition: transform 0.05s linear; /* Smoothly updates from getPointAtLength */
+  transform-origin: center;
+}
+
+/* Micro-animations for Scooter */
+.scooter-riding {
+  animation: scooterVibrate 0.12s infinite linear;
+}
+
+.scooter-idle {
+  animation: scooterFloat 2.2s infinite ease-in-out;
+}
+
+@keyframes scooterVibrate {
+  0% { transform: translate(-14px, -14px) translateY(0); }
+  50% { transform: translate(-14px, -14px) translateY(-1.5px); }
+  100% { transform: translate(-14px, -14px) translateY(0); }
+}
+
+@keyframes scooterFloat {
+  0% { transform: translate(-14px, -14px) translateY(0); }
+  50% { transform: translate(-14px, -14px) translateY(-3px); }
+  100% { transform: translate(-14px, -14px) translateY(0); }
+}
+
+/* Pins styling */
+.map-pin {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.map-pin:hover {
+  transform: scale(1.1);
+}
+
+.map-pin-pulse {
+  animation: pinPulse 2s infinite ease-out;
+  transform-origin: center;
+}
+
+@keyframes pinPulse {
+  0% {
+    r: 6;
+    opacity: 0.8;
+  }
+  100% {
+    r: 16;
+    opacity: 0;
+  }
+}
+
+.tracker-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.timeline-step {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.5;
+  transition: opacity 0.5s ease, transform 0.3s ease;
+}
+
+.timeline-step.active {
+  opacity: 1;
+}
+
+.timeline-step.current {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.timeline-step-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.timeline-step.active .timeline-step-icon {
+  background: #FFF;
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.timeline-step.current .timeline-step-icon {
+  border-color: var(--brand-orange, #8B6F47);
+  background: var(--brand-orange-glow, rgba(139, 111, 71, 0.1));
+  color: var(--brand-orange, #8B6F47);
+  box-shadow: 0 0 12px var(--brand-orange-glow);
+}
+
+.timeline-step.delivered.current .timeline-step-icon {
+  border-color: var(--color-delivered, #10b981);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-delivered, #10b981);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+.timeline-step-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.timeline-step-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Simulation Controls */
+.simulation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-color);
+}
+
+.simulation-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+}
+
+.simulation-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-color);
+  background: #FFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.simulation-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-muted);
+}
+
+.simulation-btn.active {
+  background: var(--text-primary);
+  color: #FFF;
+  border-color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Cancelled State styling */
+.order-tracker-cancelled-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: var(--radius-md);
+  color: var(--color-cancelled);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.tracker-svg.cancelled {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+@media (max-width: 576px) {
+  .tracker-timeline-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: left;
+  }
+  .timeline-step {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+  }
+  .timeline-step-icon {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .simulation-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  .simulation-label {
+    text-align: center;
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+  }
+}

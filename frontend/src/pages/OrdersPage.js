@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../api';
 
 export default function OrdersPage({ userToken, showToast, onSessionExpired }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     apiService.getMyOrders(userToken)
@@ -43,24 +44,36 @@ export default function OrdersPage({ userToken, showToast, onSessionExpired }) {
                   <th>Items</th>
                   <th>Total</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map(order => (
-                  <tr key={order.id}>
-                    <td><strong>#{order.id}</strong></td>
-                    <td>{new Date(order.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</td>
-                    <td>
-                      {order.order_items?.map(item => (
-                        <div key={item.id} style={{ fontSize: '0.82rem', marginBottom: '0.15rem' }}>
-                          · {item.products?.name || 'Item'} <span style={{ color: 'var(--text-muted)' }}>×{item.quantity}</span>
-                        </div>
-                      ))}
-                    </td>
-                    <td><strong>₹{parseFloat(order.total_amount).toFixed(2)}</strong></td>
-                    <td><span className={`status-badge status-${order.status}`}>{order.status}</span></td>
-                  </tr>
-                ))}
+                {orders.map(order => {
+                  return (
+                    <tr key={order.id}>
+                      <td><strong>#{order.id}</strong></td>
+                      <td>{new Date(order.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</td>
+                      <td>
+                        {order.order_items?.map(item => (
+                          <div key={item.id} style={{ fontSize: '0.82rem', marginBottom: '0.15rem' }}>
+                            · {item.products?.name || 'Item'} <span style={{ color: 'var(--text-muted)' }}>×{item.quantity}</span>
+                          </div>
+                        ))}
+                      </td>
+                      <td><strong>₹{parseFloat(order.total_amount).toFixed(2)}</strong></td>
+                      <td><span className={`status-badge status-${order.status}`}>{order.status}</span></td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button 
+                          className="btn btn-primary" 
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.78rem', borderRadius: '30px', fontWeight: 700 }}
+                          onClick={() => navigate(`/track/${order.id}`)}
+                        >
+                          Track Order
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

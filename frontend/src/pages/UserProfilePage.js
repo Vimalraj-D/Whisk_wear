@@ -181,26 +181,38 @@ export default function UserProfilePage({ user, setUser, userToken, showToast, o
                         <th>Items</th>
                         <th>Total Amount</th>
                         <th>Status</th>
+                        <th style={{ textAlign: 'right' }}>Track</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.map(o => (
-                        <tr key={o.id}>
-                          <td><strong>#{o.id}</strong></td>
-                          <td>{new Date(o.created_at).toLocaleDateString()}</td>
-                          <td>
-                            {o.order_items?.map(item => (
-                              <div key={item.id} style={{ fontSize: '0.82rem', marginBottom: '0.15rem' }}>
-                                · {item.products?.name || 'Item'} <span style={{ color: 'var(--text-muted)' }}>×{item.quantity}</span>
-                              </div>
-                            ))}
-                          </td>
-                          <td><strong>₹{parseFloat(o.total_amount).toFixed(2)}</strong></td>
-                          <td>
-                            <span className={`status-badge status-${o.status}`}>{o.status}</span>
-                          </td>
-                        </tr>
-                      ))}
+                      {orders.map(o => {
+                        return (
+                          <tr key={o.id}>
+                            <td><strong>#{o.id}</strong></td>
+                            <td>{new Date(o.created_at).toLocaleDateString()}</td>
+                            <td>
+                              {o.order_items?.map(item => (
+                                <div key={item.id} style={{ fontSize: '0.82rem', marginBottom: '0.15rem' }}>
+                                  · {item.products?.name || 'Item'} <span style={{ color: 'var(--text-muted)' }}>×{item.quantity}</span>
+                                </div>
+                              ))}
+                            </td>
+                            <td><strong>₹{parseFloat(o.total_amount).toFixed(2)}</strong></td>
+                            <td>
+                              <span className={`status-badge status-${o.status}`}>{o.status}</span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <button 
+                                className="btn btn-primary" 
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.78rem', borderRadius: '30px', fontWeight: 700 }}
+                                onClick={() => navigate(`/track/${o.id}`)}
+                              >
+                                Track Order
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}

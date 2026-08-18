@@ -66,7 +66,7 @@ CREATE TABLE public.orders (
     customer_email TEXT NOT NULL,
     customer_address TEXT NOT NULL,
     total_amount NUMERIC(10, 2) NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'shipped', 'delivered', 'cancelled')),
+    status TEXT NOT NULL DEFAULT 'order placed' CHECK (status IN ('order placed', 'order confirmed', 'order packed', 'Pickuped', 'Shipping', 'Reached', 'Out for delivery', 'Delivery', 'pending', 'paid', 'shipped', 'delivered', 'cancelled')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

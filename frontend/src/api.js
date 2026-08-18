@@ -169,6 +169,14 @@ export const apiService = {
     const r = await api.put(`/orders/${id}`, { status }, getAuthHeaders(token));
     return r.data;
   },
+  getOrderDetails: async (id, email = null, token = null) => {
+    const config = token ? getAuthHeaders(token) : { headers: {} };
+    if (email) {
+      config.params = { email };
+    }
+    const r = await api.get(`/orders/${id}`, config);
+    return r.data;
+  },
 
   // ─── Razorpay Payments ───
   createRazorpayOrder: async (amount, receipt) => {

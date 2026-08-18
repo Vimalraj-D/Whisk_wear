@@ -279,11 +279,20 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                         <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
                         <td>
                           <select value={o.status} onChange={e => handleStatusUpdate(o.id, e.target.value)}
-                            className="form-control" style={{ padding: '0.3rem 0.5rem', width: '120px', fontSize: '0.82rem' }}>
-                            <option value="pending">Pending</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
+                            className="form-control" style={{ padding: '0.3rem 0.5rem', width: '140px', fontSize: '0.82rem' }}>
+                            <option value="order placed">Order Placed</option>
+                            <option value="order confirmed">Order Confirmed</option>
+                            <option value="order packed">Order Packed</option>
+                            <option value="Pickuped">Picked Up</option>
+                            <option value="Shipping">Shipping</option>
+                            <option value="Reached">Reached Local Hub</option>
+                            <option value="Out for delivery">Out for Delivery</option>
+                            <option value="Delivery">Delivered</option>
                             <option value="cancelled">Cancelled</option>
+                            <option value="pending">Pending (Legacy)</option>
+                            <option value="paid">Paid (Legacy)</option>
+                            <option value="shipped">Shipped (Legacy)</option>
+                            <option value="delivered">Delivered (Legacy)</option>
                           </select>
                         </td>
                       </tr>

@@ -16,6 +16,7 @@ import AuthPage from './pages/AuthPage';
 import OrdersPage from './pages/OrdersPage';
 import UserProfilePage from './pages/UserProfilePage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 
 // Admin Pages
 import AdminAuthPage from './pages/admin/AdminAuthPage';
@@ -443,6 +444,7 @@ function AppLayout({
           <Route path="/orders" element={userToken ?
             <OrdersPage userToken={userToken} showToast={showToast} onSessionExpired={handleUserLogout} /> :
             <Navigate to="/login" replace />} />
+          <Route path="/track/:orderId" element={<OrderTrackingPage userToken={userToken} showToast={showToast} />} />
           <Route path="/profile" element={userToken ?
             <UserProfilePage user={user} setUser={setUser} userToken={userToken} showToast={showToast} onUserLogout={handleUserLogout} /> :
             <Navigate to="/login" replace />} />
