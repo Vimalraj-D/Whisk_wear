@@ -1,5 +1,16 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
+
+// Initialize Resend client if key is configured
+let resendClient = null;
+if (process.env.RESEND_API_KEY) {
+  try {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  } catch (err) {
+    console.error('Failed to initialize Resend client:', err);
+  }
+}
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -15,6 +26,28 @@ const EMAIL_FROM = process.env.EMAIL_FROM || 'WhiskWear <noreply@whiskwear.com>'
 const BRAND_LOGO_URL = process.env.BRAND_LOGO_URL || 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png';
 
 async function sendMail({ to, subject, html }) {
+  // 1. Try sending via Resend API (HTTPS port 443 - not blocked by Render)
+  if (resendClient) {
+    try {
+      console.log(`Sending email to ${to} via Resend HTTP API...`);
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+      const data = await resendClient.emails.send({
+        from: fromEmail,
+        to,
+        subject,
+        html,
+      });
+      if (data.error) {
+        throw new Error(data.error.message || 'Resend API returned error');
+      }
+      console.log(`Email successfully sent via Resend API. ID: ${data.data?.id}`);
+      return data;
+    } catch (resendErr) {
+      console.warn(`Resend HTTP API failed, falling back to SMTP. Error: ${resendErr.message}`);
+    }
+  }
+
+  // 2. SMTP fallback
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn(`\n⚠️ SMTP credentials not configured — email to ${to} was NOT sent.`);
     console.log(`[EMAIL CONTENT PREVIEW]`);
