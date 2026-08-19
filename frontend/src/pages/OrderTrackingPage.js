@@ -137,7 +137,7 @@ export default function OrderTrackingPage({ userToken, showToast }) {
   const fallbackImg = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=200';
 
   return (
-    <div className="orders-page-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div className="orders-page-container" style={{ width: '100%', padding: '0.5rem 1rem' }}>
       
       {/* Back navigation */}
       <div style={{ marginBottom: '1.5rem' }}>
@@ -152,12 +152,9 @@ export default function OrderTrackingPage({ userToken, showToast }) {
         </button>
       </div>
 
-      <div className="order-details-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+      <div className="order-details-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', width: '85%', margin: '0 auto' }}>
         
-        {/* Animated Tracker Section */}
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border-color, #e2e8f0)', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <OrderTracker order={order} showToast={showToast} />
-        </div>
+        <OrderTracker order={order} showToast={showToast} />
         
         {/* Details Grid: Left: Items, Right: Delivery Card */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
@@ -165,7 +162,7 @@ export default function OrderTrackingPage({ userToken, showToast }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
             
             {/* Purchase Details */}
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border-color, #e2e8f0)', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+        <div style={{ background: '#fff', borderRadius: '4px', border: '1px solid var(--border-color, #e2e8f0)', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, borderBottom: '1px solid #f0f0f0', paddingBottom: '0.75rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Items Ordered</h3>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
