@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
+const https = require('https');
 require('dotenv').config();
 
 // Initialize Resend client if key is configured
@@ -25,8 +26,75 @@ const transporter = nodemailer.createTransport({
 const EMAIL_FROM = process.env.EMAIL_FROM || 'WhiskWear <noreply@whiskwear.com>';
 const BRAND_LOGO_URL = process.env.BRAND_LOGO_URL || 'https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png';
 
+// Helper to send email via Brevo REST API (HTTPS port 443 - not blocked by Render)
+function sendBrevoEmail({ to, subject, html }) {
+  return new Promise((resolve, reject) => {
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'noreply@whiskwear.com';
+    const senderName = process.env.BREVO_SENDER_NAME || 'WhiskWear';
+
+    const data = JSON.stringify({
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html
+    });
+
+    const options = {
+      hostname: 'api.brevo.com',
+      port: 443,
+      path: '/v3/smtp/email',
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(data)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            resolve({ messageId: 'brevo-success-raw', body });
+          }
+        } else {
+          reject(new Error(`Brevo API responded with status ${res.statusCode}: ${body}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(err);
+    });
+
+    req.setTimeout(10000, () => {
+      req.destroy(new Error('Brevo API request timed out'));
+    });
+
+    req.write(data);
+    req.end();
+  });
+}
+
 async function sendMail({ to, subject, html }) {
-  // 1. Try sending via Resend API (HTTPS port 443 - not blocked by Render)
+  // 1. Try sending via Brevo API (HTTPS port 443 - not blocked by Render, no domain restriction)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      console.log(`Sending email to ${to} via Brevo HTTP API...`);
+      const res = await sendBrevoEmail({ to, subject, html });
+      console.log(`Email successfully sent via Brevo API.`, res);
+      return res;
+    } catch (brevoErr) {
+      console.warn(`Brevo HTTP API failed, falling back to other senders. Error: ${brevoErr.message}`);
+    }
+  }
+
+  // 2. Try sending via Resend API (HTTPS port 443 - not blocked by Render)
   if (resendClient) {
     try {
       console.log(`Sending email to ${to} via Resend HTTP API...`);
@@ -47,7 +115,7 @@ async function sendMail({ to, subject, html }) {
     }
   }
 
-  // 2. SMTP fallback
+  // 3. SMTP fallback
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn(`\n⚠️ SMTP credentials not configured — email to ${to} was NOT sent.`);
     console.log(`[EMAIL CONTENT PREVIEW]`);
