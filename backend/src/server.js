@@ -36,7 +36,7 @@ const PORT = process.env.PORT || 5000;
 // website make authenticated cross-origin requests against this API.
 const allowedOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
-  .map(o => o.trim())
+  .map(o => o.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
 app.use(cors({
