@@ -1,27 +1,148 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './OrderTracker.css';
 
-// Custom inline SVG icons for pins
+// ─── 8 DETAILED, REALISTIC MULTI-LAYERED SVG ICONS ───
+
+// 1. Placed: Shopping bag with gold accent handles & pocket detail
 const ShoppingBagIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-    <line x1="3" y1="6" x2="21" y2="6" />
-    <path d="M16 10a4 4 0 0 1-8 0" />
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="bagGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#4f46e5" />
+        <stop offset="100%" stopColor="#312e81" />
+      </linearGradient>
+    </defs>
+    <path d="M16 22 L48 22 L44 54 L20 54 Z" fill="url(#bagGrad)" filter="drop-shadow(0px 3px 3px rgba(0,0,0,0.15))" />
+    <path d="M24 22 C24 14, 40 14, 40 22" fill="none" stroke="#fbc531" strokeWidth="4" strokeLinecap="round" />
+    <circle cx="32" cy="36" r="6" fill="#fff" opacity="0.2" />
+    <rect x="28" y="28" width="8" height="2" rx="1" fill="#fff" />
   </svg>
 );
 
-const TruckIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="3" width="15" height="13" />
-    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-    <circle cx="5.5" cy="18.5" r="2.5" />
-    <circle cx="18.5" cy="18.5" r="2.5" />
+// 2. Confirmed: Blue clipboard with checklists and a bright green check shield
+const ClipboardCheckIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="clipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#0ea5e9" />
+        <stop offset="100%" stopColor="#0369a1" />
+      </linearGradient>
+    </defs>
+    <rect x="18" y="14" width="28" height="38" rx="4" fill="url(#clipGrad)" filter="drop-shadow(0px 3px 3px rgba(0,0,0,0.15))" />
+    <rect x="26" y="10" width="12" height="6" rx="2" fill="#e2e8f0" />
+    <path d="M26 26 L38 26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+    <path d="M26 34 L38 34" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+    <circle cx="32" cy="42" r="7" fill="#10b981" />
+    <polyline points="29 42 31 44 35 40" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
+// 3. Packed: Cardboard box in isometric 3D with yellow tape & labels
+const BoxIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    {/* Top Face */}
+    <polygon points="32 10, 48 18, 32 26, 16 18" fill="#e6a76c" />
+    {/* Left Face */}
+    <polygon points="16 18, 32 26, 32 46, 16 38" fill="#cb8d50" />
+    {/* Right Face */}
+    <polygon points="32 26, 48 18, 48 38, 32 46" fill="#a46f3a" />
+    {/* Packing Tape */}
+    <polygon points="28 12, 36 16, 28 24, 20 20" fill="#ffd166" opacity="0.8" />
+    <polygon points="28 24, 32 26, 32 46, 28 44" fill="#e2b13c" opacity="0.8" />
+    <polygon points="32 26, 36 24, 36 44, 32 46" fill="#c79728" opacity="0.8" />
+  </svg>
+);
+
+// 4. Picked Up: Pickup truck with cargo package in the back bed
+const PickupTruckIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="truckGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#f59e0b" />
+        <stop offset="100%" stopColor="#b45309" />
+      </linearGradient>
+    </defs>
+    <path d="M12 28 L36 28 L40 20 L48 20 L54 28 L54 42 L12 42 Z" fill="url(#truckGrad)" filter="drop-shadow(0px 3px 3px rgba(0,0,0,0.15))" />
+    <rect x="36" y="24" width="10" height="8" rx="1" fill="#e2e8f0" />
+    <circle cx="20" cy="42" r="6" fill="#1e293b" stroke="#f1f5f9" strokeWidth="2" />
+    <circle cx="44" cy="42" r="6" fill="#1e293b" stroke="#f1f5f9" strokeWidth="2" />
+    <rect x="14" y="20" width="12" height="8" fill="#cd8d50" rx="1" />
+    <line x1="20" y1="20" x2="20" y2="28" stroke="#a46f3a" strokeWidth="1.5" />
+  </svg>
+);
+
+// 5. Shipping: Pink courier van with windows, wheels and motion speed lines
+const ShippingIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="vanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#ec4899" />
+        <stop offset="100%" stopColor="#be185d" />
+      </linearGradient>
+    </defs>
+    <line x1="4" y1="20" x2="12" y2="20" stroke="#fbc531" strokeWidth="2" strokeLinecap="round" />
+    <line x1="2" y1="28" x2="10" y2="28" stroke="#fbc531" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="6" y1="36" x2="14" y2="36" stroke="#fbc531" strokeWidth="2" strokeLinecap="round" />
+    <path d="M16 16 L42 16 L52 26 L52 40 L16 40 Z" fill="url(#vanGrad)" filter="drop-shadow(0px 3px 3px rgba(0,0,0,0.15))" />
+    <path d="M42 16 L48 24 L42 24 Z" fill="#e2e8f0" />
+    <rect x="22" y="20" width="8" height="6" fill="#e2e8f0" />
+    <rect x="32" y="20" width="8" height="6" fill="#e2e8f0" />
+    <circle cx="24" cy="40" r="5.5" fill="#1e293b" stroke="#f1f5f9" strokeWidth="1.5" />
+    <circle cx="44" cy="40" r="5.5" fill="#1e293b" stroke="#f1f5f9" strokeWidth="1.5" />
+  </svg>
+);
+
+// 6. Reached Hub: Green distribution warehouse structure with rollup bays
+const WarehouseIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="houseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#10b981" />
+        <stop offset="100%" stopColor="#047857" />
+      </linearGradient>
+    </defs>
+    <polygon points="12 48, 12 24, 32 14, 52 24, 52 48" fill="url(#houseGrad)" filter="drop-shadow(0px 3px 3px rgba(0,0,0,0.15))" />
+    <polyline points="10 25 32 14 54 25" fill="none" stroke="#ffd166" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    <rect x="18" y="32" width="10" height="16" fill="#e2e8f0" />
+    <line x1="18" y1="36" x2="28" y2="36" stroke="#94a3b8" />
+    <line x1="18" y1="40" x2="28" y2="40" stroke="#94a3b8" />
+    <line x1="18" y1="44" x2="28" y2="44" stroke="#94a3b8" />
+    <rect x="36" y="32" width="10" height="16" fill="#e2e8f0" />
+    <line x1="36" y1="36" x2="46" y2="36" stroke="#94a3b8" />
+    <line x1="36" y1="40" x2="46" y2="40" stroke="#94a3b8" />
+    <line x1="36" y1="44" x2="46" y2="44" stroke="#94a3b8" />
+  </svg>
+);
+
+// 7. Out for Delivery: Courier scooter with a dark cargo box and exhaust clouds
+const OutForDeliveryIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <defs>
+      <linearGradient id="scooterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#6366f1" />
+        <stop offset="100%" stopColor="#4338ca" />
+      </linearGradient>
+    </defs>
+    <circle cx="8" cy="38" r="3" fill="#cbd5e1" opacity="0.6" />
+    <circle cx="4" cy="36" r="2" fill="#cbd5e1" opacity="0.4" />
+    <path d="M16 32h20l4-12h4v4h-2l-4 12H16z" fill="url(#scooterGrad)" />
+    <rect x="14" y="16" width="10" height="12" rx="1" fill="#1e293b" />
+    <rect x="17" y="19" width="4" height="6" fill="#fff" opacity="0.2" />
+    <circle cx="18" cy="38" r="5" fill="#1e293b" stroke="#fff" strokeWidth="1" />
+    <circle cx="36" cy="38" r="5" fill="#1e293b" stroke="#fff" strokeWidth="1" />
+  </svg>
+);
+
+// 8. Delivered: Blue door, doorstep, welcome mat and a delivered cardboard parcel
+const DoorstepIcon = () => (
+  <svg viewBox="0 0 64 64" width="32" height="32">
+    <rect x="18" y="10" width="28" height="42" fill="#f8fafc" stroke="#64748b" strokeWidth="2" />
+    <rect x="22" y="12" width="20" height="40" fill="#3b82f6" />
+    <circle cx="26" cy="32" r="2" fill="#f59e0b" />
+    <ellipse cx="32" cy="52" rx="14" ry="4" fill="#b45309" />
+    <polygon points="32 40, 42 43, 32 46, 22 43" fill="#e6a76c" />
+    <polygon points="22 43, 32 46, 32 50, 22 47" fill="#cb8d50" />
+    <polygon points="32 46, 42 43, 42 47, 32 50" fill="#a46f3a" />
   </svg>
 );
 
@@ -33,15 +154,104 @@ const AlertCircleIcon = () => (
   </svg>
 );
 
+// ─── STAGE METADATA ───
 const STATUS_STEPS = [
-  { status: 'order placed', title: 'Order Placed', desc: 'Order received.', icon: ShoppingBagIcon, percent: 0.0 },
-  { status: 'order confirmed', title: 'Order Confirmed', desc: 'Order accepted.', icon: ShoppingBagIcon, percent: 0.14 },
-  { status: 'order packed', title: 'Order Packed', desc: 'Packed safely.', icon: ShoppingBagIcon, percent: 0.28 },
-  { status: 'Pickuped', title: 'Picked Up', desc: 'Courier picked up.', icon: TruckIcon, percent: 0.42 },
-  { status: 'Shipping', title: 'Shipping', desc: 'In transit.', icon: TruckIcon, percent: 0.57 },
-  { status: 'Reached', title: 'Reached Hub', desc: 'Arrived at hub.', icon: TruckIcon, percent: 0.71 },
-  { status: 'Out for delivery', title: 'Out for Delivery', desc: 'Courier nearby.', icon: TruckIcon, percent: 0.85 },
-  { status: 'Delivery', title: 'Delivered', desc: 'Package delivered.', icon: CheckIcon, percent: 1.0 }
+  { 
+    status: 'order placed', 
+    title: 'Order Placed', 
+    desc: 'Order received.', 
+    icon: ShoppingBagIcon, 
+    percent: 0.0,
+    timeEst: '09:30 AM',
+    substeps: [
+      { text: 'Order details submitted successfully', done: true },
+      { text: 'Payment verification complete', done: true }
+    ]
+  },
+  { 
+    status: 'order confirmed', 
+    title: 'Order Confirmed', 
+    desc: 'Order accepted.', 
+    icon: ClipboardCheckIcon, 
+    percent: 0.14,
+    timeEst: '09:45 AM',
+    substeps: [
+      { text: 'Seller accepted order', done: true },
+      { text: 'Invoice generated & sent', done: true }
+    ]
+  },
+  { 
+    status: 'order packed', 
+    title: 'Order Packed', 
+    desc: 'Packed safely.', 
+    icon: BoxIcon, 
+    percent: 0.28,
+    timeEst: '10:15 AM',
+    substeps: [
+      { text: 'Items inspected & verified', done: true },
+      { text: 'Packed in biodegradable packaging', done: true }
+    ]
+  },
+  { 
+    status: 'Pickuped', 
+    title: 'Picked Up', 
+    desc: 'Courier picked up.', 
+    icon: PickupTruckIcon, 
+    percent: 0.42,
+    timeEst: '11:00 AM',
+    substeps: [
+      { text: 'Courier partner assigned', done: true },
+      { text: 'Package retrieved by courier', done: true }
+    ]
+  },
+  { 
+    status: 'Shipping', 
+    title: 'Shipping', 
+    desc: 'In transit.', 
+    icon: ShippingIcon, 
+    percent: 0.57,
+    timeEst: '01:30 PM (Est)',
+    substeps: [
+      { text: 'Departed origin hub', done: true },
+      { text: 'Transit through state distribution hub', done: false }
+    ]
+  },
+  { 
+    status: 'Reached', 
+    title: 'Reached Hub', 
+    desc: 'Arrived at hub.', 
+    icon: WarehouseIcon, 
+    percent: 0.71,
+    timeEst: '04:00 PM (Est)',
+    substeps: [
+      { text: 'Sorted at local delivery center', done: false },
+      { text: 'Assigned to delivery route', done: false }
+    ]
+  },
+  { 
+    status: 'Out for delivery', 
+    title: 'Out for Delivery', 
+    desc: 'Courier nearby.', 
+    icon: OutForDeliveryIcon, 
+    percent: 0.85,
+    timeEst: '05:30 PM (Est)',
+    substeps: [
+      { text: 'Out with delivery executive', done: false },
+      { text: 'OTP code generated for delivery verification', done: false }
+    ]
+  },
+  { 
+    status: 'Delivery', 
+    title: 'Delivered', 
+    desc: 'Package delivered.', 
+    icon: DoorstepIcon, 
+    percent: 1.0,
+    timeEst: '06:00 PM (Est)',
+    substeps: [
+      { text: 'Signed by recipient', done: false },
+      { text: 'Order archived', done: false }
+    ]
+  }
 ];
 
 const normalizeStatus = (status) => {
@@ -59,6 +269,10 @@ export default function OrderTracker({ order, showToast }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [scooterPos, setScooterPos] = useState({ x: 100, y: 150, angle: 0 });
   const [pathLength, setPathLength] = useState(480);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [hoveredStepIdx, setHoveredStepIdx] = useState(null);
+
+  // Default coordinate placeholders (will be overridden on mount)
   const [stepsWithCoords, setStepsWithCoords] = useState(
     STATUS_STEPS.map(step => ({ ...step, x: 0, y: 0 }))
   );
@@ -66,7 +280,25 @@ export default function OrderTracker({ order, showToast }) {
   const pathRef = useRef(null);
   const isCancelled = order?.status === 'cancelled';
 
-  // 1. Calculate path length and pin coordinates dynamically on mount
+  // Responsive layout state listener
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Winding SVG paths definition
+  const desktopPath = "M 100 150 C 180 150, 240 140, 320 140 C 410 140, 440 110, 460 85 C 475 65, 490 50, 500 50";
+  const mobilePath = "M 100 40 C 40 110, 160 180, 100 250 C 40 320, 160 390, 100 460 L 100 540";
+
+  const activePathD = isMobile ? mobilePath : desktopPath;
+  const viewBoxSize = isMobile ? "0 0 200 600" : "0 0 600 220";
+  const vWidth = isMobile ? 200 : 600;
+  const vHeight = isMobile ? 600 : 220;
+
+  // 1. Calculate path length and pin coordinates dynamically on mount or resize
   useEffect(() => {
     if (!pathRef.current) return;
     const path = pathRef.current;
@@ -82,7 +314,7 @@ export default function OrderTracker({ order, showToast }) {
       };
     });
     setStepsWithCoords(calculated);
-  }, []);
+  }, [isMobile]);
 
   // Helper to map status to target progress percentage
   const getStatusPercentage = (status) => {
@@ -108,7 +340,7 @@ export default function OrderTracker({ order, showToast }) {
     const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
 
     setScooterPos({ x: point.x, y: point.y, angle });
-  }, [animatedProgress, pathLength]);
+  }, [animatedProgress, pathLength, isMobile]);
 
   // 3. Animate progress values from previous location to target location
   useEffect(() => {
@@ -208,25 +440,27 @@ export default function OrderTracker({ order, showToast }) {
       )}
 
       {/* SVG Map Layout */}
-      <div className="tracker-map-wrapper">
+      <div className="tracker-map-wrapper" style={{ position: 'relative' }}>
+        
+        {/* SVG Path Render */}
         <svg 
-          viewBox="0 0 600 220" 
+          viewBox={viewBoxSize} 
           className={`tracker-svg ${isCancelled ? 'cancelled' : ''}`}
         >
           {/* Gradients */}
           <defs>
             <linearGradient id="activePathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="var(--color-pending, #dfa838)" />
-              <stop offset="50%" stopColor="var(--color-shipped, #3a3a3a)" />
-              <stop offset="100%" stopColor="var(--color-delivered, #10b981)" />
+              <stop offset="0%" stopColor="#4f46e5" />
+              <stop offset="50%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#10b981" />
             </linearGradient>
           </defs>
 
           {/* 1. Underlying path: dotted path representing the whole road */}
           <path
-            d="M 100 150 C 180 150, 240 140, 320 140 C 410 140, 440 110, 460 85 C 475 65, 490 50, 500 50"
+            d={activePathD}
             fill="none"
-            stroke="var(--border-color, #E0E0E0)"
+            stroke="var(--border-color, #E2E8F0)"
             strokeWidth="4"
             strokeDasharray="6 6"
             strokeLinecap="round"
@@ -235,7 +469,7 @@ export default function OrderTracker({ order, showToast }) {
           {/* 2. Active path: solid highlight indicating distance traveled */}
           <path
             ref={pathRef}
-            d="M 100 150 C 180 150, 240 140, 320 140 C 410 140, 440 110, 460 85 C 475 65, 490 50, 500 50"
+            d={activePathD}
             fill="none"
             stroke="url(#activePathGrad)"
             strokeWidth="5"
@@ -254,18 +488,26 @@ export default function OrderTracker({ order, showToast }) {
             const isCurrentRest = currentStatus.toLowerCase() === step.status.toLowerCase() && !isAnimating;
 
             return (
-              <g key={step.status} className="map-pin" transform={`translate(${step.x}, ${step.y})`}>
+              <g 
+                key={step.status} 
+                className={`map-pin ${isStepActive ? 'active' : ''}`} 
+                transform={`translate(${step.x}, ${step.y})`}
+                onMouseEnter={() => setHoveredStepIdx(idx)}
+                onMouseLeave={() => setHoveredStepIdx(null)}
+              >
                 {/* Pulse glow if currently active or resting */}
                 {isStepActive && isCurrentRest && (
-                  <circle cx="0" cy="0" r="10" fill={idx === 7 ? 'var(--color-delivered)' : 'var(--color-pending)'} opacity="0.3" className="map-pin-pulse" />
+                  <circle cx="0" cy="0" r="14" fill={idx === 7 ? '#10b981' : '#4f46e5'} opacity="0.3" className="map-pin-pulse" />
                 )}
-                <ellipse cx="0" cy="2" rx="6" ry="2" fill="rgba(0,0,0,0.15)" />
+                <ellipse cx="0" cy="2" rx="7" ry="2" fill="rgba(0,0,0,0.12)" />
                 <path 
                   d="M0 -36 C-11 -36 -20 -27 -20 -16 C-20 -4 0 10 0 10 C0 10 20 -4 20 -16 C20 -27 11 -36 0 -36 Z" 
-                  fill={isStepActive ? (idx === 7 ? 'var(--color-delivered)' : 'var(--brand-purple, #1b4332)') : 'var(--text-muted)'} 
+                  fill={isStepActive ? (idx === 7 ? '#10b981' : '#1b4332') : '#cbd5e1'} 
+                  className="map-pin-marker"
+                  style={{ transition: 'fill 0.3s ease' }}
                 />
                 <circle cx="0" cy="-17" r="7.5" fill="#FFF" />
-                <g transform="translate(-7, -24)" color={isStepActive ? (idx === 7 ? 'var(--color-delivered)' : 'var(--brand-purple, #1b4332)') : 'var(--text-muted)'}>
+                <g transform="translate(-16, -33)" style={{ transformOrigin: 'center' }}>
                   <Icon />
                 </g>
               </g>
@@ -281,15 +523,15 @@ export default function OrderTracker({ order, showToast }) {
               <g className={isAnimating ? 'scooter-riding' : 'scooter-idle'}>
                 <ellipse cx="14" cy="24" rx="10" ry="2.5" fill="rgba(0,0,0,0.2)" />
                 
-                <g fill="var(--brand-orange, #8B6F47)">
+                <g fill="#1b4332">
                   <path d="M22 17h-1.5c-.3 0-.5-.2-.5-.5v-4c0-.8-.7-1.5-1.5-1.5H15v-2h2c.6 0 1-.4 1-1s-.4-1-1-1h-4c-.6 0-1 .4-1 1s.4 1 1 1h1v2H9c-.8 0-1.5.7-1.5 1.5v4c0 .3-.2.5-.5.5H5c-.6 0-1 .4-1 1s.4 1 1 1h17c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                  <rect x="5" y="7" width="7" height="8" rx="1.5" fill="var(--text-primary)" />
+                  <rect x="5" y="7" width="7" height="8" rx="1.5" fill="#fbc531" />
                   <rect x="7.5" y="9.5" width="2" height="3" fill="#FFF" opacity="0.3" />
                   
-                  <circle cx="8" cy="20" r="3.5" stroke="var(--text-primary)" strokeWidth="1.5" fill="#FFF" />
-                  <circle cx="20" cy="20" r="3.5" stroke="var(--text-primary)" strokeWidth="1.5" fill="#FFF" />
-                  <circle cx="8" cy="20" r="1" fill="var(--text-primary)" />
-                  <circle cx="20" cy="20" r="1" fill="var(--text-primary)" />
+                  <circle cx="8" cy="20" r="3.5" stroke="#1e293b" strokeWidth="1.5" fill="#FFF" />
+                  <circle cx="20" cy="20" r="3.5" stroke="#1e293b" strokeWidth="1.5" fill="#FFF" />
+                  <circle cx="8" cy="20" r="1" fill="#1e293b" />
+                  <circle cx="20" cy="20" r="1" fill="#1e293b" />
                   
                   <path d="M19.5 9h1c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5h-1c-.3 0-.5.2-.5.5V8.5c0 .3.2.5.5.5z" fill="#0d9488" opacity="0.75" />
                   <path d="M22.5 7.5l3.5-.5v2z" fill="#fbc531" opacity={isAnimating ? 0.9 : 0.4} />
@@ -298,6 +540,36 @@ export default function OrderTracker({ order, showToast }) {
             </g>
           )}
         </svg>
+
+        {/* ─── HOVER STATE TOOLTIP CARD ─── */}
+        {hoveredStepIdx !== null && (
+          <div 
+            className={`tracking-tooltip-card ${isMobile ? 'mobile' : 'desktop'}`}
+            style={{
+              position: 'absolute',
+              left: `${(stepsWithCoords[hoveredStepIdx].x / vWidth) * 100}%`,
+              top: `${(stepsWithCoords[hoveredStepIdx].y / vHeight) * 100}%`,
+              transform: isMobile ? 'translate(20px, -50%)' : 'translate(-50%, -115%)',
+              pointerEvents: 'none',
+              zIndex: 99
+            }}
+          >
+            <div className="tooltip-header">
+              <span className="tooltip-title">{STATUS_STEPS[hoveredStepIdx].title}</span>
+              <span className="tooltip-badge">{STATUS_STEPS[hoveredStepIdx].timeEst}</span>
+            </div>
+            <p className="tooltip-desc">{STATUS_STEPS[hoveredStepIdx].desc}</p>
+            <div className="tooltip-substeps">
+              {STATUS_STEPS[hoveredStepIdx].substeps.map((sub, sidx) => (
+                <div key={sidx} className={`tooltip-substep ${sub.done ? 'done' : 'pending'}`}>
+                  <span className="substep-bullet">{sub.done ? '✓' : '○'}</span>
+                  <span className="substep-text">{sub.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Timeline Steps Info Card */}
@@ -315,6 +587,7 @@ export default function OrderTracker({ order, showToast }) {
               <div>
                 <div className="timeline-step-title">{step.title}</div>
                 <div className="timeline-step-desc">{step.desc}</div>
+                <div className="timeline-step-time">{step.timeEst}</div>
               </div>
             </div>
           );
