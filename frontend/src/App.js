@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // Components
 import Header from './components/Header';
@@ -399,6 +400,7 @@ function App() {
         handleUserLogout={handleUserLogout} handleAdminLogout={handleAdminLogout}
         wishlist={wishlist} toggleWishlist={toggleWishlist}
       />
+      <SpeedInsights />
     </Router>
   );
 }
