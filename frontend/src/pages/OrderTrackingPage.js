@@ -178,6 +178,7 @@ export default function OrderTrackingPage({ userToken, showToast }) {
                         src={imgUrl} 
                         alt={product.name || 'Product'} 
                         style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #eaeaea', background: '#fafafa' }}
+                        loading="lazy" decoding="async"
                       />
                       <div style={{ flexGrow: 1 }}>
                         <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>{product.name || 'Product Item'}</h4>

@@ -163,7 +163,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
           <button type="button" onClick={() => setIsMobileSidebarOpen(false)}>×</button>
         </div>
         <div className="logo-container" onClick={() => { navigate('/'); setIsMobileSidebarOpen(false); }} style={{ padding: '1rem', display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px' }}>
-          <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" style={{ width: '40px', height: '40px' }} />
+          <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" style={{ width: '40px', height: '40px' }} loading="lazy" decoding="async" />
           <span className="logo-wordmark" style={{ fontSize: '1.4rem' }}>WHISK<span style={{ color: 'var(--brand-teal)' }}>WEAR</span></span>
         </div>
         <nav className="admin-sidebar-nav">
@@ -313,7 +313,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                 <tbody>
                   {products.map(p => (
                     <tr key={p.id}>
-                       <td><img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : '')} alt={p.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }} /></td>
+                       <td><img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : '')} alt={p.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }} loading="lazy" decoding="async" /></td>
                       <td>
                         <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{p.name}</div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
@@ -407,7 +407,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                           {existingImages.map((img, idx) => (
                             <div key={idx} style={{ position: 'relative', width: '60px', height: '60px', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-                              <img src={getImageUrl(img)} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                               <img src={getImageUrl(img)} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" decoding="async" />
                               <button 
                                 type="button"
                                 onClick={() => setExistingImages(prev => prev.filter(u => u !== img))}
@@ -435,7 +435,7 @@ export default function AdminLayout({ adminToken, showToast, onSessionExpired })
                             const previewUrl = URL.createObjectURL(file);
                             return (
                               <div key={idx} style={{ position: 'relative', width: '60px', height: '60px', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-                                <img src={previewUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={previewUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" decoding="async" />
                                 <button 
                                   type="button"
                                   onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}

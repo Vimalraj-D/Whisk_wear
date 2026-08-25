@@ -13,7 +13,7 @@ export default function Header({ cartCount, openCart, user, adminToken, onUserLo
     <header className="header">
       {/* Logo */}
       <div className="logo-container" onClick={() => { navigate('/'); closeMenu(); }}>
-        <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" />
+        <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="logo-img" loading="eager" fetchpriority="high" decoding="async" />
         <span className="logo-wordmark">WHISK<span>WEAR</span></span>
       </div>
 

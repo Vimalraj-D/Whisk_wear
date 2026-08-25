@@ -18,7 +18,7 @@ export default function ProductViewModal({ product, categoryName, onClose }) {
         <div className="modal-body" style={bodyStyle}>
           {images.length > 0 && (
             <div style={imageContainerStyle}>
-              <img src={getImageUrl(images[currentIndex])} alt={`${product.name} ${currentIndex + 1}`} style={imageStyle} />
+              <img src={getImageUrl(images[currentIndex])} alt={`${product.name} ${currentIndex + 1}`} style={imageStyle} loading="lazy" decoding="async" />
               {images.length > 1 && (
                 <div style={carouselControlsStyle}>
                   <button onClick={prev} style={arrowBtnStyle}>←</button>

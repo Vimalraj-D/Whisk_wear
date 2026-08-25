@@ -313,6 +313,7 @@ const CategoriesPage = () => {
                           borderRadius: '6px',
                           objectFit: 'cover'
                         }}
+                        loading="lazy" decoding="async"
                       />
                     )}
                     {cat.name}
@@ -330,6 +331,7 @@ const CategoriesPage = () => {
                             src={s.image_url}
                             alt={s.name}
                             className="subcategory-pill-img"
+                            loading="lazy" decoding="async"
                           />
                         )}
                         <span className="subcategory-pill-name">{s.name}</span>
@@ -505,6 +507,7 @@ const CategoriesPage = () => {
                         display: 'block',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                       }}
+                      loading="lazy" decoding="async"
                       onError={(e) => {
                         console.log('Image load error:', e);
                       }}

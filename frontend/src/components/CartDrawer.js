@@ -325,7 +325,7 @@ export default function CartDrawer({ isOpen, closeCart, cart, userToken, user, u
               </div>
             ) : cart.map((item, idx) => (
               <div key={`${item.product_id}-${item.selectedSize}-${item.selectedColor}-${idx}`} className="cart-item">
-                <img src={getImageUrl(item.image_url)} alt={item.name} className="cart-item-img" />
+                <img src={getImageUrl(item.image_url)} alt={item.name} className="cart-item-img" loading="lazy" decoding="async" />
                 <div className="cart-item-details">
                   <div className="cart-item-name">{item.name}</div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.15rem 0' }}>

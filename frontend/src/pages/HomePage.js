@@ -513,7 +513,7 @@ export default function HomePage({ user, addToCart, openCart, showToast, wishlis
               return (
                 <div key={p.id} className="product-card">
                     <div className="product-img-wrapper">
-                      <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" />
+                      <img src={getImageUrl(p.image_urls && p.image_urls[0] ? p.image_urls[0] : p.image_url)} alt={p.name} className="product-img" loading="lazy" decoding="async" />
                       {hasDiscount && (
                         <div className="discount-badge">{p.discount_percent}% OFF</div>
                       )}

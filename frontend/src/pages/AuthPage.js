@@ -234,7 +234,7 @@ export default function AuthPage({ setUser, setUserToken, showToast }) {
 
       <div className="auth-left-panel">
         <div className="auth-logo-large">
-          <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="auth-logo-img-large" />
+          <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" className="auth-logo-img-large" loading="lazy" decoding="async" />
           <div className="auth-logo-text-large">WHISK<span>WEAR</span></div>
         </div>
       </div>

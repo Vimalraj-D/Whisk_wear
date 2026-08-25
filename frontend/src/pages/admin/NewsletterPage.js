@@ -166,6 +166,7 @@ export default function NewsletterPage({ adminToken, showToast }) {
                   width="36"
                   height="36"
                   style={{ display: 'block', margin: '0 auto 6px' }}
+                  loading="lazy" decoding="async"
                 />
                 <span style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', letterSpacing: '1px', textTransform: 'uppercase' }}>
                   WHISK<span style={{ color: '#ffd166' }}>WEAR</span>
@@ -200,6 +201,7 @@ export default function NewsletterPage({ adminToken, showToast }) {
                     src={url} 
                     alt={`Campaign visual ${idx + 1}`} 
                     style={{ maxWidth: '100%', height: 'auto', borderRadius: '6px', maxHeight: '160px', objectFit: 'contain', border: '1px solid #ddd' }}
+                    loading="lazy" decoding="async"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
                 </div>

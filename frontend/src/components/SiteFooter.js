@@ -43,7 +43,7 @@ export default function SiteFooter() {
         {/* Brand Description Column */}
         <div className="footer-brand" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,0.08)', padding: 4 }} />
+            <img src="https://aoppjuuqdgajcidduqld.supabase.co/storage/v1/object/public/Images/favicon.png" alt="WhiskWear" style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,0.08)', padding: 4 }} loading="lazy" decoding="async" />
             <span className="logo-wordmark" style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, letterSpacing: '1px' }}>WHISK<span style={{ color: 'var(--brand-teal)' }}>WEAR</span></span>
           </div>
           <p style={{ color: '#a0a5b5', fontSize: '0.92rem', lineHeight: '1.6', margin: 0 }}>

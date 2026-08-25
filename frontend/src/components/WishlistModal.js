@@ -25,6 +25,7 @@ export default function WishlistModal({ isOpen, onClose, wishlist = [], toggleWi
                   alt={item.name}
                   className="wishlist-modal-item-img"
                   onClick={() => { navigate(`/product/${item.id}`); onClose(); }}
+                  loading="lazy" decoding="async"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=100';

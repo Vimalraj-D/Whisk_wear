@@ -36,6 +36,7 @@ export default function ImageWithSkeleton({ src, alt, className, wrapperClassNam
           className={className}
           onLoad={() => setLoaded(true)}
           style={imageStyles}
+          loading="lazy" decoding="async"
         />
       ) : (
         <img
@@ -48,6 +49,7 @@ export default function ImageWithSkeleton({ src, alt, className, wrapperClassNam
             setError(true);
           }}
           style={imageStyles}
+          loading="lazy" decoding="async"
         />
       )}
     </div>

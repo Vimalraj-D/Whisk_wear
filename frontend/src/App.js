@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
-// Components
+// Components (loaded eagerly — small, needed on every page)
 import Header from './components/Header';
 import SiteFooter from './components/SiteFooter';
 import CartDrawer from './components/CartDrawer';
 import WishlistModal from './components/WishlistModal';
 import CategoryTicker from './components/CategoryTicker';
 
-// Pages
-import HomePage from './pages/HomePage';
-import ShopPage from './pages/ShopPage';
-import CollectionsPage from './pages/CollectionsPage';
-import AuthPage from './pages/AuthPage';
-import OrdersPage from './pages/OrdersPage';
-import UserProfilePage from './pages/UserProfilePage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import OrderTrackingPage from './pages/OrderTrackingPage';
+// Pages (lazy-loaded per route for code splitting)
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ShopPage = lazy(() => import('./pages/ShopPage'));
+const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
 
-// Admin Pages
-import AdminAuthPage from './pages/admin/AdminAuthPage';
-import AdminLayout from './pages/admin/AdminLayout';
+// Admin Pages (lazy-loaded — only needed for admin routes)
+const AdminAuthPage = lazy(() => import('./pages/admin/AdminAuthPage'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
 
 function isTokenExpired(token) {
   if (!token) return true;
@@ -435,6 +435,11 @@ function AppLayout({
       )}
 
       <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Suspense fallback={
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+            <div style={{ width: 32, height: 32, border: '3px solid #e2e8f0', borderTopColor: '#2C2C2C', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+          </div>
+        }>
         <Routes>
           <Route path="/" element={<HomePage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
           <Route path="/shop" element={<ShopPage user={user} addToCart={addToCart} openCart={() => setIsCartOpen(true)} showToast={showToast} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
@@ -459,6 +464,7 @@ function AppLayout({
             
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
 
       {!isAuthPage && !isAdminPanel && <SiteFooter />}

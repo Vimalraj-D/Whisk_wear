@@ -85,6 +85,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                   src={getImageUrl(img)}
                   alt={`thumb-${idx}`}
                   style={thumbnailImageStyle}
+                  loading="lazy" decoding="async"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1fac08b475?w=100';
@@ -122,6 +123,7 @@ export default function ProductDetailModal({ product, user, onClose, addToCart, 
                   transform: spinAngle ? `rotateY(${spinAngle}deg)` : 'none',
                   transition: is360Active ? 'none' : 'transform 0.3s ease',
                 }}
+                loading="lazy" decoding="async"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1590794056226-79ef3a814c2c?w=500';

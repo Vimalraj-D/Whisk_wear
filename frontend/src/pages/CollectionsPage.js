@@ -105,6 +105,7 @@ function SubcategoryCirculatingTrack({ subcategories, defaultImg, navigate, isMo
             <img
               src={sub.image_url || defaultImg}
               alt={sub.name}
+              loading="lazy" decoding="async"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = defaultImg;
@@ -254,6 +255,7 @@ export default function CollectionsPage() {
                         opacity: 1, // Completely visible!
                         transition: 'transform 0.5s ease'
                       }}
+                      loading="lazy" decoding="async"
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = defaultCategoryImg;
