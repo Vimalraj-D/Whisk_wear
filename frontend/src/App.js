@@ -5,9 +5,11 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 // Components (loaded eagerly — small, needed on every page)
 import Header from './components/Header';
 import SiteFooter from './components/SiteFooter';
-import CartDrawer from './components/CartDrawer';
-import WishlistModal from './components/WishlistModal';
 import CategoryTicker from './components/CategoryTicker';
+
+// Heavy components (lazy-loaded — only needed on interaction)
+const CartDrawer = lazy(() => import('./components/CartDrawer'));
+const WishlistModal = lazy(() => import('./components/WishlistModal'));
 
 // Pages (lazy-loaded per route for code splitting)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -470,21 +472,25 @@ function AppLayout({
       {!isAuthPage && !isAdminPanel && <SiteFooter />}
 
       {!isAdminPanel && (
-        <CartDrawer
-          isOpen={isCartOpen} closeCart={() => setIsCartOpen(false)}
-          cart={cart} userToken={userToken} user={user}
-          updateCartQty={updateCartQty} removeFromCart={removeFromCart}
-          setCart={setCart} showToast={showToast}
-        />
+        <Suspense fallback={null}>
+          <CartDrawer
+            isOpen={isCartOpen} closeCart={() => setIsCartOpen(false)}
+            cart={cart} userToken={userToken} user={user}
+            updateCartQty={updateCartQty} removeFromCart={removeFromCart}
+            setCart={setCart} showToast={showToast}
+          />
+        </Suspense>
       )}
 
-      <WishlistModal
-        isOpen={isWishlistOpen}
-        onClose={() => setIsWishlistOpen(false)}
-        wishlist={wishlist}
-        toggleWishlist={toggleWishlist}
-        addToCart={addToCart}
-      />
+      <Suspense fallback={null}>
+        <WishlistModal
+          isOpen={isWishlistOpen}
+          onClose={() => setIsWishlistOpen(false)}
+          wishlist={wishlist}
+          toggleWishlist={toggleWishlist}
+          addToCart={addToCart}
+        />
+      </Suspense>
 
       {toast && (
         <div className="toast">
